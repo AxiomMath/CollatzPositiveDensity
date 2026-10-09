@@ -2,7 +2,7 @@
 
 # Explicit Positive-Density Collatz Convergence in Logarithmic Time
 
-This is a Lean formalization of an explicit positive-density theorem for Collatz convergence in logarithmic time, refining L. Mazur's Theorem 1.1.
+This is a Lean formalization of an explicit positive-density theorem for Collatz convergence in logarithmic time, refining [Lech Mazur's Theorem 1.1](https://x.com/LechMazur/status/2096464472973975782).
 
 ## Main Results
 
