@@ -1,0 +1,34 @@
+name = "CollatzPosDens"
+defaultTargets = ["CollatzPosDens"]
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
+
+# Mathlib's standard linter set. The `weak.` prefix means Lake will not fail if a
+# revision does not define the option. Enabling it here is what makes the
+# mechanically-enforceable half of the style rules enforced from now on.
+weak.linter.mathlibStandardSet = true
+
+# The Mathlib pin matches `lean-toolchain` (leanprover/lean4:v4.35.0-rc2). Bump the two in ONE
+# commit, then regenerate `lake-manifest.json` and re-provision Axile.
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.35.0-rc2"
+
+[[lean_lib]]
+name = "CollatzPosDens"
+
+# The comparator pair. Deliberately NOT in defaultTargets: `Challenge` carries a
+# permanent `sorry` (its statements are the artifact), and `lake lint` derives its
+# scope from the default targets. The comparator builds both modules itself.
+[[lean_lib]]
+name = "Challenge"
+# The human-written challenge has no copyright header.
+leanOptions = { weak.linter.style.header = false }
+
+[[lean_lib]]
+name = "Solution"

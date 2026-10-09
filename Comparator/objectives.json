@@ -1,0 +1,12 @@
+{
+  "objectives": [
+    {
+      "charter_alias": "thm_main_joint",
+      "lean_decl": "positive_density_collatz_and_collatzAccel_reaches_one"
+    },
+    {
+      "charter_alias": "thm_main",
+      "lean_decl": "positive_density_collatz_reaches_one"
+    }
+  ]
+}
