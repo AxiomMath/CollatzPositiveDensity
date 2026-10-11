@@ -237,6 +237,7 @@ public import CollatzPosDens.FourierDecay.ChQPointwise
 public import CollatzPosDens.FourierDecay.ChQmThreshold
 public import CollatzPosDens.FourierDecay.ChRealMoment
 public import CollatzPosDens.Main.CountSuperset
+public import CollatzPosDens.Main.EndpointJoint
 public import CollatzPosDens.Main.Main
 public import CollatzPosDens.Main.MainJoint
 public import CollatzPosDens.Main.MnInternal
@@ -251,6 +252,8 @@ public import CollatzPosDens.Maps.InverseOrbitOdd
 public import CollatzPosDens.Maps.Offset
 public import CollatzPosDens.Maps.OffsetBound
 public import CollatzPosDens.Maps.OrbitHitsSeedOnce
+public import CollatzPosDens.Maps.SyrPeriodic
+public import CollatzPosDens.Maps.SyrPeriodicFiber
 public import CollatzPosDens.Maps.Syracuse
 public import CollatzPosDens.Maps.SyracuseOfInverse
 public import CollatzPosDens.Maps.Valsum
@@ -365,6 +368,7 @@ public import CollatzPosDens.OrdinaryTime.LogFourThirds
 public import CollatzPosDens.OrdinaryTime.LogSourceLower
 public import CollatzPosDens.OrdinaryTime.OrbitLarge
 public import CollatzPosDens.OrdinaryTime.SelectedPair
+public import CollatzPosDens.OrdinaryTime.SourceOdd
 public import CollatzPosDens.OrdinaryTime.Telescope
 public import CollatzPosDens.OrdinaryTime.Time
 public import CollatzPosDens.OrdinaryTime.ValuationLower
@@ -394,15 +398,12 @@ public import CollatzPosDens.Recipe.NtTerm
 public import CollatzPosDens.Recipe.NtValue
 public import CollatzPosDens.Recipe.PhBphys
 public import CollatzPosDens.Recipe.PhConductor
-public import CollatzPosDens.Recipe.PhCutoffChain
 public import CollatzPosDens.Recipe.PhDeltaEnclosure
-public import CollatzPosDens.Recipe.PhDensityChain
-public import CollatzPosDens.Recipe.PhDensityLog
 public import CollatzPosDens.Recipe.PhEndpoint
 public import CollatzPosDens.Recipe.PhH0Large
 public import CollatzPosDens.Recipe.PhLog23Enclosure
-public import CollatzPosDens.Recipe.PhLogH0
 public import CollatzPosDens.Recipe.PhMLog
+public import CollatzPosDens.Recipe.PhSeedTower
 public import CollatzPosDens.Recipe.Qstar
 public import CollatzPosDens.Recipe.QstarGe
 public import CollatzPosDens.Recipe.Texp
@@ -507,6 +508,7 @@ public import CollatzPosDens.Seed.PullbackNonunit
 public import CollatzPosDens.Seed.RepunitResidues
 public import CollatzPosDens.Seed.RoundedOffset
 public import CollatzPosDens.Seed.Rounding
+public import CollatzPosDens.Seed.SeedCandidate
 public import CollatzPosDens.Seed.SelectedOffset
 public import CollatzPosDens.Seed.SelectedRatio
 public import CollatzPosDens.Seed.SelectedRatioCompute

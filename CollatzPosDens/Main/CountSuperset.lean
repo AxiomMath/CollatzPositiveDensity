@@ -13,10 +13,11 @@ public import CollatzPosDens.Definitions
 /-!
 # Inclusion of two sets of fast-converging integers
 
-For `N : ℕ`, the set of integers `1 ≤ n < N` that reach `1` within `⌊(523/50) log n⌋₊` Collatz
-steps and within `⌊(34881/10000) log n⌋₊` accelerated Collatz steps is contained in the set of
-`n ∈ {0, …, N - 1}` that reach `1` within `⌊(1046/100) log n⌋₊` Collatz steps and within
-`⌊(34881/10000) log n⌋₊` accelerated Collatz steps, since `523/50 = 1046/100`.
+Fix an endpoint `s`. The main theorem counts the odd integers `1 ≤ n < N` that reach `s` within
+`⌊(523/50) log(n/s)⌋₊` Collatz steps and within `⌊(34881/10000) log(n/s)⌋₊` accelerated Collatz
+steps, whereas the challenge statement counts the odd `n ∈ {0, …, N - 1}` with the same
+accelerated condition that reach `s` within `⌊(1046/100) log(n/s)⌋₊` Collatz steps. Since
+`523/50 = 1046/100`, the first set is contained in the second.
 
 ## Main results
 
@@ -24,8 +25,9 @@ steps and within `⌊(34881/10000) log n⌋₊` accelerated Collatz steps is con
 
 ## Implementation notes
 
-The first set is a subset of `ℕ`, and the second is the coercion of a `Finset` filtered from
-`Finset.range N`.
+The left-hand set is a subset of `ℕ`, and the right-hand set is the coercion of a `Finset`
+filtered from `Finset.range N`, matching the index set `{0, …, N - 1}` of the challenge. The
+quotient `n / s` inside the logarithm is real division.
 
 ## References
 
@@ -36,22 +38,22 @@ The first set is a subset of `ℕ`, and the second is the coercion of a `Finset`
 
 namespace CollatzPosDens
 
-/-- For every `N`, the integers `1 ≤ n < N` reaching `1` within `⌊(523/50) log n⌋₊` Collatz
-steps and within `⌊(34881/10000) log n⌋₊` accelerated steps form a subset of the
-`n ∈ {0, …, N - 1}` reaching `1` within `⌊(1046/100) log n⌋₊` Collatz steps and within
-`⌊(34881/10000) log n⌋₊` accelerated steps. -/
+/-- For every `s` and `N`, the odd integers `1 ≤ n < N` reaching `s` within
+`⌊(523/50) log(n/s)⌋₊` Collatz steps and within `⌊(34881/10000) log(n/s)⌋₊` accelerated steps
+form a subset of the odd `n ∈ {0, …, N - 1}` reaching `s` within `⌊(1046/100) log(n/s)⌋₊`
+Collatz steps and within `⌊(34881/10000) log(n/s)⌋₊` accelerated steps. -/
 @[collatz_pos_dens "lem_count_superset"]
-theorem count_superset (N : ℕ) :
+theorem count_superset (s N : ℕ) :
     {n : ℕ | 1 ≤ n ∧ n < N ∧
-        (CollatzOneWithin n ⌊(523 / 50 : ℝ) * Real.log n⌋₊ ∧
-          CollatzAccelOneWithin n ⌊(34881 / 10000 : ℝ) * Real.log n⌋₊)} ⊆
-      ↑{n ∈ Finset.range N |
-        CollatzOneWithin n ⌊(1046 / 100 : ℝ) * Real.log n⌋₊ ∧
-          CollatzAccelOneWithin n ⌊(34881 / 10000 : ℝ) * Real.log n⌋₊} := by
-  rintro n ⟨-, hnN, hn, hacc⟩
+        (Odd n ∧ ReachWithin collatz s n ⌊(523 / 50 : ℝ) * Real.log ((n : ℝ) / s)⌋₊ ∧
+          ReachWithin collatzAccel s n ⌊(34881 / 10000 : ℝ) * Real.log ((n : ℝ) / s)⌋₊)} ⊆
+      ↑{n ∈ Finset.range N | Odd n ∧
+        ReachWithin collatz s n ⌊(1046 / 100 : ℝ) * Real.log ((n : ℝ) / s)⌋₊ ∧
+          ReachWithin collatzAccel s n ⌊(34881 / 10000 : ℝ) * Real.log ((n : ℝ) / s)⌋₊} := by
+  rintro n ⟨-, hnN, hodd, hn, hacc⟩
   have h : (523 / 50 : ℝ) = 1046 / 100 := by norm_num
   rw [h] at hn
   simp only [Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq]
-  exact ⟨hnN, hn, hacc⟩
+  exact ⟨hnN, hodd, hn, hacc⟩
 
 end CollatzPosDens

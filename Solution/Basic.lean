@@ -7,5 +7,6 @@ module
 
 public import CollatzPosDens.Main.Main
 public import CollatzPosDens.Main.MainJoint
+public import CollatzPosDens.Main.EndpointJoint
 
-/-! # Both statements of `Challenge/Basic.lean`, proved in the library under the same names. -/
+/-! # The statements of `Challenge/Basic.lean`, proved in the library under the same names. -/

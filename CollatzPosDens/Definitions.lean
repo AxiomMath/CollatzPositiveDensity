@@ -23,10 +23,10 @@ open Finset
 def collatz (n : ℕ) : ℕ :=
   if n % 2 = 0 then n / 2 else 3 * n + 1
 
-/-- `n` reaches `1` in at most `steps` applications of the Collatz map. -/
+/-- The orbit of `f` starting from `n` reaches target within `steps` steps. -/
 @[reducible, collatz_pos_dens "def_reaches_one"]
-def CollatzOneWithin (n steps : ℕ) : Prop :=
-  ∃ r ≤ steps, collatz^[r] n = 1
+def ReachWithin {α : Type*} (f : α → α) (target n : α) (steps : ℕ) : Prop :=
+  ∃ r ≤ steps, f^[r] n = target
 
 /-- The density constant `c = 1 / 2^2^2^140214`. -/
 @[collatz_pos_dens "def_challenge_density"]
@@ -38,14 +38,26 @@ def collatzDensity : ℚ :=
 def collatzDensityThreshold : ℕ :=
   2 ^ 2 ^ 2 ^ 2 ^ 140214
 
+section with_accel
+
 /-- Accelerated Collatz map, aka Syracuse map. Sends odd `n` to `3n + 1` divided by the highest
 power of 2 that divides `3n + 1`. -/
 @[collatz_pos_dens "def_collatz_accel"]
 def collatzAccel (n : ℕ) : ℕ :=
   (3 * n + 1) / 2 ^ padicValNat 2 (3 * n + 1)
 
-/-- The odd part `n / 2 ^ padicValNat 2 n` of `n` reaches `1` in at most `steps` applications of
-the accelerated Collatz map (which fixes `1`). -/
-@[reducible, collatz_pos_dens "def_accel_reaches_one"]
-def CollatzAccelOneWithin (n steps : ℕ) : Prop :=
-  collatzAccel^[steps] (n / 2 ^ padicValNat 2 n) = 1
+end with_accel
+
+section generalized
+
+/-- The density constant `c = 1 / (s^4 * 2^2^2^140214)`. -/
+@[collatz_pos_dens "def_endpoint_density"]
+def collatzDensityDep (s : ℕ) : ℚ :=
+  1 / (s ^ 4 * 2 ^ 2 ^ 2 ^ 140214)
+
+/-- The cutoff `X₀ = 2^(s^3 * 2^2^2^140214)`. -/
+@[collatz_pos_dens "def_endpoint_threshold"]
+def collatzDensityThresholdDep (s : ℕ) : ℕ :=
+  2 ^ (s ^ 3 * 2 ^ 2 ^ 2 ^ 140214)
+
+end generalized

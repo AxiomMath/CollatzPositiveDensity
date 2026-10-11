@@ -22,9 +22,9 @@ public import CollatzPosDens.Terminal.UnweightedMass
 /-!
 # The source window
 
-Let `M` be a good seed, `n ≥ 0`, and let `X` be admissible for generation `n`. Then every
-source `x = src(w, R_h)` of a counted pair `(h, w)` of `Υ_{n,X}(M)` satisfies `X ≤ x < 32 X`,
-that is `𝒮_{n,X}(M) ⊆ [X, 32 X)`.
+Let `s ≥ 1`, let `M` be an `s`-good seed, `n ≥ 0`, and let `X` be admissible for generation
+`n`. Then every source `x = src(w, R_h)` of a counted pair `(h, w)` of `Υ_{n,X}(M)` satisfies
+`X ≤ x < 32 X`, that is `𝒮_{n,X}(M) ⊆ [X, 32 X)`.
 
 With `R = R_h`, `b = b_n` and `u = u_h`, one has `R ≥ 16^b`, `R = ω(w) x + off(w)` and
 `0 < off(w) < 2^b ≤ R / 2`, so `R / 2 ≤ ω(w) x ≤ R`. The weight bounds
@@ -36,13 +36,14 @@ window `X ≤ 2^u L_b(R) < 2X` concludes.
 
 * `CollatzPosDens.sources_subset_Ico_of_odd`: the window, for an odd integer seed
   `M ≥ 16^{b₀}`.
-* `CollatzPosDens.GoodSeed.sources_subset_Ico`: the window, for a good seed `M`.
+* `CollatzPosDens.GoodSeed.sources_subset_Ico`: the window, for an `s`-good seed
+  with `s ≥ 1`.
 
 ## Implementation notes
 
-Of the good-seed conditions, the argument uses only that `M` is odd with `M ≥ 16^{b₀}`; the
-general statement is recorded under these hypotheses. The source set is a set of integers and
-the window is stated for its image in `ℝ`.
+Of the `s`-good-seed conditions, the argument uses only that `M` is odd with `M ≥ 16^{b₀}`,
+which follows from `16^{b₀} s < M` and `s ≥ 1`; the general statement is recorded under these
+hypotheses. The source set is a set of integers and the window is stated for its image in `ℝ`.
 
 ## References
 
@@ -115,13 +116,13 @@ theorem sources_subset_Ico_of_odd {M : ℤ} (hodd : Odd M) (hM : 16 ^ scale 0 �
   · have : (w.weight : ℝ) * z ≤ w.weight * (16 * T) := by nlinarith
     linarith [le_of_mul_le_mul_left this hωpos]
 
-/-- **Source window.** Let `M` be a good seed and let `X` be admissible for generation `n`.
-Then `𝒮_{n,X}(M) ⊆ [X, 32 X)`. -/
+/-- **Source window.** Let `s ≥ 1`, let `M` be an `s`-good seed and let `X` be admissible for
+generation `n`. Then `𝒮_{n,X}(M) ⊆ [X, 32 X)`. -/
 @[collatz_pos_dens "lem_source_window"]
-theorem GoodSeed.sources_subset_Ico {M : ℕ} (hM : GoodSeed M)
+theorem GoodSeed.sources_subset_Ico {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
     (hX : IsAdmissibleScale M n X) :
     ((↑) : ℤ → ℝ) '' sources n X M ⊆ Set.Ico X (32 * X) := by
   simpa only [Int.cast_natCast] using sources_subset_Ico_of_odd (M := (M : ℤ))
-    (by exact_mod_cast hM.odd) (by exact_mod_cast hM.lower.le) hX
+    (by exact_mod_cast hM.odd) (by exact_mod_cast (hM.sixteen_pow_lt hs).le) hX
 
 end CollatzPosDens

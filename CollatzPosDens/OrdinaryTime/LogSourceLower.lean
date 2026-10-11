@@ -30,8 +30,9 @@ public import CollatzPosDens.Terminal.Sources
 /-!
 # A lower bound for the logarithm of a source
 
-Let `M` be a good seed and `n ≥ 2 · 10^{10}`. Every source `x ∈ 𝒮_{n,X}(M)` satisfies
-$$\log x \ge \frac{28559}{100000} B_*(n).$$
+Let `s ≥ 1`, let `M` be an `s`-good seed and `n ≥ 2 · 10^{10}`. Every source
+`x ∈ 𝒮_{n,X}(M)` satisfies
+$$\log (x/s) \ge \frac{28559}{100000} B_*(n).$$
 
 The proof follows a selected pair `(h, w)` with source `x`. One block of the inverse orbit
 along a word `v ∈ 𝒲(b, u, K)` from `R ≥ 2^{b+1}` multiplies `R` by at least
@@ -40,21 +41,22 @@ bound `off(v) < 2^b` and the weight bound `ω(v) ≤ 2^{1 + r_b - u} (3/4)^b`. S
 logarithmic form of this over the central words of `h` and the terminal word `w` gives
 `log x ≥ log M + B_*(n) log(4/3) - r_{b_n} log 2 - 2(n+1) log 2`. The losses are absorbed
 using `r_{b_n} ≤ 3 b_n / 10`, `b_n ≤ 9 + B_*(n)/100 + 2n`, `2^{22}(n+1) ≤ B_*(n)`,
-`log M ≥ 4 b_0 log 2`, `log(4/3) > 0.287682` and `log 2 < 0.694`.
+`log M - log s ≥ 4 b_0 log 2` (from `M > 16^{b_0} s`), `log(4/3) > 0.287682` and
+`log 2 < 0.694`; finally `log(x/s) = log x - log s`.
 
 ## Main results
 
-* `CollatzPosDens.le_log_of_mem_sources`: `(28559/100000) B_*(n) ≤ log x` for
+* `CollatzPosDens.le_log_of_mem_sources`: `(28559/100000) B_*(n) ≤ log (x/s)` for
   `x ∈ 𝒮_{n,X}(M)` and `n ≥ 2 · 10^{10}`.
 
 ## Implementation notes
 
-The hypothesis `X > 0` is not needed: the bound holds for every real `X`, since the terminal
-shift is a natural number in any case.
+Mazur assumes `X > 0`; the bound holds for every real `X`, since the terminal shift is
+a natural number in any case, so this hypothesis is omitted.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*]
 -/
 
 @[expose] public section
@@ -71,16 +73,19 @@ private theorem logSourceLower_block {b : ℕ} {u : ℤ} {K : ℕ} {w : Word}
     0 < src w R ∧
       Real.log (R : ℝ) + b * Real.log (4 / 3) - (rb b - u + 2) * Real.log 2 ≤
         Real.log (src w R : ℝ) := by
+  have hA := eq_weight_mul_src_add_off w R
+  have hoff := off_lt_two_pow_of_mem_firstCrossing hw
+  have hω := Word.weight_pos w
+  have hωle := weight_le_of_mem_firstCrossing hw
   have h2b : (0 : ℚ) < 2 ^ b := by positivity
-  have h1 : R / 2 < w.weight * src w R := by
-    linarith [eq_weight_mul_src_add_off w R, off_lt_two_pow_of_mem_firstCrossing hw]
+  have h1 : R / 2 < w.weight * src w R := by linarith
   have hs : 0 < src w R := by
     by_contra hneg
     push Not at hneg
-    nlinarith [Word.weight_pos w]
+    nlinarith
   refine ⟨hs, ?_⟩
   have h2 : R / 2 < (2 : ℚ) ^ (1 + rb b - u) * (3 / 4) ^ b * src w R :=
-    h1.trans_le (mul_le_mul_of_nonneg_right (weight_le_of_mem_firstCrossing hw) hs.le)
+    lt_of_lt_of_le h1 (mul_le_mul_of_nonneg_right hωle hs.le)
   have h3 : (R : ℝ) / 2 < (2 : ℝ) ^ (1 + rb b - u) * (3 / 4) ^ b * (src w R : ℝ) := by
     simpa using (Rat.cast_lt (K := ℝ)).2 h2
   have hRpos : (0 : ℝ) < R := by exact_mod_cast (by linarith : (0 : ℚ) < R)
@@ -116,10 +121,11 @@ private theorem logSourceLower_history {M : ℕ} (hodd : Odd M) (hM : 16 ^ scale
       centralFamily_subset_firstCrossing _ _ (mem_selectedTuples.1 hh.1 |>.1 ⟨j, hjn⟩)
     have hblk := (logSourceLower_block hw hR).2
     rw [← historyEndpointAt_succ (M : ℚ) h hjn] at hblk
+    have := ih hjn.le
     rw [Finset.sum_range_succ]
     push_cast
     simp only [sub_self, zero_add] at hblk
-    linarith [ih hjn.le]
+    linarith
 
 /-- The losses in the two-stage estimate of `log x` are absorbed. -/
 private theorem logSourceLower_absorb {n B b₀ bₙ r u S lM lR lx : ℝ}
@@ -137,15 +143,15 @@ private theorem logSourceLower_absorb {n B b₀ bₙ r u S lM lR lx : ℝ}
     mul_le_mul_of_nonneg_left hL7.le hB, mul_le_mul_of_nonneg_right hb₀ hL.le,
     mul_nonneg hu hL.le]
 
-/-- **Lower bound for the logarithm of a source.** Let `M` be a good seed, `n ≥ 2 · 10^{10}`,
-`X` real and `x ∈ 𝒮_{n,X}(M)`. Then `log x ≥ (28559/100000) B_*(n)`. -/
+/-- **Lower bound for the logarithm of a source.** Let `s ≥ 1`, let `M` be an `s`-good seed,
+`n ≥ 2 · 10^{10}`, `X` real and `x ∈ 𝒮_{n,X}(M)`. Then `log(x/s) ≥ (28559/100000) B_*(n)`. -/
 @[collatz_pos_dens "lem_log_source_lower"]
-theorem le_log_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : ℕ} (hn : 2 * 10 ^ 10 ≤ n)
-    (X : ℝ) {x : ℤ} (hx : x ∈ sources n X (M : ℚ)) :
-    (28559 / 100000 : ℝ) * scaleSum n ≤ Real.log x := by
+theorem le_log_of_mem_sources {s M : ℕ} (hs : 0 < s) (hM : GoodSeed s M) {n : ℕ}
+    (hn : 2 * 10 ^ 10 ≤ n) (X : ℝ) {x : ℤ} (hx : x ∈ sources n X (M : ℚ)) :
+    (28559 / 100000 : ℝ) * scaleSum n ≤ Real.log ((x : ℝ) / s) := by
   obtain ⟨⟨h, w⟩, hp, hsrc⟩ := mem_sources.1 hx
   have hp' : IsSelectedPair n X (M : ℚ) h w := hp
-  have hM16 : 16 ^ scale 0 ≤ M := hM.lower.le
+  have hM16 : 16 ^ scale 0 ≤ M := (hM.sixteen_pow_lt hs).le
   have hh' : h ∈ centralHistories ((M : ℤ) : ℚ) n := by
     rw [Int.cast_natCast]
     exact hp'.mem_centralHistories
@@ -156,17 +162,30 @@ theorem le_log_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : ℕ} (hn : 2 * 10
     rw [hm]
     exact (two_mul_two_pow_le_sixteen_pow (le_trans (by norm_num) (nine_le_scale n))).trans
       (by exact_mod_cast hmge)
-  have hblk := (logSourceLower_block hp'.mem_firstCrossing hR).2
+  obtain ⟨hxpos, hblk⟩ := logSourceLower_block hp'.mem_firstCrossing hR
   simp only at hsrc
+  rw [hsrc] at hxpos
   rw [hsrc, historyEndpoint, Rat.cast_intCast] at hblk
   push_cast at hblk
-  have hlM : 4 * (scale 0 : ℝ) * Real.log 2 ≤ Real.log M := by
-    have := Real.log_le_log (by positivity) (show (16 : ℝ) ^ scale 0 ≤ M by exact_mod_cast hM16)
-    rw [Real.log_pow, show (16 : ℝ) = 2 ^ 4 by norm_num, Real.log_pow] at this
+  have hxpos' : (0 : ℝ) < x := by exact_mod_cast hxpos
+  have hspos : (0 : ℝ) < s := by exact_mod_cast hs
+  rw [Real.log_div hxpos'.ne' hspos.ne']
+  have hlM : 4 * (scale 0 : ℝ) * Real.log 2 ≤ Real.log M - Real.log s := by
+    have h16 : (16 : ℝ) ^ scale 0 * s ≤ M := by exact_mod_cast hM.lower.le
+    have := Real.log_le_log (by positivity) h16
+    rw [Real.log_mul (by positivity) hspos.ne', Real.log_pow,
+      show (16 : ℝ) = 2 ^ 4 by norm_num, Real.log_pow] at this
     push_cast at this
     linarith
   have hhist := logSourceLower_history hM.odd hM16 hp'.mem_centralHistories le_rfl
-  refine logSourceLower_absorb (n := (n : ℝ)) hhist hblk ?_ (by positivity)
+  set lR := Real.log (historyEndpointAt (M : ℚ) h n : ℝ)
+  set S := ∑ i ∈ Finset.range n, (scale i : ℝ)
+  set u : ℝ := (historyShift n X (M : ℚ) h : ℝ)
+  have hhist' : (Real.log M - Real.log s) + S * Real.log (4 / 3) - 2 * n * Real.log 2 ≤
+      lR - Real.log s := by linarith
+  have hblk' : (lR - Real.log s) + scale n * Real.log (4 / 3) -
+      (rb (scale n) - u + 2) * Real.log 2 ≤ Real.log x - Real.log s := by linarith
+  refine logSourceLower_absorb (n := (n : ℝ)) hhist' hblk' ?_ (by positivity)
     (rb_bounds (nine_le_scale n)).2 (scale_le_scaleSum_div_hundred (by omega))
     (Nat.cast_nonneg n) (by exact_mod_cast two_pow_twentyTwo_mul_succ_le_scaleSum n hn)
     (by exact_mod_cast nine_le_scale 0) hlM

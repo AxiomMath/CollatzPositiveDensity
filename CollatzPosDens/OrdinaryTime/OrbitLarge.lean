@@ -21,9 +21,9 @@ public import CollatzPosDens.Maps.ConcatOrbit
 /-!
 # The inverse orbit of a full word stays large
 
-Let `M` be a good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of level `(M, n, X)`
-with full word `𝐰` of length `d`. Then the inverse orbit `R₀ = M, R₁, …, R_d` of `𝐰` from `M`
-satisfies `R_i ≥ 4096` for every `0 ≤ i ≤ d`.
+Let `s ≥ 1`, `M` an `s`-good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of level
+`(M, n, X)` with full word `𝐰` of length `d`. Then the inverse orbit `R₀ = M, R₁, …, R_d` of
+`𝐰` from `M` satisfies `R_i ≥ 4096` for every `0 ≤ i ≤ d`.
 
 The full word is the concatenation of the blocks `w₀, …, w_{n-1}, w`. The block `w_j` starts
 at the generation-`j` endpoint `R_j(h) ≥ 16^{b_j}` and lies in a first-crossing family of scale
@@ -33,17 +33,18 @@ above `16^{b_j} / 2^{h_{b_j}} ≥ 2^{12}`, using `b_j ≥ b₀ = 9`.
 
 ## Main results
 
-* `CollatzPosDens.four_thousand_ninety_six_le_inverseOrbit_fullWord`: for a good seed `M` and a
-  selected pair of level `(M, n, X)`, the inverse orbit of its full word from `M` stays `≥ 4096`.
+* `CollatzPosDens.four_thousand_ninety_six_le_inverseOrbit_fullWord`: the bound, for an
+  `s`-good seed with `s ≥ 1`.
 * `CollatzPosDens.four_thousand_ninety_six_le_inverseOrbit_fullWord_of_odd`: the same bound
   for any odd integer `M ≥ 16^{b₀}` and any real `X`.
 
 ## Implementation notes
 
-The orbit can be bounded from below by running the Syracuse map forwards, `S(y) ≤ 2y`. Here the
-same halving bound is read off the inverse step directly: `(2^a R - 1)/3 ≥ R/2` for `a ≥ 1` and
-`R ≥ 2`. Only the clauses `M` odd and `16^{b₀} < M` of a good seed, and no condition on `X`, are
-used; the general form is stated for an odd integer `M ≥ 16^{b₀}` and an arbitrary real `X`.
+Mazur's proof bounds the orbit from below by running the Syracuse map forwards,
+`S(y) ≤ 2y`. Here the same halving bound is read off the inverse step directly:
+`(2^a R - 1)/3 ≥ R/2` for `a ≥ 1` and `R ≥ 2`. Only the clauses `M` odd and
+`16^{b₀} s < M` (hence `16^{b₀} < M` as `s ≥ 1`) of an `s`-good seed, and no condition on `X`,
+are used; the general form is stated for an odd integer `M ≥ 16^{b₀}` and an arbitrary real `X`.
 
 ## References
 
@@ -69,20 +70,22 @@ private theorem orbitLarge_le_two_pow_mul_inverseOrbit {v : Word} {R : ℚ}
     rw [inverseOrbit_succ v R hlt, invStep]
     set x := inverseOrbit v R i
     set a : ℕ := (v[i] : ℕ)
+    have ha : 1 ≤ a := v[i].pos
     have h2i : (2 : ℚ) ^ (i + 1) ≤ 2 ^ v.length := pow_le_pow_right₀ (by norm_num) hlt
     have hpos : (0 : ℚ) < 2 ^ i := by positivity
     have hx : 2 ≤ x := by
-      rw [pow_succ] at h2i
+      have : (2 : ℚ) ^ i * 2 * 2 ≤ 2 ^ i * x := by
+        rw [pow_succ] at h2i; linarith
       nlinarith
     have h2a : (2 : ℚ) * x ≤ 2 ^ a * x := by
       have : (2 : ℚ) ≤ 2 ^ a := by
-        simpa using pow_le_pow_right₀ (by norm_num : (1 : ℚ) ≤ 2) v[i].pos
+        calc (2 : ℚ) = 2 ^ 1 := by norm_num
+          _ ≤ 2 ^ a := pow_le_pow_right₀ (by norm_num) ha
       nlinarith
     have hstep : x / 2 ≤ (2 ^ a * x - 1) / 3 := by
-      rw [div_le_div_iff₀ (by norm_num) (by norm_num)]
-      linarith
+      rw [div_le_div_iff₀ (by norm_num) (by norm_num)]; linarith
     calc R ≤ 2 ^ i * x := ih
-      _ = 2 ^ (i + 1) * (x / 2) := by ring
+      _ = 2 ^ (i + 1) * (x / 2) := by rw [pow_succ]; ring
       _ ≤ 2 ^ (i + 1) * ((2 ^ a * x - 1) / 3) := by gcongr
 
 /-- A block `v` with `|v| + 12 ≤ 4b`, started from `R ≥ 16^b`, keeps its inverse orbit above
@@ -90,11 +93,11 @@ private theorem orbitLarge_le_two_pow_mul_inverseOrbit {v : Word} {R : ℚ}
 private theorem orbitLarge_block {v : Word} {R : ℚ} {b : ℕ}
     (hv : v.length + 12 ≤ 4 * b) (hR : (16 : ℚ) ^ b ≤ R) {i : ℕ} (hi : i ≤ v.length) :
     4096 ≤ inverseOrbit v R i := by
-  have hbig : (2 : ℚ) ^ v.length * 4096 ≤ R :=
+  have h16 : (16 : ℚ) ^ b = 2 ^ (4 * b) := by rw [pow_mul]; norm_num
+  have hbig : (2 : ℚ) ^ v.length * 4096 ≤ R := by
     calc (2 : ℚ) ^ v.length * 4096 = 2 ^ (v.length + 12) := by rw [pow_add]; norm_num
       _ ≤ 2 ^ (4 * b) := pow_le_pow_right₀ (by norm_num) hv
-      _ = 16 ^ b := by rw [pow_mul]; norm_num
-      _ ≤ R := hR
+      _ ≤ R := h16 ▸ hR
   have hpow : (0 : ℚ) < 2 ^ v.length := by positivity
   have key := orbitLarge_le_two_pow_mul_inverseOrbit (R := R) (by linarith) hi
   have hx : 0 < inverseOrbit v R i :=
@@ -137,8 +140,7 @@ theorem four_thousand_ninety_six_le_inverseOrbit_fullWord_of_odd {M : ℤ} (hodd
   have hend : ∀ j ≤ n, (16 : ℚ) ^ scale j ≤ historyEndpointAt M h j := by
     intro j hj
     obtain ⟨m, hm, -, hmge⟩ := historyEndpointAt_large hodd hM hh hj
-    rw [hm]
-    exact_mod_cast hmge
+    rw [hm]; exact_mod_cast hmge
   have hpre : ∀ j ≤ n, ∀ i ≤ ((List.ofFn h).take j).flatten.length,
       (4096 : ℚ) ≤ inverseOrbit ((List.ofFn h).take j).flatten M i := by
     intro j
@@ -169,17 +171,17 @@ theorem four_thousand_ninety_six_le_inverseOrbit_fullWord_of_odd {M : ℤ} (hodd
   rw [historyEndpointAt, hfull] at hR
   exact orbitLarge_firstCrossing_block hp.mem_firstCrossing hR
 
-/-- **The inverse orbit of a full word stays large.** Let `M` be a good seed, `n ∈ ℕ`, `X > 0`,
-and `(h, w)` a selected pair of level `(M, n, X)` with full word `𝐰` of length `d`. Then the
-inverse orbit `R₀ = M, R₁, …, R_d` of `𝐰` from `M` satisfies `R_i ≥ 4096` for every `0 ≤ i ≤ d`.
--/
+/-- **The inverse orbit of a full word stays large**. Let `s ≥ 1`,
+`M` an `s`-good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of level `(M, n, X)` with
+full word `𝐰` of length `d`. Then the inverse orbit `R₀ = M, R₁, …, R_d` of `𝐰` from `M` satisfies
+`R_i ≥ 4096` for every `0 ≤ i ≤ d`. -/
 @[collatz_pos_dens "lem_orbit_large"]
-theorem four_thousand_ninety_six_le_inverseOrbit_fullWord {M : ℕ} (hM : GoodSeed M) {X : ℝ}
-    (_hX : 0 < X) {h : Fin n → Word} {w : Word} (hp : IsSelectedPair n X M h w) {i : ℕ}
-    (hi : i ≤ (fullWord h w).length) :
+theorem four_thousand_ninety_six_le_inverseOrbit_fullWord {s M : ℕ} (hM : GoodSeed s M)
+    (hs : 0 < s) {X : ℝ} (_hX : 0 < X) {h : Fin n → Word} {w : Word}
+    (hp : IsSelectedPair n X M h w) {i : ℕ} (hi : i ≤ (fullWord h w).length) :
     4096 ≤ inverseOrbit (fullWord h w) M i := by
   have hodd : Odd (M : ℤ) := by exact_mod_cast hM.odd
-  have hge : (16 : ℤ) ^ scale 0 ≤ M := by exact_mod_cast hM.lower.le
+  have hge : (16 : ℤ) ^ scale 0 ≤ M := by exact_mod_cast (hM.sixteen_pow_lt hs).le
   have hp' : IsSelectedPair n X ((M : ℤ) : ℚ) h w := by rwa [Int.cast_natCast]
   simpa using four_thousand_ninety_six_le_inverseOrbit_fullWord_of_odd hodd hge hp' hi
 

@@ -14,39 +14,49 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Base
 /-!
 # The seed bound is large
 
-The seed bound `𝓜 = 4 ^ (19 + 3 ^ q_*)` satisfies `log₂ 𝓜 > 10 ^ 12`.
+For every endpoint `s ≥ 1`, the seed bound `𝓜(s) = s · 2 ^ (38 + 4 · 3 ^ q_*)` satisfies
+`log₂ 𝓜(s) > 10 ^ 12`.
 
-Indeed `log₂ 𝓜 = 2 (19 + 3 ^ q_*) > 2 · 3 ^ q_*`, and `q_* ≥ 9 N_* ≥ 26` since
-`N_* = 9766262`; finally `2 · 3 ^ 26 > 10 ^ 12`.
+Indeed `log₂ 𝓜(s) = log₂ s + 38 + 4 · 3 ^ q_* ≥ 4 · 3 ^ q_*` since `log₂ s ≥ 0`, and
+`q_* ≥ 9 N_* ≥ 26` since `N_* = 9766262`; finally `4 · 3 ^ 26 > 10 ^ 12`.
 
 ## Main results
 
-* `CollatzPosDens.logb_two_seedBound_eq`: `log₂ 𝓜 = 2 (19 + 3 ^ q_*)`.
-* `CollatzPosDens.logb_two_seedBound_gt`: `10 ^ 12 < log₂ 𝓜`.
+* `CollatzPosDens.logb_two_seedBound_eq`: `log₂ 𝓜(s) = log₂ s + (38 + 4 · 3 ^ q_*)`.
+* `CollatzPosDens.logb_two_seedBound_gt`: `10 ^ 12 < log₂ 𝓜(s)` for every `s ≥ 1`.
 
 ## Implementation notes
 
-`log₂` is `Real.logb 2` applied to the real cast of the natural number `𝓜`.
+`log₂` is `Real.logb 2` applied to the real cast of the natural number `𝓜(s)`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- `log₂ 𝓜 = 2 (19 + 3 ^ q_*)`. -/
-theorem logb_two_seedBound_eq :
-    Real.logb 2 (seedBound : ℝ) = 2 * (19 + 3 ^ conductor : ℕ) := by
-  rw [seedBound_def, Nat.cast_pow, Real.logb_pow, show ((4 : ℕ) : ℝ) = 2 ^ 2 by norm_num,
-    Real.logb_pow, Real.logb_self_eq_one (by norm_num)]
-  ring
+/-- `log₂ 𝓜(s) = log₂ s + (38 + 4 · 3 ^ q_*)` for `s ≥ 1`. -/
+theorem logb_two_seedBound_eq {s : ℕ} (hs : 0 < s) :
+    Real.logb 2 (seedBound s : ℝ) = Real.logb 2 s + (38 + 4 * 3 ^ conductor : ℕ) := by
+  have hs' : (s : ℝ) ≠ 0 := by exact_mod_cast hs.ne'
+  rw [seedBound_eq_two_pow, Nat.cast_mul, Real.logb_mul hs' (by positivity), Nat.cast_pow,
+    Real.logb_pow, Nat.cast_ofNat, Real.logb_self_eq_one (by norm_num), mul_one]
 
-/-- The seed bound is large: `log₂ 𝓜 > 10 ^ 12`. -/
+/-- The seed bound is large: `log₂ 𝓜(s) > 10 ^ 12` for every
+`s ≥ 1`. -/
 @[collatz_pos_dens "lem_ph_h0_large"]
-theorem logb_two_seedBound_gt : (10 : ℝ) ^ 12 < Real.logb 2 (seedBound : ℝ) := by
-  rw [logb_two_seedBound_eq]
+theorem logb_two_seedBound_gt {s : ℕ} (hs : 0 < s) :
+    (10 : ℝ) ^ 12 < Real.logb 2 (seedBound s : ℝ) := by
+  rw [logb_two_seedBound_eq hs]
+  have h0 : 0 ≤ Real.logb 2 (s : ℝ) :=
+    Real.logb_nonneg (by norm_num) (by exact_mod_cast hs)
   have h : 3 ^ 26 ≤ 3 ^ conductor :=
     Nat.pow_le_pow_right (by norm_num) (by have := le_conductor; omega)
-  have h' : (10 : ℕ) ^ 12 < 2 * (19 + 3 ^ conductor) := by omega
-  exact_mod_cast h'
+  have h' : (10 : ℕ) ^ 12 < 38 + 4 * 3 ^ conductor := by omega
+  have h'' : (10 : ℝ) ^ 12 < ((38 + 4 * 3 ^ conductor : ℕ) : ℝ) := by exact_mod_cast h'
+  linarith
 
 end CollatzPosDens

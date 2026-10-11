@@ -11,28 +11,28 @@ public import CollatzPosDens.Recipe.Erec
 public import CollatzPosDens.Recipe.Jstar
 
 /-!
-# The height exponent `B_ht`
+# The height exponent `B_ht(s)`
 
-This file defines the height exponent
-$$B_{\mathrm{ht}} = \mathcal E(J_*) + \lfloor 2\beta(J_*)/3 \rfloor,$$
-where `𝓔` is the height exponent recurrence, `β(j) = b_j` are the scales and `J_*` is the final
+For an endpoint parameter `s ≥ 1`, this file defines the height exponent of the recipe,
+$$B_{\mathrm{ht}}(s) = \mathcal E(J_*(s)) + \lfloor 2\beta(J_*(s))/3 \rfloor,$$
+where `𝓔` is the height exponent recurrence, `β(j) = b_j` are the scales and `J_*(s)` is the final
 generation threshold.
 
 ## Main definitions
 
 * `CollatzPosDens.heightExponentOf`: the expression `𝓔(J) + ⌊2β(J)/3⌋` at a generation `J`.
-* `CollatzPosDens.heightExponent`: the height exponent `B_ht`, its value at `J = J_*`.
+* `CollatzPosDens.heightExponent`: the height exponent `B_ht(s)`, its value at `J = J_*(s)`.
 
 ## Main results
 
-* `CollatzPosDens.heightExponent_def`: the defining formula of `B_ht`.
-* `CollatzPosDens.erec_le_heightExponent`: `𝓔(J_*) ≤ B_ht`.
+* `CollatzPosDens.heightExponent_def`: the defining formula of `B_ht(s)`.
+* `CollatzPosDens.erec_le_heightExponent`: `𝓔(J_*(s)) ≤ B_ht(s)`.
 * `CollatzPosDens.heightExponentOf_monotone`: `J ↦ 𝓔(J) + ⌊2β(J)/3⌋` is monotone.
 
 ## Implementation notes
 
 The height exponent is a natural number, since it is used as an exponent of `2`; the floor
-`⌊2β(J_*)/3⌋` is natural-number division. Since `J_*` is far too large to be evaluated,
+`⌊2β(J_*(s))/3⌋` is natural-number division. Since `J_*(s)` is far too large to be evaluated,
 `heightExponent` is irreducible and is meant to be used through `heightExponent_def`.
 
 ## References
@@ -62,28 +62,31 @@ theorem heightExponentOf_monotone : Monotone heightExponentOf := fun _ _ h =>
   Nat.add_le_add (erec_monotone h)
     (Nat.div_le_div_right (Nat.mul_le_mul_left 2 (scale_monotone h)))
 
-/-- The height exponent `B_ht = 𝓔(J_*) + ⌊2β(J_*)/3⌋`. -/
+/-- The height exponent `B_ht(s) = 𝓔(J_*(s)) + ⌊2β(J_*(s))/3⌋`. It is irreducible so that tactics
+never try to evaluate it; use `heightExponent_def`. -/
 @[collatz_pos_dens "def_Bht", irreducible]
-noncomputable def heightExponent : ℕ :=
-  heightExponentOf finalGenerationThreshold
+noncomputable def heightExponent (s : ℕ) : ℕ :=
+  heightExponentOf (finalGenerationThreshold s)
 
-/-- `B_ht` is `heightExponentOf` at `J_*`. -/
-theorem heightExponent_eq_heightExponentOf :
-    heightExponent = heightExponentOf finalGenerationThreshold := by
+/-- `B_ht(s)` is `heightExponentOf` at `J_*(s)`. -/
+theorem heightExponent_eq_heightExponentOf (s : ℕ) :
+    heightExponent s = heightExponentOf (finalGenerationThreshold s) := by
   unfold heightExponent
   rfl
 
-/-- The defining formula `B_ht = 𝓔(J_*) + ⌊2β(J_*)/3⌋`. -/
-theorem heightExponent_def :
-    heightExponent = erec finalGenerationThreshold + 2 * scale finalGenerationThreshold / 3 :=
-  heightExponent_eq_heightExponentOf.trans (heightExponentOf_def _)
+/-- The defining formula `B_ht(s) = 𝓔(J_*(s)) + ⌊2β(J_*(s))/3⌋`. -/
+theorem heightExponent_def (s : ℕ) :
+    heightExponent s =
+      erec (finalGenerationThreshold s) + 2 * scale (finalGenerationThreshold s) / 3 :=
+  (heightExponent_eq_heightExponentOf s).trans (heightExponentOf_def _)
 
-/-- `𝓔(J_*) ≤ B_ht`. -/
-theorem erec_le_heightExponent : erec finalGenerationThreshold ≤ heightExponent :=
-  heightExponent_eq_heightExponentOf ▸ erec_le_heightExponentOf _
+/-- `𝓔(J_*(s)) ≤ B_ht(s)`. -/
+theorem erec_le_heightExponent (s : ℕ) : erec (finalGenerationThreshold s) ≤ heightExponent s :=
+  (heightExponent_eq_heightExponentOf s) ▸ erec_le_heightExponentOf _
 
-/-- `⌊2β(J_*)/3⌋ ≤ B_ht`. -/
-theorem scale_div_le_heightExponent : 2 * scale finalGenerationThreshold / 3 ≤ heightExponent :=
-  heightExponent_def ▸ Nat.le_add_left _ _
+/-- `⌊2β(J_*(s))/3⌋ ≤ B_ht(s)`. -/
+theorem scale_div_le_heightExponent (s : ℕ) :
+    2 * scale (finalGenerationThreshold s) / 3 ≤ heightExponent s :=
+  (heightExponent_def s) ▸ Nat.le_add_left _ _
 
 end CollatzPosDens

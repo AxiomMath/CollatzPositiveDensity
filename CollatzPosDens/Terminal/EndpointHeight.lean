@@ -21,8 +21,8 @@ public import CollatzPosDens.Seed.EndpointUpperGrowth
 /-!
 # The height of history endpoints
 
-Let `M` be an odd positive integer with `M < 𝓜`. For every `j ≥ 0` and every central history
-`h ∈ 𝓗_j(M)`, the endpoint satisfies `R_h ≤ 2^{𝓔(j)} 𝓜`.
+Let `s ≥ 1` be an integer and let `M` be an odd positive integer with `M < 𝓜(s)`. For every
+`j ≥ 0` and every central history `h ∈ 𝓗_j(M)`, the endpoint satisfies `R_h ≤ 2^{𝓔(j)} 𝓜(s)`.
 
 The proof is an induction on the generation. Every prefix of a central history is a central
 history, so the generation-`i` endpoint `R_i(h)` is a positive odd integer. Each word
@@ -34,14 +34,14 @@ the endpoint by at most `2^{K_i + 1} (4/3)^{b_i}`. Since `2^{19} ≤ 3^{12}` we 
 
 * `CollatzPosDens.historyEndpointAt_le_two_pow_erec_mul`: `R_i(h) ≤ 2^{𝓔(i)} M` for
   `h ∈ 𝓗_n(M)` and `i ≤ n`.
-* `CollatzPosDens.historyEndpoint_le_two_pow_erec_mul_seedBound`: `R_h ≤ 2^{𝓔(j)} 𝓜` for
-  `h ∈ 𝓗_j(M)`.
+* `CollatzPosDens.historyEndpoint_le_two_pow_erec_mul_seedBound`: `R_h ≤ 2^{𝓔(j)} 𝓜(s)` for
+  `h ∈ 𝓗_j(M)` and `M < 𝓜(s)`.
 
 ## Implementation notes
 
-The source assumes `16^{b_0} ≤ M < 𝓜`; of the lower bound only `0 < M` is used, so the
-statement is proved for every odd integer `M` with `0 < M < 𝓜`. The stronger bound
-`R_h ≤ 2^{𝓔(j)} M` is proved first.
+Mazur assumes `s ≥ 1` and `16^{b_0} ≤ M < 𝓜(s)`; of these only `0 < M` and `M < 𝓜(s)`
+are used, so the statement is proved for every `s` and every odd integer `M` with
+`0 < M < 𝓜(s)`. The stronger bound `R_h ≤ 2^{𝓔(j)} M` is proved first.
 
 ## References
 
@@ -98,15 +98,16 @@ theorem historyEndpointAt_le_two_pow_erec_mul {M : ℤ} (hpos : 0 < M) (hodd : O
             (16 + i / 32 + 1) + texp (scale i) + erec i by omega, pow_add, pow_add]
           ring
 
-/-- **Height of endpoints.** Let `M` be odd with `0 < M < 𝓜`. For every `j ≥ 0` and every
-central history `h ∈ 𝓗_j(M)`, the endpoint satisfies `R_h ≤ 2^{𝓔(j)} 𝓜`. -/
+/-- **Height of endpoints.** Let `M` be odd with `0 < M < 𝓜(s)`. For every `j ≥ 0` and every
+central history `h ∈ 𝓗_j(M)`, the endpoint satisfies `R_h ≤ 2^{𝓔(j)} 𝓜(s)`. -/
 @[collatz_pos_dens "lem_endpoint_height"]
-theorem historyEndpoint_le_two_pow_erec_mul_seedBound {M : ℤ} (hodd : Odd M) (hpos : 0 < M)
-    (hM : M < seedBound) {j : ℕ} {h : Fin j → Word} (hh : h ∈ centralHistories M j) :
-    historyEndpoint M h ≤ 2 ^ erec j * seedBound := by
+theorem historyEndpoint_le_two_pow_erec_mul_seedBound {s : ℕ} {M : ℤ} (hodd : Odd M)
+    (hpos : 0 < M) (hM : M < seedBound s) {j : ℕ} {h : Fin j → Word}
+    (hh : h ∈ centralHistories M j) :
+    historyEndpoint M h ≤ 2 ^ erec j * seedBound s := by
   rw [historyEndpoint]
   refine (historyEndpointAt_le_two_pow_erec_mul hpos hodd hh le_rfl).trans ?_
-  have : (M : ℚ) ≤ (seedBound : ℕ) := by exact_mod_cast hM.le
+  have : (M : ℚ) ≤ (seedBound s : ℕ) := by exact_mod_cast hM.le
   gcongr
 
 end CollatzPosDens

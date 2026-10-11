@@ -25,8 +25,8 @@ public import CollatzPosDens.Terminal.CensusUnfold
 /-!
 # The masked census
 
-Let `M` be a good seed, `n ≥ 0`, let `X` be admissible for generation `n`, write `k = k_n` and
-let `m'` be an integer with `16 ≤ m' ≤ k`. Then
+Let `s ≥ 1` and let `M` be an `s`-good seed, `n ≥ 0`, let `X` be admissible for generation `n`,
+write `k = k_n` and let `m'` be an integer with `2^131072 ≤ m' ≤ k`. Then
 $$\Theta_{n,X}(M) \le \frac{64}9\, m'^{5633/2048}\, \Upsilon_{n,X}(M)
   + 44 M \Bigl(\bigl\langle |\rho_k - \rho_{m'} \circ \pi_{k,m'}| \bigr\rangle_k
   + \langle \rho_{m'} - g_{m'} \rangle_{m'}\Bigr).$$
@@ -34,11 +34,10 @@ $$\Theta_{n,X}(M) \le \frac{64}9\, m'^{5633/2048}\, \Upsilon_{n,X}(M)
 Write `δ = |ρ_k - ρ_{m'} ∘ π_{k,m'}| + (ρ_{m'} - g_{m'}) ∘ π_{k,m'}` on `G_k`; it is nonnegative
 since `g_{m'} ≤ ρ_{m'}`. Unfolding `Θ_{n,X}(M)` over the counted pairs `(h, w)` of
 `Υ_{n,X}(M)` bounds it by `∑_{(h,w)} ω(h) ω(w) ∑_{j ≥ 0} 4^{-j} ρ_k(z_j(h, w))`. Pointwise
-`ρ_k ≤ g_{m'} ∘ π_{k,m'} + δ ≤ (16/3) m'^{5633/2048} + δ` by
-`CollatzPosDens.mxSubdensity_le_of_sixteen_le`. Since `∑_j 4^{-j} = 4/3`, the constant part
-contributes `(64/9) m'^{5633/2048} Υ_{n,X}(M)`, and the error part, after exchanging the finite
-sum with the series, is at most `(4/3) · 33 M ⟨δ⟩_k = 44 M ⟨δ⟩_k` by
-`CollatzPosDens.GoodSeed.finsum_unweightedMassPairs_residue_le`. Finally every fibre of
+`ρ_k ≤ g_{m'} ∘ π_{k,m'} + δ ≤ (16/3) m'^{5633/2048} + δ` by the cap on the subdensity. Since
+`∑_j 4^{-j} = 4/3`, the constant part contributes `(64/9) m'^{5633/2048} Υ_{n,X}(M)`, and the
+error part, after exchanging the finite sum with the series, is at most
+`(4/3) · 33 M ⟨δ⟩_k = 44 M ⟨δ⟩_k` by the error bound of the census. Finally every fibre of
 `π_{k,m'}` has `3^{k-m'}` elements, so `⟨(ρ_{m'} - g_{m'}) ∘ π_{k,m'}⟩_k = ⟨ρ_{m'} - g_{m'}⟩_{m'}`.
 
 ## Main results
@@ -50,10 +49,10 @@ sum with the series, is at most `(4/3) · 33 M ⟨δ⟩_k = 44 M ⟨δ⟩_k` by
 
 ## Implementation notes
 
-The only property of `m'` used is the cap `g_{m'} ≤ (16/3) m'^{5633/2048}`, which holds for
-`m' ≥ 16`, so the bound is stated under `16 ≤ m' ≤ k_n`. The reduction `π_{k,m'}` is
-`CollatzPosDens.residueReduction`, and the seed `M` is a natural number cast to `ℚ` in `Θ` and
-`Υ`.
+Mazur assumes `2^131072 ≤ m'`; the only use of this is the cap
+`g_{m'} ≤ (16/3) m'^{5633/2048}`, which already holds for `m' ≥ 16`, so the bound is stated
+under `16 ≤ m' ≤ k_n`. The reduction `π_{k,m'}` is `CollatzPosDens.residueReduction`, and the
+seed `M` is a natural number cast to `ℚ` in `Θ` and `Υ`.
 
 ## References
 
@@ -119,13 +118,13 @@ private theorem sum_mul_tsum_inv_four_pow_mul_le {ι G : Type*} [Finite G] {P : 
             (fun j => mul_le_mul_of_nonneg_left (hj j) (by positivity)) hsB) hsB
     _ = 4 / 3 * B := by rw [tsum_mul_right, tsum_inv_four_pow]
 
-/-- **Masked census.** Let `M` be a good seed, let `X` be admissible for generation `n`, write
-`k = k_n` and let `16 ≤ m' ≤ k`. Then
+/-- **Masked census.** Let `s ≥ 1` and let `M` be an `s`-good seed, let `X` be admissible for
+generation `n`, write `k = k_n` and let `16 ≤ m' ≤ k` (Mazur takes `2^131072 ≤ m'`). Then
 `Θ_{n,X}(M) ≤ (64/9) m'^{5633/2048} Υ_{n,X}(M)
   + 44 M (⟨|ρ_k - ρ_{m'} ∘ π_{k,m'}|⟩_k + ⟨ρ_{m'} - g_{m'}⟩_{m'})`. -/
 @[collatz_pos_dens "lem_census"]
-theorem GoodSeed.markedMass_le_census {M : ℕ} (hM : GoodSeed M) {n : ℕ} {X : ℝ}
-    (hX : IsAdmissibleScale M n X) {m' : ℕ} (hm16 : 16 ≤ m') (hm' : m' ≤ level n) :
+theorem GoodSeed.markedMass_le_census {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {n : ℕ}
+    {X : ℝ} (hX : IsAdmissibleScale M n X) {m' : ℕ} (hm16 : 16 ≤ m') (hm' : m' ≤ level n) :
     markedMass n X M ≤ 64 / 9 * (m' : ℝ) ^ ((5633 : ℝ) / 2048) * unweightedMass n X M +
       44 * M * (residueAvg (level n)
           (fun y => |refDensity (level n) y - refDensity m' (residueReduction hm' y)|) +
@@ -147,13 +146,14 @@ theorem GoodSeed.markedMass_le_census {M : ℕ} (hM : GoodSeed M) {n : ℕ} {X :
     (by exact_mod_cast (Word.weight_pos _).le)
   have hδ : 0 ≤ δ := fun y => add_nonneg (abs_nonneg _) (he _)
   have hρ : ∀ y, refDensity k y ≤ c + δ y := fun y => by
+    have h1 := le_abs_self (refDensity k y - refDensity m' (π y))
+    have h2 := mxSubdensity_le_of_sixteen_le hm16 (π y)
     simp only [δ, e, c]
-    linarith [le_abs_self (refDensity k y - refDensity m' (π y)),
-      mxSubdensity_le_of_sixteen_le hm16 (π y)]
+    linarith
   have herr : ∑ p ∈ P, ω p * ∑' j, ((4 : ℝ) ^ j)⁻¹ * δ (z j p) ≤
       4 / 3 * (33 * M * residueAvg k δ) :=
     sum_mul_tsum_inv_four_pow_mul_le hω hδ fun j => by
-      have := hM.finsum_unweightedMassPairs_residue_le hX δ hδ j
+      have := hM.finsum_unweightedMassPairs_residue_le hs hX δ hδ j
       rwa [finsum_mem_eq_finite_toFinset_sum _ (unweightedMassPairs_finite ..)] at this
   have hΥ : unweightedMass n X M = ∑ p ∈ P, ω p := by
     rw [unweightedMass_eq_finsum_pairs,

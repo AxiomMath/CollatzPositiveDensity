@@ -15,10 +15,10 @@ public import CollatzPosDens.Recipe.Clog
 /-!
 # The modulus exponent is an available level
 
-If $n \ge 200\max(\mathrm{lg}(m) - 1, 0)$ then $1 \le m \le k_n$, where `m` is `modulusExponent`,
-`b_n` is `scale n` and `k_n = ⌊b_n / 4⌋` is `level n`. By Bernoulli's inequality
-$\mathsf g^{200} = (101/100)^{200} \ge 3 \ge 2$, so the geometric growth of the scales from
-$b_0 = 9$ gives $b_n \ge 9 \cdot 2^{j}$ whenever $n \ge 200 j$. With
+If $n \ge 200\max(\mathrm{lg}(m(s)) - 1, 0)$ then $1 \le m(s) \le k_n$, where `m(s)` is the
+modulus exponent attached to the endpoint `s` and `k_n = ⌊b_n / 4⌋` is the `n`-th level. By
+Bernoulli's inequality $\mathsf g^{200} = (101/100)^{200} \ge 3 \ge 2$, so the geometric growth
+of the scales from $b_0 = 9$ gives $b_n \ge 9 \cdot 2^{j}$ whenever $n \ge 200 j$. With
 $j = \max(\mathrm{lg}(u)-1, 0)$ one has $u \le 2^{\mathrm{lg}(u)} \le 2^{j+1}$, hence
 $4u \le 8 \cdot 2^j \le b_n$, and since `u` is an integer, $u \le \lfloor b_n/4 \rfloor = k_n$.
 
@@ -28,12 +28,15 @@ $4u \le 8 \cdot 2^j \le b_n$, and since `u` is an integer, $u \le \lfloor b_n/4 
   `9 * 2 ^ j ≤ b_n` whenever `200 * j ≤ n`.
 * `CollatzPosDens.modulusExponentAvailable_le_level_of_lg`: for every `u : ℕ`,
   `200 * (lg u - 1) ≤ n` implies `u ≤ k_n`.
-* `CollatzPosDens.modulusExponent_available`: `200 * (lg m - 1) ≤ n` implies `1 ≤ m ≤ k_n`.
+* `CollatzPosDens.modulusExponent_available`: for every endpoint `s`,
+  `200 * (lg m(s) - 1) ≤ n` implies `1 ≤ m(s) ≤ k_n`.
 
 ## Implementation notes
 
 The quantity $\max(\mathrm{lg}(m) - 1, 0)$ is the truncated subtraction `lg m - 1` in `ℕ`. The
-upper bound is proved for an arbitrary natural number `u` in place of `m`.
+upper bound is proved for an arbitrary natural number `u` in place of `m(s)`. Mazur states
+the result for $s \ge 1$; the proof uses only $m(s) \ge 1$, which holds for every `s : ℕ`, so the
+statement here is for every `s`.
 
 ## References
 
@@ -72,10 +75,11 @@ theorem modulusExponentAvailable_le_level_of_lg {u n : ℕ} (h : 200 * (lg u - 1
   rw [pow_succ] at h1
   omega
 
-/-- If `n ≥ 200 max(lg m - 1, 0)` then `1 ≤ m ≤ k_n`. -/
+/-- For every endpoint `s`, if `n ≥ 200 max(lg m(s) - 1, 0)` then `1 ≤ m(s) ≤ k_n`. -/
 @[collatz_pos_dens "lem_m_available"]
-theorem modulusExponent_available {n : ℕ} (h : 200 * (lg modulusExponent - 1) ≤ n) :
-    1 ≤ modulusExponent ∧ modulusExponent ≤ level n :=
-  ⟨one_le_modulusExponent, modulusExponentAvailable_le_level_of_lg h⟩
+theorem modulusExponent_available (s : ℕ) {n : ℕ}
+    (h : 200 * (lg (modulusExponent s) - 1) ≤ n) :
+    1 ≤ modulusExponent s ∧ modulusExponent s ≤ level n :=
+  ⟨one_le_modulusExponent s, modulusExponentAvailable_le_level_of_lg h⟩
 
 end CollatzPosDens

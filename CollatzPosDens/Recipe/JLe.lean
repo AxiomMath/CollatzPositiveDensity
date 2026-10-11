@@ -19,17 +19,17 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Base
 /-!
 # Upper bound for the final generation threshold
 
-The final generation threshold
-`J_* = max (N_* + N_t) (max (200 * max (lg m - 1, 0)) (20 * 10 ^ 9))` is small compared with the
-binary logarithm `h_0 = log₂ 𝓜` of the seed bound: `J_* < 1000 log₂ 𝓜`.
+For an endpoint `s ≥ 1`, the final generation threshold
+`J_*(s) = max (N_* + N_t) (max (200 * max (lg m(s) - 1, 0)) (20 * 10 ^ 9))` is small compared
+with the binary logarithm `H = log₂ 𝓜(s)` of the seed bound: `J_*(s) < 200 log₂ 𝓜(s)`.
 
-Indeed `N_* + N_t < 10 ^ 12 < h_0` and `20 * 10 ^ 9 < h_0`; moreover
-`max (lg m - 1, 0) ≤ log₂ m < 8/9 h_0 + log₂ C + 92 < h_0`, so each term of the maximum is less
-than `1000 h_0`.
+Indeed `H > 10 ^ 12`, so `N_* + N_t < 200 · 10 ^ 12 < 200 H` and `20 · 10 ^ 9 < 200 H`; moreover
+`max (lg m - 1, 0) ≤ log₂ m < 8/9 H + log₂ C + 92 < H`, so the middle term is less than `200 H`.
 
 ## Main results
 
-* `CollatzPosDens.finalGenerationThreshold_lt_logb_seedBound`: `J_* < 1000 log₂ 𝓜`.
+* `CollatzPosDens.finalGenerationThreshold_lt_logb_seedBound`: `J_*(s) < 200 log₂ 𝓜(s)` for
+  `s ≥ 1`.
 
 ## References
 
@@ -63,15 +63,15 @@ namespace CollatzPosDens
 
 open Real
 
-/-- The final generation threshold is less than a thousand times the binary logarithm of the seed
-bound: `J_* < 1000 log₂ 𝓜`. -/
+/-- **Lemma.** For every endpoint `s ≥ 1`, the final generation threshold is less than two
+hundred times the binary logarithm of the seed bound: `J_*(s) < 200 log₂ 𝓜(s)`. -/
 @[collatz_pos_dens "lem_s04_J_le"]
-theorem finalGenerationThreshold_lt_logb_seedBound :
-    (finalGenerationThreshold : ℝ) < 1000 * logb 2 (seedBound : ℝ) := by
-  have hh := logb_two_seedBound_gt
-  have hm := logb_two_modulusExponent_lt
+theorem finalGenerationThreshold_lt_logb_seedBound {s : ℕ} (hs : 0 < s) :
+    (finalGenerationThreshold s : ℝ) < 200 * logb 2 (seedBound s : ℝ) := by
+  have hh := logb_two_seedBound_gt hs
+  have hm := logb_two_modulusExponent_lt hs
   obtain ⟨c1, c2, c3⟩ := logb_two_mixingConst_mem
-  have hlg := lg_sub_one_le_logb_two modulusExponent
+  have hlg := lg_sub_one_le_logb_two (modulusExponent s)
   rw [finalGenerationThreshold_def, generationThreshold_eq, terminalThreshold_eq]
   push_cast [Nat.cast_max]
   refine max_lt (by linarith) (max_lt ?_ (by linarith))
