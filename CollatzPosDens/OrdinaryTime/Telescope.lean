@@ -17,8 +17,8 @@ public import CollatzPosDens.OrdinaryTime.OrbitLarge
 /-!
 # The telescoping bound for the valuation sum of a full word
 
-Let `M` be a good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of level `(M, n, X)`
-with full word `𝐰` of length `d` and source `x`. Then
+Let `s ≥ 1`, let `M` be an `s`-good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of
+level `(M, n, X)` with full word `𝐰` of length `d` and source `x`. Then
 `A(𝐰) log 2 ≤ log x - log M + d θ`, where `θ = log (3 + 1/4096)`.
 
 Writing `𝐰 = (a₁, …, a_d)` with inverse orbit `R₀ = M, …, R_d = x`, the relation
@@ -98,17 +98,18 @@ theorem valSum_mul_log_two_le_of_le_inverseOrbit {c : ℚ} (hc : 0 < c) :
     push_cast
     nlinarith
 
-/-- **Telescoping bound for full words.** Let `M` be a good seed, `n ∈ ℕ`, `X > 0`, and
-`(h, w)` a selected pair of level `(M, n, X)` with full word `𝐰` of length `d` and source
-`x = src(w, R_h)`. Then `A(𝐰) log 2 ≤ log x - log M + d θ`, where `θ = log (3 + 1/4096)`. -/
+/-- **Telescoping bound for full words**. Let `s ≥ 1` and let `M` be
+an `s`-good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of level `(M, n, X)` with
+full word `𝐰` of length `d` and source `x = src(w, R_h)`. Then
+`A(𝐰) log 2 ≤ log x - log M + d θ`, where `θ = log (3 + 1/4096)`. -/
 @[collatz_pos_dens "lem_telescope"]
-theorem valSum_fullWord_mul_log_two_le {n : ℕ} {M : ℕ} (hM : GoodSeed M) {X : ℝ}
-    (hX : 0 < X) {h : Fin n → Word} {w : Word} (hp : IsSelectedPair n X M h w) :
+theorem valSum_fullWord_mul_log_two_le {n : ℕ} {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
+    {X : ℝ} (hX : 0 < X) {h : Fin n → Word} {w : Word} (hp : IsSelectedPair n X M h w) :
     (Word.valSum (fullWord h w) : ℝ) * log 2 ≤
       log (selectedPairSource M h w : ℝ) - log (M : ℝ) +
         (fullWord h w).length * log (3 + 1 / 4096) := by
   have key := valSum_mul_log_two_le_of_le_inverseOrbit (c := 4096) (by norm_num)
-    (fullWord h w) M fun i hi => four_thousand_ninety_six_le_inverseOrbit_fullWord hM hX hp hi
+    (fullWord h w) M fun i hi => four_thousand_ninety_six_le_inverseOrbit_fullWord hM hs hX hp hi
   have hsrc : src (fullWord h w) (M : ℚ) = selectedPairSource M h w := by
     rw [selectedPairSource, historyEndpoint_eq_src, fullWord, src_append]
   rw [hsrc] at key

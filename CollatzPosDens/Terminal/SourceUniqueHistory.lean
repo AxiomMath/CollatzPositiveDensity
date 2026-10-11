@@ -18,14 +18,14 @@ public import CollatzPosDens.Terminal.UnweightedMass
 /-!
 # A counted pair is determined by its source
 
-Let `M` be a good seed and `n : ℕ`. If `(h, w)` and `(h', w')` lie in
-`unweightedMassPairs n X M` and `src w (historyEndpoint M h) = src w' (historyEndpoint M h')`,
-then `(h, w) = (h', w')`. Indeed the words `concatWord h ++ w` and `concatWord h' ++ w'` are both
-admissible from `M` with a common source. Since `M > 1` is odd and `3M + 1` is a power of `4`,
-hence of `2`, the Syracuse orbit of this source hits `M` only once, so the two words have the
-same length; a word admissible from an odd positive integer is determined by its length and
-source, so the two words are equal. Finally the central families are prefix-free, so the
-factorisation of `concatWord h ++ w` is unique, giving `h = h'` and `w = w'`.
+Let `s ≥ 1`, let `M` be an `s`-good seed and `n ≥ 0`. If `(h, w)` and `(h', w')` are counted
+pairs of `Υ_{n,X}(M)` with `src(w, R_h) = src(w', R_{h'})`, then `(h, w) = (h', w')`. Indeed the
+words `c = ŵ(h) w` and `c' = ŵ(h') w'` are both admissible from `M` with the common source
+`src(c, M) = src(w, R_h)`. Since `M` is odd, positive and not Syracuse-periodic, the Syracuse
+orbit of a source hits `M` only once, so `|c| = |c'|`; a word admissible from an odd positive
+integer is determined by its length and source, so `c = c'`. Finally the central families
+`𝒞(b_j, K_j)` are prefix-free, so the factorisation `c = w₀ ⋯ w_{n-1} w` is unique,
+giving `h = h'` and `w = w'`.
 
 ## Main results
 
@@ -34,7 +34,9 @@ factorisation of `concatWord h ++ w` is unique, giving `h = h'` and `w = w'`.
 
 ## Implementation notes
 
-No positivity hypothesis on `X` is needed; `X` is an arbitrary real.
+The hypotheses `X > 0` and `s ≥ 1` are not needed and are dropped: `X` is an arbitrary real
+and `s` an arbitrary natural number, since only oddness, positivity and non-periodicity of
+`M` enter the argument.
 
 ## References
 
@@ -45,10 +47,11 @@ No positivity hypothesis on `X` is needed; `X` is an arbitrary real.
 
 namespace CollatzPosDens
 
-/-- If `M` is a good seed and `(h, w)`, `(h', w')` lie in `unweightedMassPairs n X M` with
-`src w (historyEndpoint M h) = src w' (historyEndpoint M h')`, then `(h, w) = (h', w')`. -/
+/-- **Counted pairs are determined by their source.** If `M` is an `s`-good seed and `(h, w)`,
+`(h', w')` are counted pairs of `Υ_{n,X}(M)` with `src(w, R_h) = src(w', R_{h'})`, then
+`(h, w) = (h', w')`. -/
 @[collatz_pos_dens "lem_source_unique_history"]
-theorem eq_of_src_eq_of_mem_unweightedMassPairs {M : ℕ} (hM : GoodSeed M) {n : ℕ} {X : ℝ}
+theorem eq_of_src_eq_of_mem_unweightedMassPairs {s M : ℕ} (hM : GoodSeed s M) {n : ℕ} {X : ℝ}
     {h h' : Fin n → Word} {w w' : Word} (hp : (h, w) ∈ unweightedMassPairs n X M)
     (hq : (h', w') ∈ unweightedMassPairs n X M)
     (hsrc : src w (historyEndpoint M h) = src w' (historyEndpoint M h')) :
@@ -65,17 +68,9 @@ theorem eq_of_src_eq_of_mem_unweightedMassPairs {M : ℕ} (hM : GoodSeed M) {n :
       src (concatWord h' ++ w') ((M : ℤ) : ℚ) := by
     rw [Int.cast_natCast, src_append, src_append, ← historyEndpoint_eq_src,
       ← historyEndpoint_eq_src, hsrc]
-  have hM1 : 1 < (M : ℤ) := by
-    have hl := hM.lower
-    generalize scale 0 = b at hl
-    have := Nat.one_le_pow b 16 (by norm_num)
-    omega
+  have hlen := Admissible.length_eq_of_src_eq hM.pos hM.odd hM.not_syrPeriodic hc hc' hs
   have hodd : Odd (M : ℤ) := by exact_mod_cast hM.odd
-  have hpow : ∃ k : ℕ, 3 * (M : ℤ) + 1 = 2 ^ k := by
-    obtain ⟨k, hk⟩ := hM.pow_four
-    exact ⟨2 * k, by rw [pow_mul]; exact_mod_cast hk⟩
-  have hlen := Admissible.length_eq_of_src_eq hM1 hodd hpow hc hc' hs
-  have heq := Admissible.eq_of_src_eq (by omega) hodd hlen hc hc' hs
+  have heq := Admissible.eq_of_src_eq (by exact_mod_cast hM.pos) hodd hlen hc hc' hs
   obtain ⟨rfl, rfl⟩ := historyDetermined scale cap hh.1.1 hh'.1.1 heq
   rfl
 

@@ -24,14 +24,16 @@ public import CollatzPosDens.OrdinaryTime.Kappa
 /-!
 # Accelerated stopping time of the sources
 
-Let `M` be a good seed, `n ≥ 2 · 10^10` and `X > 0`. Every source `x ∈ 𝒮_{n,X}(M)` reaches `1`
-under the accelerated Collatz map `T_acc` within `⌊(34881/10000) log x⌋₊` steps.
+Let `s ≥ 1` be odd, `M` an `s`-good seed, `n ≥ 2 · 10^10` and `X > 0`. Every source
+`x ∈ 𝒮_{n,X}(M)` reaches `s` under the accelerated Collatz map `T_acc` within
+`⌊(34881/10000) log(x/s)⌋₊` steps.
 
 Write `x` as the source of a selected pair `(h, w)` with full word `𝐰` of length `d`. The full
 word is admissible from `M`, and along an admissible word from a positive odd integer each step
 of the inverse orbit is undone by one application of the Syracuse map, which coincides with
-`T_acc`; hence `T_acc^d(x) = M`. Since `3M + 1` is a power of `4`, `T_acc(M) = 1`, and `1` is
-fixed by `T_acc`. The ordinary-time constant gives `d + 1 ≤ (34881/10000) log x`.
+`T_acc`; hence `T_acc^d(x) = M`. Since `3M + 1 = 2^k s` with `s` odd, `T_acc(M) = s`. The
+ordinary-time constant gives `d + 1 ≤ (34881/10000) log(x/s)`, so `r = d + 1` is an admissible
+time.
 
 ## Main results
 
@@ -41,8 +43,8 @@ fixed by `T_acc`. The ordinary-time constant gives `d + 1 ≤ (34881/10000) log 
 ## Implementation notes
 
 Sources are integers while `T_acc` acts on `ℕ`; the reach predicate is applied to `x.toNat`,
-which is `x` itself since every source is positive. The real number `log x` is `Real.log` of the
-cast of `x`, and `⌊·⌋₊` is the floor with positive part.
+which is `x` itself since every source is positive. The real number `log(x/s)` is `Real.log` of
+the real quotient of the casts, and `⌊·⌋₊` is the floor with positive part.
 
 ## References
 
@@ -55,12 +57,14 @@ namespace CollatzPosDens
 
 open Real
 
-/-- Let `M` be a good seed, `n ≥ 2 · 10^10` and `X > 0`. Every `x ∈ 𝒮_{n,X}(M)` reaches `1`
-under the accelerated Collatz map `T_acc` within `⌊(34881/10000) log x⌋₊` steps. -/
+/-- **Accelerated stopping time of the sources**. Let `s ≥ 1` be
+odd, `M` an `s`-good seed, `n ≥ 2 · 10^10` and `X > 0`. Every `x ∈ 𝒮_{n,X}(M)` reaches `s` under
+`T_acc` within `⌊(34881/10000) log(x/s)⌋₊` steps. -/
 @[collatz_pos_dens "lem_ck_accel_time"]
-theorem collatzAccelOneWithin_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : ℕ}
-    (hn : 2 * 10 ^ 10 ≤ n) {X : ℝ} (hX : 0 < X) {x : ℤ} (hx : x ∈ sources n X (M : ℚ)) :
-    CollatzAccelOneWithin x.toNat ⌊(34881 / 10000 : ℝ) * log x⌋₊ := by
+theorem collatzAccelOneWithin_of_mem_sources {s M : ℕ} (hs : 0 < s) (hso : Odd s)
+    (hM : GoodSeed s M) {n : ℕ} (hn : 2 * 10 ^ 10 ≤ n) {X : ℝ} (hX : 0 < X) {x : ℤ}
+    (hx : x ∈ sources n X (M : ℚ)) :
+    ReachWithin collatzAccel s x.toNat ⌊(34881 / 10000 : ℝ) * log ((x : ℝ) / s)⌋₊ := by
   obtain ⟨⟨h, w⟩, hpair, hsrc⟩ := hx
   have hp : IsSelectedPair n X (M : ℚ) h w := hpair
   dsimp only at hsrc
@@ -81,29 +85,15 @@ theorem collatzAccelOneWithin_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : �
   have hxm : x = m := by
     have := hsrcW.symm.trans hm; exact_mod_cast this
   subst hxm
-  have hmodd : Odd m := by
-    obtain ⟨z, hz, -, hzodd⟩ := hadmZ.exists_src_eq_pos_odd hmpos (by exact_mod_cast hM.odd)
-    rw [Int.cast_natCast] at hz
-    have hzm : z = m := by
-      have := hz.symm.trans hm; exact_mod_cast this
-    have : Odd (m : ℤ) := hzm ▸ hzodd
-    exact_mod_cast this
-  have hodd_part : (m : ℤ).toNat / 2 ^ padicValNat 2 (m : ℤ).toNat = m := by
-    rw [Int.toNat_natCast, padicValNat.eq_zero_of_not_dvd
-      (Nat.two_dvd_ne_zero.mpr (Nat.odd_iff.mp hmodd)), pow_zero, Nat.div_one]
-  obtain ⟨k, hk⟩ := hM.pow_four
-  have hM1 : collatzAccel M = 1 :=
-    collatzAccel_eq_of_three_mul_add_one_eq (a := 2 * k)
-      (by rw [hk, pow_mul]; norm_num) odd_one
-  have hkap := length_fullWord_add_one_le_kappa_mul_log hM hn hX hp
+  -- `T_acc(M) = s`
+  obtain ⟨k, hk⟩ := hM.two_pow_mul
+  have hMs : collatzAccel M = s := collatzAccel_eq_of_three_mul_add_one_eq hk hso
+  -- the step budget
+  have hkap := length_fullWord_add_one_le_kappa_mul_log hM hs hn hX hp
   rw [← hW, selectedPairSource, hsrc, Rat.cast_intCast] at hkap
-  have hle : W.length + 1 ≤ ⌊(34881 / 10000 : ℝ) * log ((m : ℤ) : ℝ)⌋₊ :=
+  have hle : W.length + 1 ≤ ⌊(34881 / 10000 : ℝ) * log (((m : ℤ) : ℝ) / s)⌋₊ :=
     Nat.le_floor (by exact_mod_cast hkap)
-  unfold CollatzAccelOneWithin
-  rw [hodd_part]
-  obtain ⟨t, ht⟩ := Nat.exists_eq_add_of_le hle
-  rw [ht, show W.length + 1 + t = t + 1 + W.length by ring, Function.iterate_add_apply,
-    Function.iterate_add_apply, hmM, Function.iterate_one, hM1,
-    Function.iterate_fixed collatzAccel_one]
+  refine ⟨W.length + 1, hle, ?_⟩
+  rw [Int.toNat_natCast, Function.iterate_succ_apply', hmM, hMs]
 
 end CollatzPosDens

@@ -11,32 +11,34 @@ public import CollatzPosDens.Recipe.Bht
 public import CollatzPosDens.Recipe.Erec
 public import CollatzPosDens.Recipe.CalM
 public import CollatzPosDens.Recipe.PhH0Large
+public import CollatzPosDens.Recipe.PhDeltaEnclosure
 public import CollatzPosDens.Recipe.JLe
 public import CollatzPosDens.FirstCrossing.ScalesUpper
 public import Mathlib.Analysis.SpecialFunctions.Log.Base
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Upper bound for the height exponent
 
-The height exponent `B_ht = 𝓔(J_*) + ⌊2 b_{J_*}/3⌋` satisfies `log₂ B_ht < 2100 log₂ 𝓜`.
+For every endpoint `s ≥ 1`, the height exponent `B_ht(s) = 𝓔(J) + ⌊2 b_J/3⌋`, `J = J_*(s)`,
+satisfies `B_ht(s) < 2^16 𝓜(s)^3`.
 
-Since `t(u) ≤ u` and the scales are nondecreasing, `𝓔(J) ≤ J (17 + J + b_J)`, so
-`B_ht ≤ (J + 1)(17 + J + b_J)`. The upper growth of the scales gives
-`b_J < 201 𝗀^J ≤ 2^(8 + J)`, hence `B_ht < 2^(9 + 2J)`. Finally `J_* < 1000 log₂ 𝓜`, and
-`log₂ 𝓜 = 2 (19 + 3^{q_*})` is a natural number, so `9 + 2 J_* < 2100 log₂ 𝓜`.
+Since `t(u) ≤ 2u`, unfolding the exponent recurrence gives
+`𝓔(J) ≤ 17 J + J(J-1)/64 + 2 ∑_{j<J} b_j`. The upper growth of the scales,
+`b_j < 201 𝗀^j` with `𝗀 = 101/100`, turns the sum into a geometric one:
+`∑_{j<J} b_j < 20100 𝗀^J`, and `⌊2 b_J/3⌋ < 134 𝗀^J`, so
+`B_ht(s) < 17 J + J^2/64 + 40334 𝗀^J`. Writing `H = log₂ 𝓜(s)`, one has `𝗀^J = 2^{J δ}` with
+`δ = log₂ 𝗀 < 3/200` and `J < 200 H`, hence `𝗀^J < 2^{3H} = 𝓜(s)^3`; together with
+`H < 𝓜(s)` this gives `B_ht(s) < 44359 𝓜(s)^3 < 2^16 𝓜(s)^3`.
 
 ## Main results
 
-* `CollatzPosDens.erec_le_mul_scale`: `𝓔(j) ≤ j (17 + j + b_j)`.
-* `CollatzPosDens.heightExponentOf_lt_two_pow`: `𝓔(J) + ⌊2 b_J/3⌋ < 2^(9 + 2J)`.
-* `CollatzPosDens.logb_two_heightExponent_lt`: `log₂ B_ht < 2100 log₂ 𝓜`.
-
-## Implementation notes
-
-Rather than bounding `b_J` by `2^(8 + Jδ)` with `δ = log₂ 𝗀 < 1/69` and then `J δ < 15 h_0`,
-the cruder estimate `𝗀 ≤ 2`, i.e. `b_J < 2^(8 + J)`, is used. Together with `J_* < 1000 h_0` it
-already gives `log₂ B_ht < 9 + 2000 h_0 < 2100 h_0`, so the lower bound on the scales and the
-finer bounds on `δ` are not needed.
+* `CollatzPosDens.sixtyFour_mul_erec_le`: `64 𝓔(j) ≤ 1088 j + j^2 + 128 ∑_{i<j} b_i`.
+* `CollatzPosDens.sum_range_scale_le`: `∑_{i<J} b_i ≤ 20100 (𝗀^J - 1)`.
+* `CollatzPosDens.heightExponentOf_lt_growthRatio_pow`:
+  `𝓔(J) + ⌊2 b_J/3⌋ < 17 J + J^2/64 + 40334 𝗀^J`.
+* `CollatzPosDens.heightExponent_lt_two_pow_sixteen_mul_seedBound_pow_three`:
+  `B_ht(s) < 2^16 𝓜(s)^3`.
 
 ## References
 
@@ -46,6 +48,8 @@ finer bounds on `δ` are not needed.
 @[expose] public section
 
 namespace CollatzPosDens
+
+open Finset Real
 
 /-- The exponent recurrence is bounded by `𝓔(j) ≤ j (17 + j + b_j)`. -/
 theorem erec_le_mul_scale (j : ℕ) : erec j ≤ j * (17 + j + scale j) := by
@@ -87,31 +91,91 @@ theorem heightExponentOf_lt_two_pow (J : ℕ) : heightExponentOf J < 2 ^ (9 + 2 
       Nat.mul_lt_mul_of_le_of_lt hJ (by omega) (by positivity)
     _ = 2 ^ (9 + 2 * J) := by ring
 
-/-- The height exponent `B_ht` satisfies `log₂ B_ht < 2100 log₂ 𝓜`. -/
+/-- Unfolding the exponent recurrence: `64 𝓔(j) ≤ 1088 j + j^2 + 128 ∑_{i<j} b_i`, i.e.
+`𝓔(j) ≤ 17 j + j^2/64 + 2 ∑_{i<j} b_i`. -/
+theorem sixtyFour_mul_erec_le (j : ℕ) :
+    64 * erec j ≤ 1088 * j + j * j + 128 * ∑ i ∈ range j, scale i := by
+  induction j with
+  | zero => simp
+  | succ j ih =>
+    rw [erec_succ, sum_range_succ]
+    have ht := texp_le_self (scale j)
+    have hd : 64 * (j / 32) ≤ 2 * j := by omega
+    nlinarith
+
+/-- The geometric sum of the scales: `∑_{i<J} b_i ≤ 20100 (𝗀^J - 1)`. -/
+theorem sum_range_scale_le (J : ℕ) :
+    (∑ i ∈ range J, (scale i : ℝ)) ≤ 20100 * ((growthRatio : ℝ) ^ J - 1) := by
+  calc (∑ i ∈ range J, (scale i : ℝ)) ≤ ∑ i ∈ range J, 201 * (growthRatio : ℝ) ^ i :=
+        sum_le_sum fun i _ => (scale_lt_mul_growthRatio_pow i).le
+    _ = 201 * (((growthRatio : ℝ) ^ J - 1) / ((growthRatio : ℝ) - 1)) := by
+        rw [← mul_sum, geom_sum_eq (by rw [growthRatio_cast]; norm_num)]
+    _ = 20100 * ((growthRatio : ℝ) ^ J - 1) := by
+        rw [growthRatio_cast]; field_simp; ring
+
+/-- For every `J`, `𝓔(J) + ⌊2 b_J/3⌋ < 17 J + J^2/64 + 40334 𝗀^J`. -/
+theorem heightExponentOf_lt_growthRatio_pow (J : ℕ) :
+    (heightExponentOf J : ℝ) < 17 * J + (J : ℝ) ^ 2 / 64 + 40334 * (growthRatio : ℝ) ^ J := by
+  rw [heightExponentOf_def]
+  have he : (64 * erec J : ℝ) ≤ 1088 * J + J * J + 128 * ∑ i ∈ range J, (scale i : ℝ) := by
+    exact_mod_cast sixtyFour_mul_erec_le J
+  have hsum := sum_range_scale_le J
+  have hb := scale_lt_mul_growthRatio_pow J
+  have hd : ((2 * scale J / 3 : ℕ) : ℝ) * 3 ≤ 2 * scale J := by
+    have : 2 * scale J / 3 * 3 ≤ 2 * scale J := Nat.div_mul_le_self _ _
+    exact_mod_cast this
+  have hg : 0 < (growthRatio : ℝ) ^ J := pow_pos growthRatio_cast_pos J
+  push_cast
+  nlinarith
+
+/-- For a positive natural number `M`, `log₂ M < M`. -/
+theorem logb_two_natCast_lt {M : ℕ} (hM : 0 < M) : logb 2 (M : ℝ) < M := by
+  set n := Nat.log 2 M
+  have h1 : M < 2 ^ (n + 1) := Nat.lt_pow_succ_log_self (by norm_num) M
+  have h2 : 2 ^ n ≤ M := Nat.pow_log_le_self 2 hM.ne'
+  have h3 : n + 1 ≤ 2 ^ n := Nat.lt_two_pow_self
+  have h4 : logb 2 (M : ℝ) < (n + 1 : ℕ) := by
+    rw [logb_lt_iff_lt_rpow (by norm_num) (by exact_mod_cast hM), rpow_natCast]
+    exact_mod_cast h1
+  have h5 : ((n + 1 : ℕ) : ℝ) ≤ M := by exact_mod_cast h3.trans h2
+  linarith
+
+/-- For every endpoint `s ≥ 1`, `B_ht(s) < 2^16 𝓜(s)^3`. -/
 @[collatz_pos_dens "lem_s04_Bht_le"]
-theorem logb_two_heightExponent_lt :
-    Real.logb 2 (heightExponent : ℝ) < 2100 * Real.logb 2 (seedBound : ℝ) := by
-  set H : ℕ := 2 * (19 + 3 ^ conductor) with hH
-  have hM : Real.logb 2 (seedBound : ℝ) = H := by
-    rw [logb_two_seedBound_eq, hH]
-    push_cast
-    ring
-  have hJ : finalGenerationThreshold < 1000 * H := by
-    have := finalGenerationThreshold_lt_logb_seedBound
-    rw [hM] at this
-    exact_mod_cast this
-  have hH1 : 1 ≤ H := by omega
-  have hB : heightExponent < 2 ^ (2100 * H) := by
-    rw [heightExponent_eq_heightExponentOf]
-    exact (heightExponentOf_lt_two_pow _).trans_le (Nat.pow_le_pow_right (by norm_num) (by omega))
-  rw [hM]
-  rcases Nat.eq_zero_or_pos heightExponent with h0 | hpos
-  · rw [h0, Nat.cast_zero, Real.logb_zero]
-    have : (1 : ℝ) ≤ H := by exact_mod_cast hH1
-    linarith
-  · have hB' : (heightExponent : ℝ) < (2 : ℝ) ^ (2100 * H) := by exact_mod_cast hB
-    have := Real.logb_lt_logb (b := 2) (by norm_num) (by exact_mod_cast hpos) hB'
-    rw [Real.logb_pow, Real.logb_self_eq_one (by norm_num), mul_one] at this
-    exact_mod_cast this
+theorem heightExponent_lt_two_pow_sixteen_mul_seedBound_pow_three {s : ℕ} (hs : 0 < s) :
+    heightExponent s < 2 ^ 16 * seedBound s ^ 3 := by
+  set J := finalGenerationThreshold s with hJdef
+  set M : ℝ := (seedBound s : ℝ) with hMdef
+  set H : ℝ := logb 2 M with hHdef
+  have hM0 : (0 : ℝ) < M := Nat.cast_pos.mpr (seedBound_pos hs)
+  have hM1 : (1 : ℝ) ≤ M := Nat.one_le_cast.mpr (one_le_seedBound hs)
+  have hJH : (J : ℝ) < 200 * H := finalGenerationThreshold_lt_logb_seedBound hs
+  have hH : (10 : ℝ) ^ 12 < H := logb_two_seedBound_gt hs
+  have hHpos : 0 < H := lt_trans (by norm_num) hH
+  have hHM : H < M := logb_two_natCast_lt (seedBound_pos hs)
+  have hJ0 : (0 : ℝ) ≤ J := J.cast_nonneg
+  -- `𝗀^J = 2^{J δ} < 2^{3H} = 𝓜(s)^3`
+  have hδ := logGrowthRate_mem_Ioo
+  have hδpos := logGrowthRate_pos
+  have hgJ : (growthRatio : ℝ) ^ J < M ^ 3 := by
+    have e1 : (growthRatio : ℝ) ^ J = (2 : ℝ) ^ ((J : ℝ) * logGrowthRate) := by
+      rw [mul_comm, rpow_mul (by norm_num), logGrowthRate,
+        rpow_logb (by norm_num) (by norm_num) growthRatio_cast_pos, rpow_natCast]
+    have e2 : M ^ 3 = (2 : ℝ) ^ (3 * H) := by
+      rw [mul_comm, rpow_mul (by norm_num), hHdef, rpow_logb (by norm_num) (by norm_num) hM0]
+      norm_cast
+    rw [e1, e2]
+    apply rpow_lt_rpow_of_exponent_lt (by norm_num)
+    have : logGrowthRate < 3 / 200 := lt_trans hδ.2 (by norm_num)
+    nlinarith
+  have hB := heightExponentOf_lt_growthRatio_pow J
+  rw [← heightExponent_eq_heightExponentOf] at hB
+  have hM3 : M ≤ M ^ 3 := le_self_pow₀ hM1 (by norm_num)
+  have hM2 : M ^ 2 ≤ M ^ 3 := pow_le_pow_right₀ hM1 (by norm_num)
+  have hJ2 : (J : ℝ) ^ 2 ≤ (200 * H) ^ 2 := pow_le_pow_left₀ hJ0 hJH.le 2
+  have hH2 : H ^ 2 < M ^ 2 := pow_lt_pow_left₀ hHM hHpos.le (by norm_num)
+  have : (heightExponent s : ℝ) < 2 ^ 16 * M ^ 3 := by nlinarith
+  rw [hMdef] at this
+  exact_mod_cast this
 
 end CollatzPosDens

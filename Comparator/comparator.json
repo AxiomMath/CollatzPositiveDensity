@@ -3,7 +3,8 @@
     "solution_module": "Solution.Basic",
     "theorem_names": [
         "positive_density_collatz_reaches_one",
-        "positive_density_collatz_and_collatzAccel_reaches_one"
+        "positive_density_collatz_and_collatzAccel_reaches_one",
+        "positive_density_collatz_and_collatzAccel_reaches_of_coprime_six"
     ],
     "permitted_axioms": [
         "propext",

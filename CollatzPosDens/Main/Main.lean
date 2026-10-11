@@ -18,8 +18,8 @@ Collatz steps, where `collatzDensity = 1 / 2^2^2^140214`.
 
 This is a corollary of the joint density theorem
 `positive_density_collatz_and_collatzAccel_reaches_one`: the set counted there is contained in
-the set counted here, since each of its elements satisfies the first conjunct, so its cardinality
-is at most the cardinality here.
+the set counted here, since each of its elements satisfies the conjunct
+`ReachWithin collatz 1 n ⌊10.46 log n⌋₊`, so its cardinality is at most the cardinality here.
 
 ## Main results
 
@@ -39,8 +39,8 @@ open Finset
 /-- **The explicit density theorem**. For every `N ≥ collatzDensityThreshold`, at least
 `collatzDensity · N` of the `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps. -/
 @[collatz_pos_dens "thm_main"]
-theorem positive_density_collatz_reaches_one (N : ℕ) (hN : collatzDensityThreshold ≤ N) :
-    collatzDensity * N ≤ #{n ∈ range N | CollatzOneWithin n ⌊(10.46 : ℝ) * Real.log n⌋₊} :=
-  (positive_density_collatz_and_collatzAccel_reaches_one N hN).trans <| by
+theorem positive_density_collatz_reaches_one {N : ℕ} (hN : collatzDensityThreshold ≤ N) :
+    collatzDensity * N ≤ #{n ∈ range N | ReachWithin collatz 1 n ⌊(10.46 : ℝ) * Real.log n⌋₊} :=
+  (positive_density_collatz_and_collatzAccel_reaches_one hN).trans <| by
     gcongr with n _
-    exact And.left
+    exact fun h => h.2.1

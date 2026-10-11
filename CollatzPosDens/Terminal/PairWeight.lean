@@ -21,8 +21,8 @@ public import CollatzPosDens.Terminal.UnweightedMass
 /-!
 # The weight of a counted pair
 
-Let `M` be a good seed, `n ≥ 0`, let `X` be admissible for generation `n`, and let `(h, w)` be a
-counted pair of `Υ_{n,X}(M)`. Then `ω(h) ω(w) ≤ M / X`.
+Let `s ≥ 1`, let `M` be an `s`-good seed, `n ≥ 0`, let `X` be admissible for generation `n`, and
+let `(h, w)` be a counted pair of `Υ_{n,X}(M)`. Then `ω(h) ω(w) ≤ M / X`.
 
 With `x = src(w, R_h)` and `c = ŵ(h) w`, one has `src(c, M) = x` and `ω(c) = ω(h) ω(w)`, so the
 affine identity gives `M = ω(h) ω(w) x + off(c) ≥ ω(h) ω(w) x`. The source window gives
@@ -32,15 +32,16 @@ affine identity gives `M = ω(h) ω(w) x + off(c) ≥ ω(h) ω(w) x`. The source
 
 * `CollatzPosDens.weight_mul_weight_le_div_of_odd`: the bound, for an odd integer seed
   `M ≥ 16^{b₀}`.
-* `CollatzPosDens.GoodSeed.weight_mul_weight_le_div`: the bound, for a good seed.
+* `CollatzPosDens.GoodSeed.weight_mul_weight_le_div`: the bound, for an `s`-good
+  seed with `s ≥ 1`.
 
 ## Implementation notes
 
-Of the good-seed conditions, the argument uses only that `M` is odd with `M ≥ 16^{b₀}` (through
-the source window); the general statement is recorded under these hypotheses. Nonnegativity of
-the offset holds for every word, so the nonemptiness of `w` is not needed. The weight `ω(h)` of
-a history is the weight of its concatenated word `ŵ(h)`. The bound is stated in `ℝ`, where the
-scale `X` lives.
+Of the `s`-good-seed conditions, the argument uses only that `M` is odd with `M ≥ 16^{b₀}`
+(through the source window), which follows from `16^{b₀} s < M` when `s ≥ 1`; the general
+statement is recorded under these hypotheses. Nonnegativity of the offset holds for every word,
+so the nonemptiness of `w` is not needed. The weight `ω(h)` of a history is the weight of its
+concatenated word `ŵ(h)`. The bound is stated in `ℝ`, where the scale `X` lives.
 
 ## References
 
@@ -75,15 +76,16 @@ theorem weight_mul_weight_le_div_of_odd {M : ℤ} (hodd : Odd M) (hM : 16 ^ scal
   rw [le_div_iff₀ hXpos]
   exact (mul_le_mul_of_nonneg_left hzX hω).trans hMr
 
-/-- **Weight of a counted pair.** Let `M` be a good seed, let `X` be admissible for generation
-`n`, and let `(h, w)` be a counted pair of `Υ_{n,X}(M)`. Then `ω(h) ω(w) ≤ M / X`. -/
+/-- **Weight of a counted pair.** Let `s ≥ 1`, let `M` be an `s`-good seed, let `X` be admissible
+for generation `n`, and let `(h, w)` be a counted pair of `Υ_{n,X}(M)`. Then
+`ω(h) ω(w) ≤ M / X`. -/
 @[collatz_pos_dens "lem_s06_pair_weight"]
-theorem GoodSeed.weight_mul_weight_le_div {M : ℕ} (hM : GoodSeed M)
+theorem GoodSeed.weight_mul_weight_le_div {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
     (hX : IsAdmissibleScale M n X) {h : Fin n → Word} {w : Word}
     (hp : (h, w) ∈ unweightedMassPairs n X M) :
     ((concatWord h).weight : ℝ) * (w.weight : ℝ) ≤ (M : ℝ) / X := by
   have := weight_mul_weight_le_div_of_odd (M := (M : ℤ)) (n := n) (X := X)
-    (by exact_mod_cast hM.odd) (by exact_mod_cast hM.lower.le)
+    (by exact_mod_cast hM.odd) (by exact_mod_cast (hM.sixteen_pow_lt hs).le)
   simp only [Int.cast_natCast] at this
   exact this hX hp
 

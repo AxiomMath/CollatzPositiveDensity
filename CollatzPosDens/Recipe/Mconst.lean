@@ -10,34 +10,39 @@ public import CollatzPosDens.Recipe.CalM
 public import CollatzPosDens.Transfer.MixingConst
 
 /-!
-# The fixed modulus exponent `m`
+# The fixed modulus exponent `m(s)`
 
-This file defines the fixed modulus exponent
-$$m := \bigl\lfloor (2^{39}\,\mathcal{M}\,C)^{8/9} \bigr\rfloor + 1 \in \mathbb{N},$$
-where `𝓜` is the seed bound and `C` is the mixing coefficient. It is the least natural number
-strictly exceeding `(2^{39} 𝓜 C)^{8/9}`.
+For an endpoint parameter `s ≥ 1`, this file defines the fixed modulus exponent of the recipe,
+$$m(s) := \bigl\lfloor (2^{39}\,\mathcal{M}(s)\,C)^{8/9} \bigr\rfloor + 1 \in \mathbb{N},$$
+where `𝓜(s)` is the seed allowance and `C` is the mixing coefficient. It is the least natural
+number strictly exceeding `(2^{39} 𝓜(s) C)^{8/9}`.
 
 ## Main definitions
 
 * `CollatzPosDens.modulusExponentOf`: the expression `⌊x ^ (8/9)⌋₊ + 1` in a real
   parameter `x`.
-* `CollatzPosDens.modulusExponent`: the exponent `m`, its value at `x = 2^39 𝓜 C`.
+* `CollatzPosDens.modulusExponent`: the exponent `m(s)`, its value at `x = 2^39 𝓜(s) C`.
 
 ## Main results
 
-* `CollatzPosDens.modulusExponent_def`: the defining formula of `m`.
-* `CollatzPosDens.lt_modulusExponent`: `(2^39 𝓜 C)^{8/9} < m`.
-* `CollatzPosDens.modulusExponent_sub_one_le`: `m - 1 ≤ (2^39 𝓜 C)^{8/9}`.
-* `CollatzPosDens.modulusExponent_le_iff`: `m ≤ r ↔ (2^39 𝓜 C)^{8/9} < r`, i.e. `m` is the
-  least such `r`.
-* `CollatzPosDens.one_le_modulusExponent`: `1 ≤ m`.
+* `CollatzPosDens.modulusExponent_def`: the defining formula of `m(s)`.
+* `CollatzPosDens.lt_modulusExponent`: `(2^39 𝓜(s) C)^{8/9} < m(s)`.
+* `CollatzPosDens.modulusExponent_sub_one_le`: `m(s) - 1 ≤ (2^39 𝓜(s) C)^{8/9}`.
+* `CollatzPosDens.modulusExponent_le_iff`: `m(s) ≤ r ↔ (2^39 𝓜(s) C)^{8/9} < r`, i.e. `m(s)`
+  is the least such `r`.
+* `CollatzPosDens.one_le_modulusExponent`: `1 ≤ m(s)`.
 
 ## Implementation notes
 
-The power is Mathlib's real power `Real.rpow`, applied to the positive real `2^39 𝓜 C`, and the
-floor is the natural floor `⌊·⌋₊`. The exponent `m` is far too large to be evaluated, so
-`modulusExponent` is irreducible and is meant to be used through `modulusExponent_def` and the
-bounds of this file, which are proved for the parametric expression `modulusExponentOf`.
+The power is Mathlib's real power `Real.rpow`, applied to the real `2^39 𝓜(s) C` (positive for
+`s ≥ 1`), and the floor is the natural floor `⌊·⌋₊`. The exponent `m(s)` is far too large to be
+evaluated, so `modulusExponent` is irreducible and is meant to be used through
+`modulusExponent_def` and the bounds of this file, which are proved for the parametric
+expression `modulusExponentOf`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -73,51 +78,61 @@ theorem modulusExponentOf_le_iff {x : ℝ} (hx : 0 ≤ x) {r : ℕ} :
 theorem one_le_modulusExponentOf (x : ℝ) : 1 ≤ modulusExponentOf x :=
   Nat.le_add_left _ _
 
-/-- The base `2^39 𝓜 C` of the fixed modulus exponent is positive. -/
-theorem modulusExponent_base_pos : 0 < (2 : ℝ) ^ 39 * seedBound * mixingConst := by
-  have := seedBound_pos
+/-- The base `2^39 𝓜(s) C` of the fixed modulus exponent is positive for `0 < s`. -/
+theorem modulusExponent_base_pos {s : ℕ} (hs : 0 < s) :
+    0 < (2 : ℝ) ^ 39 * seedBound s * mixingConst := by
+  have : (0 : ℝ) < seedBound s := by exact_mod_cast seedBound_pos hs
   have := mixingConst_pos
   positivity
 
-/-- **The fixed modulus exponent** `m := ⌊(2^39 𝓜 C)^{8/9}⌋₊ + 1 ∈ ℕ`, where `𝓜` is the seed
-bound and `C` the mixing coefficient. -/
-@[collatz_pos_dens "def_mconst", irreducible]
-noncomputable def modulusExponent : ℕ :=
-  modulusExponentOf ((2 : ℝ) ^ 39 * seedBound * mixingConst)
+/-- The base `2^39 𝓜(s) C` of the fixed modulus exponent is nonnegative. -/
+theorem modulusExponent_base_nonneg (s : ℕ) :
+    0 ≤ (2 : ℝ) ^ 39 * seedBound s * mixingConst := by
+  have := mixingConst_pos
+  positivity
 
-/-- `m` is `modulusExponentOf` at `x = 2^39 𝓜 C`. -/
-theorem modulusExponent_eq_modulusExponentOf :
-    modulusExponent = modulusExponentOf ((2 : ℝ) ^ 39 * seedBound * mixingConst) := by
+/-- **The fixed modulus exponent** `m(s) := ⌊(2^39 𝓜(s) C)^{8/9}⌋₊ + 1 ∈ ℕ`, where `𝓜(s)` is
+the seed allowance and `C` the mixing coefficient. It is irreducible so that tactics never try to
+evaluate it; use `modulusExponent_def`. -/
+@[collatz_pos_dens "def_mconst", irreducible]
+noncomputable def modulusExponent (s : ℕ) : ℕ :=
+  modulusExponentOf ((2 : ℝ) ^ 39 * seedBound s * mixingConst)
+
+/-- `m(s)` is `modulusExponentOf` at `x = 2^39 𝓜(s) C`. -/
+theorem modulusExponent_eq_modulusExponentOf (s : ℕ) :
+    modulusExponent s = modulusExponentOf ((2 : ℝ) ^ 39 * seedBound s * mixingConst) := by
   unfold modulusExponent
   rfl
 
-/-- The defining formula `m = ⌊(2^39 𝓜 C)^{8/9}⌋₊ + 1`. -/
-theorem modulusExponent_def :
-    modulusExponent = ⌊((2 : ℝ) ^ 39 * seedBound * mixingConst) ^ (8 / 9 : ℝ)⌋₊ + 1 :=
-  modulusExponent_eq_modulusExponentOf.trans (modulusExponentOf_def _)
+/-- The defining formula `m(s) = ⌊(2^39 𝓜(s) C)^{8/9}⌋₊ + 1`. -/
+theorem modulusExponent_def (s : ℕ) :
+    modulusExponent s = ⌊((2 : ℝ) ^ 39 * seedBound s * mixingConst) ^ (8 / 9 : ℝ)⌋₊ + 1 :=
+  (modulusExponent_eq_modulusExponentOf s).trans (modulusExponentOf_def _)
 
-/-- `(2^39 𝓜 C)^{8/9} < m`. -/
-theorem lt_modulusExponent :
-    ((2 : ℝ) ^ 39 * seedBound * mixingConst) ^ (8 / 9 : ℝ) < modulusExponent :=
-  modulusExponent_eq_modulusExponentOf ▸ lt_modulusExponentOf _
+/-- `(2^39 𝓜(s) C)^{8/9} < m(s)`. -/
+theorem lt_modulusExponent (s : ℕ) :
+    ((2 : ℝ) ^ 39 * seedBound s * mixingConst) ^ (8 / 9 : ℝ) < modulusExponent s :=
+  (modulusExponent_eq_modulusExponentOf s) ▸ lt_modulusExponentOf _
 
-/-- `m - 1 ≤ (2^39 𝓜 C)^{8/9}`. -/
-theorem modulusExponent_sub_one_le :
-    ((modulusExponent - 1 : ℕ) : ℝ) ≤ ((2 : ℝ) ^ 39 * seedBound * mixingConst) ^ (8 / 9 : ℝ) :=
-  modulusExponent_eq_modulusExponentOf ▸
-    modulusExponentOf_sub_one_le modulusExponent_base_pos.le
+/-- `m(s) - 1 ≤ (2^39 𝓜(s) C)^{8/9}`. -/
+theorem modulusExponent_sub_one_le (s : ℕ) :
+    ((modulusExponent s - 1 : ℕ) : ℝ) ≤
+      ((2 : ℝ) ^ 39 * seedBound s * mixingConst) ^ (8 / 9 : ℝ) :=
+  (modulusExponent_eq_modulusExponentOf s) ▸
+    modulusExponentOf_sub_one_le (modulusExponent_base_nonneg s)
 
-/-- `m ≤ r` if and only if `(2^39 𝓜 C)^{8/9} < r`. -/
-theorem modulusExponent_le_iff {r : ℕ} :
-    modulusExponent ≤ r ↔ ((2 : ℝ) ^ 39 * seedBound * mixingConst) ^ (8 / 9 : ℝ) < r :=
-  modulusExponent_eq_modulusExponentOf ▸ modulusExponentOf_le_iff modulusExponent_base_pos.le
+/-- `m(s) ≤ r` if and only if `(2^39 𝓜(s) C)^{8/9} < r`. -/
+theorem modulusExponent_le_iff (s : ℕ) {r : ℕ} :
+    modulusExponent s ≤ r ↔ ((2 : ℝ) ^ 39 * seedBound s * mixingConst) ^ (8 / 9 : ℝ) < r :=
+  (modulusExponent_eq_modulusExponentOf s) ▸
+    modulusExponentOf_le_iff (modulusExponent_base_nonneg s)
 
-/-- `1 ≤ m`. -/
-theorem one_le_modulusExponent : 1 ≤ modulusExponent :=
-  modulusExponent_eq_modulusExponentOf ▸ one_le_modulusExponentOf _
+/-- `1 ≤ m(s)`. -/
+theorem one_le_modulusExponent (s : ℕ) : 1 ≤ modulusExponent s :=
+  (modulusExponent_eq_modulusExponentOf s) ▸ one_le_modulusExponentOf _
 
-/-- `0 < m`. -/
-theorem modulusExponent_pos : 0 < modulusExponent :=
-  one_le_modulusExponent
+/-- `0 < m(s)`. -/
+theorem modulusExponent_pos (s : ℕ) : 0 < modulusExponent s :=
+  one_le_modulusExponent s
 
 end CollatzPosDens

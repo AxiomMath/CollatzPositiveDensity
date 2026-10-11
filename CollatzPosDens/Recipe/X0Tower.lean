@@ -6,66 +6,77 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
+public import CollatzPosDens.Definitions
 public import CollatzPosDens.Recipe.X0
-public import CollatzPosDens.Recipe.Tower
-public import CollatzPosDens.Recipe.PhConductor
-public import CollatzPosDens.Recipe.PhCutoffChain
-public import CollatzPosDens.Recipe.PhEndpoint
+public import CollatzPosDens.Recipe.BhtLe
+public import CollatzPosDens.Recipe.PhSeedTower
 
 /-!
-# A tower bound for the cutoff
+# The cutoff lies below the endpoint threshold
 
-This file proves that the cutoff `X_0 = cutoff` satisfies `1024 X_0 < tow_4(140214)`.
+For every endpoint `s ≥ 1` the cutoff `X_0(s) = 32 (2 ^ B 𝓤 + 1)`, where `B` is the height
+exponent and `𝓤 = 𝓜(s)` the seed bound, is strictly smaller than the endpoint threshold
+`X_end(s) = 2 ^ (s ^ 3 · 2 ^ 2 ^ 2 ^ 140214)`.
 
-Write `Y_1 = log₂(1024 X_0)`, `Y_2 = log₂ Y_1` and `Y_3 = log₂ Y_2`. The bounds
-`logb_logb_logb_logb_cutoff_lt`, `logb_conductor_add_one_lt` and
-`sixteen_add_generationThreshold_mul_logGrowthRate_lt` together give `log₂ Y_3 < 140214`.
-Since `1024 X_0 ≥ 1024`, every `Y_i` is positive, so exponentiating four times (using that
-`x ↦ 2 ^ x` is increasing and `2 ^ (log₂ y) = y` for `y > 0`) yields `Y_3 < tow_1(140214)`,
-`Y_2 < tow_2(140214)`, `Y_1 < tow_3(140214)` and finally `1024 X_0 < tow_4(140214)`.
+The argument is pure natural-number arithmetic. Since `2 ^ B 𝓤 ≥ 1` and `𝓤 < 2 ^ 𝓤`, we have
+`X_0(s) ≤ 64 · 2 ^ B 𝓤 < 2 ^ (6 + B + 𝓤)`. The height bound `B < 2 ^ 16 𝓤 ^ 3` and
+`6 + 𝓤 ≤ 7 𝓤 ^ 3` give `6 + B + 𝓤 < 2 ^ 17 𝓤 ^ 3 = s ^ 3 · 2 ^ 17 𝓜(1) ^ 3`, which is at most
+`s ^ 3 · 2 ^ 33 𝓜(1) ^ 4 < s ^ 3 · 2 ^ 2 ^ 2 ^ 140214`; monotonicity of `x ↦ 2 ^ x` concludes.
 
 ## Main results
 
-* `CollatzPosDens.thousand_twenty_four_mul_cutoff_lt_tower`:
-  `1024 X_0 < tow_4(140214)`.
+* `CollatzPosDens.cutoff_lt_collatzDensityThresholdDep`: `X_0(s) < X_end(s)` for `0 < s`.
 
 ## Implementation notes
 
-The tower is never evaluated: each exponentiation step only compares a real number with the
-cast of `2 ^ n` for a symbolic natural number `n`.
+The tower `2 ^ 2 ^ 2 ^ 140214` is never evaluated: it enters only through the bound
+`2 ^ 33 𝓜(1) ^ 4 < 2 ^ 2 ^ 2 ^ 140214`, after which it is treated as an opaque natural number.
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-open Real
-
-/-- If `4 < x` and `log₂ log₂ log₂ log₂ x < t`, then `x < tow_4(t)`. -/
-private lemma lt_tower_four_of_logb_lt {x : ℝ} {t : ℕ} (hx : 4 < x)
-    (h : logb 2 (logb 2 (logb 2 (logb 2 x))) < t) : x < ((tower 4 t : ℕ) : ℝ) := by
-  have hY1 : (2 : ℝ) < logb 2 x := by
-    rw [lt_logb_iff_rpow_lt (by norm_num) (by linarith)]
-    norm_num; linarith
-  have hY2 : (1 : ℝ) < logb 2 (logb 2 x) := by
-    rw [lt_logb_iff_rpow_lt (by norm_num) (by linarith)]
-    norm_num; linarith
-  have hY3 : (0 : ℝ) < logb 2 (logb 2 (logb 2 x)) := logb_pos (by norm_num) hY2
-  exact lt_tower_succ_of_logb_lt (by linarith) <| lt_tower_succ_of_logb_lt (by linarith) <|
-    lt_tower_succ_of_logb_lt (by linarith) <| lt_tower_succ_of_logb_lt hY3 (by simpa using h)
-
-/-- The cutoff `X_0` satisfies `1024 X_0 < tow_4(140214)`. -/
+/-- **Bridge for the cutoff**: for every endpoint `s ≥ 1`, the cutoff is
+smaller than the endpoint threshold, `X_0(s) < X_end(s)`. -/
 @[collatz_pos_dens "lem_X0_tower"]
-theorem thousand_twenty_four_mul_cutoff_lt_tower : 1024 * cutoff < tower 4 140214 := by
-  have hchain := logb_logb_logb_logb_cutoff_lt
-  have hcond := logb_conductor_add_one_lt
-  have hend := sixteen_add_generationThreshold_mul_logGrowthRate_lt
-  have hx : (4 : ℝ) < ((1024 * cutoff : ℕ) : ℝ) := by
-    have : 1 ≤ cutoff := cutoff_pos
-    exact_mod_cast (by omega : 4 < 1024 * cutoff)
-  have h : logb 2 (logb 2 (logb 2 (logb 2 ((1024 * cutoff : ℕ) : ℝ)))) <
-      ((140214 : ℕ) : ℝ) := by
-    push_cast; linarith
-  exact Nat.cast_lt.mp (lt_tower_four_of_logb_lt hx h)
+theorem cutoff_lt_collatzDensityThresholdDep {s : ℕ} (hs : 0 < s) :
+    cutoff s < collatzDensityThresholdDep s := by
+  have hB := heightExponent_lt_two_pow_sixteen_mul_seedBound_pow_three hs
+  have hT := two_pow_mul_seedBound_one_pow_lt
+  have hU := seedBound_eq_mul s
+  have hM1 : 1 ≤ seedBound 1 := one_le_seedBound one_pos
+  have hUlt : seedBound s < 2 ^ seedBound s := Nat.lt_two_pow_self
+  have hU1 : 1 ≤ seedBound s := one_le_seedBound hs
+  rw [cutoff_def, collatzDensityThresholdDep]
+  generalize 2 ^ 2 ^ 2 ^ 140214 = T at hT ⊢
+  generalize heightExponent s = B at hB ⊢
+  generalize seedBound s = U at hB hU hUlt hU1 ⊢
+  generalize seedBound 1 = M at hT hU hM1
+  -- `X_0 < 2 ^ (6 + B + U)`.
+  have h1 : 32 * (2 ^ B * U + 1) < 2 ^ (6 + B + U) := by
+    have hpos : 1 ≤ 2 ^ B * U := Nat.one_le_iff_ne_zero.mpr (by positivity)
+    rw [pow_add, pow_add]
+    calc 32 * (2 ^ B * U + 1) ≤ 64 * (2 ^ B * U) := by omega
+      _ < 64 * (2 ^ B * 2 ^ U) := by
+        apply Nat.mul_lt_mul_of_pos_left _ (by norm_num)
+        exact Nat.mul_lt_mul_of_pos_left hUlt (by positivity)
+      _ = 2 ^ 6 * 2 ^ B * 2 ^ U := by ring
+  -- `6 + B + U < s ^ 3 * T`.
+  have h2 : 6 + B + U < s ^ 3 * T := by
+    have hU3 : U ≤ U ^ 3 := by
+      calc U = U ^ 1 := (pow_one U).symm
+        _ ≤ U ^ 3 := Nat.pow_le_pow_right hU1 (by norm_num)
+    have hU31 : 1 ≤ U ^ 3 := Nat.one_le_pow _ _ hU1
+    have hs3 : 1 ≤ s ^ 3 := Nat.one_le_pow _ _ hs
+    have hM3 : M ^ 3 ≤ M ^ 4 := Nat.pow_le_pow_right hM1 (by norm_num)
+    calc 6 + B + U < 2 ^ 17 * U ^ 3 := by omega
+      _ = s ^ 3 * (2 ^ 17 * M ^ 3) := by rw [hU]; ring
+      _ ≤ s ^ 3 * (2 ^ 33 * M ^ 4) := by
+        apply Nat.mul_le_mul_left
+        calc 2 ^ 17 * M ^ 3 ≤ 2 ^ 33 * M ^ 3 := Nat.mul_le_mul_right _ (by norm_num)
+          _ ≤ 2 ^ 33 * M ^ 4 := Nat.mul_le_mul_left _ hM3
+      _ < s ^ 3 * T := Nat.mul_lt_mul_of_pos_left hT (by omega)
+  exact h1.trans (Nat.pow_lt_pow_right (by norm_num) h2)
 
 end CollatzPosDens

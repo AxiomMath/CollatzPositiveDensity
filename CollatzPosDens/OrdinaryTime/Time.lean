@@ -27,14 +27,15 @@ public import CollatzPosDens.OrdinaryTime.Telescope
 /-!
 # Ordinary time bound for counted sources
 
-Let `M` be a good seed, `n ≥ 2 · 10^10` and `X > 0`. Every source `x ∈ 𝒮_{n,X}(M)` reaches `1`
-under the Collatz map within `⌊(523/50) log x⌋₊` steps.
+Let `s ≥ 1`, `M` an `s`-good seed, `n ≥ 2 · 10^10` and `X > 0`. Every source
+`x ∈ 𝒮_{n,X}(M)` reaches `s` under the Collatz map within `⌊(523/50) log (x / s)⌋₊` steps.
 
 Writing `x` as the source of a selected pair `(h, w)` with full word `𝐰` of length `d`, the
 inverse orbit of `𝐰` from `M` is undone by the Collatz map in `d + A(𝐰)` steps, so
-`T^{d + A(𝐰)}(x) = M`; since `3M + 1 = 4^v`, a further `1 + 2v` steps reach `1`. The number of
-steps `r = (d + 1) + (A(𝐰) + 2v)` satisfies
-`r log 2 ≤ (d + 1)(log 2 + θ) + log x ≤ (κ (log 2 + θ) + 1) log x`
+`T^{d + A(𝐰)}(x) = M`; since `M` is odd and `3M + 1 = 2^k s`, a further `1 + k` steps reach
+`s`. As `k log 2 = log (3M + 1) - log s ≤ log M + θ - log s`, the number of steps
+`r = (d + 1) + (A(𝐰) + k)` satisfies
+`r log 2 ≤ (d + 1)(log 2 + θ) + log (x / s) ≤ (κ (log 2 + θ) + 1) log (x / s)`
 by the telescoping bound and the ordinary-time constant `κ = 34881/10000`, where
 `θ = log (3 + 1/4096)`, and `κ (log 2 + θ) + 1 ≤ (523/50) log 2` is an explicit numerical check.
 
@@ -96,18 +97,19 @@ private theorem time_exists_src_eq_collatz_iterate :
           (1 + (a : ℕ)) + (v.length + Word.valSum v) by ring,
         Function.iterate_add_apply, hpm, hmk, hkR]
 
-/-- If `3M + 1 = 4^v` with `M` odd, then `T^{1 + 2v}(M) = 1`. -/
-private theorem time_collatz_iterate_seed {M v : ℕ} (hodd : Odd M) (hv : 3 * M + 1 = 4 ^ v) :
-    collatz^[1 + 2 * v] M = 1 := by
-  rw [add_comm, Function.iterate_add_apply, Function.iterate_one, collatz_of_odd hodd, hv,
-    show (4 : ℕ) ^ v = 2 ^ (2 * v) * 1 by rw [pow_mul]; norm_num, collatz_iterate_two_pow_mul]
+/-- If `3M + 1 = 2^k s` with `M` odd, then `T^{1 + k}(M) = s`. -/
+private theorem time_collatz_iterate_seed {s M k : ℕ} (hodd : Odd M)
+    (hk : 3 * M + 1 = 2 ^ k * s) : collatz^[1 + k] M = s := by
+  rw [add_comm, Function.iterate_add_apply, Function.iterate_one, collatz_of_odd hodd, hk,
+    collatz_iterate_two_pow_mul]
 
-/-- Let `M` be a good seed, `n ≥ 2 · 10^10` and `X > 0`. Every source `x ∈ 𝒮_{n,X}(M)` reaches `1`
-under the Collatz map within `⌊(523/50) log x⌋₊` steps. -/
+/-- **Ordinary time bound for counted sources**. Let `s ≥ 1`, `M` an
+`s`-good seed, `n ≥ 2 · 10^10` and `X > 0`. Every `x ∈ 𝒮_{n,X}(M)` reaches `s` under the
+Collatz map within `⌊(523/50) log (x / s)⌋₊` steps. -/
 @[collatz_pos_dens "lem_time"]
-theorem collatzOneWithin_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : ℕ}
+theorem collatzOneWithin_of_mem_sources {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {n : ℕ}
     (hn : 2 * 10 ^ 10 ≤ n) {X : ℝ} (hX : 0 < X) {x : ℤ} (hx : x ∈ sources n X (M : ℚ)) :
-    CollatzOneWithin x.toNat ⌊(523 / 50 : ℝ) * log x⌋₊ := by
+    ReachWithin collatz s x.toNat ⌊(523 / 50 : ℝ) * Real.log ((x : ℝ) / s)⌋₊ := by
   obtain ⟨⟨h, w⟩, hp, hsrc⟩ := mem_sources.1 hx
   have hp : IsSelectedPair n X M h w := hp
   set W := fullWord h w with hW
@@ -122,32 +124,46 @@ theorem collatzOneWithin_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : ℕ}
   have hxm : x = m := by
     have := hsrcW.symm.trans hm; exact_mod_cast this
   subst hxm
-  obtain ⟨v, hv⟩ := hM.pow_four
-  have hiter : collatz^[(1 + 2 * v) + (W.length + Word.valSum W)] m = 1 := by
-    rw [Function.iterate_add_apply, hmM, time_collatz_iterate_seed hM.odd hv]
+  obtain ⟨k, hk⟩ := hM.two_pow_mul
+  have hiter : collatz^[(1 + k) + (W.length + Word.valSum W)] m = s := by
+    rw [Function.iterate_add_apply, hmM, time_collatz_iterate_seed hM.odd hk]
   refine ⟨_, ?_, by simpa using hiter⟩
-  have htel := valSum_fullWord_mul_log_two_le hM hX hp
-  have hkap := length_fullWord_add_one_le_kappa_mul_log hM hn hX hp
+  -- bounding the number of steps
+  have htel := valSum_fullWord_mul_log_two_le hM hs hX hp
+  have hkap := length_fullWord_add_one_le_kappa_mul_log hM hs hn hX hp
   rw [← hW] at htel hkap
   have hxR : ((selectedPairSource (M : ℚ) h w : ℚ) : ℝ) = (m : ℝ) := by
     rw [selectedPairSource, hsrc]; push_cast; rfl
   rw [hxR] at htel hkap
-  set ℓ := log (m : ℝ) with hℓ
+  have hspos : (0 : ℝ) < s := by exact_mod_cast hs
+  have hMpos : (0 : ℝ) < M := by exact_mod_cast hM.pos
+  have hmpos : (0 : ℝ) < m := by
+    -- `m = 0` would give `M = T^{d + A}(0) = 0`
+    have hfix : ∀ j : ℕ, collatz^[j] 0 = 0 := fun j => by
+      induction j with
+      | zero => rfl
+      | succ j ih => rw [Function.iterate_succ_apply', ih]; rfl
+    rcases Nat.eq_zero_or_pos m with h0 | h0
+    · subst h0; have := hM.pos; rw [hfix] at hmM; omega
+    · exact_mod_cast h0
+  set ℓ := log ((m : ℝ) / s) with hℓ
+  have hℓeq : ℓ = log (m : ℝ) - log s := log_div hmpos.ne' hspos.ne'
   set d : ℝ := (W.length : ℝ) with hd
   set A : ℝ := (Word.valSum W : ℝ) with hA
   set L := log 2 with hL
   set θ := log (3 + 1 / 4096) with hθ
   have hLpos : 0 < L := log_pos one_lt_two
-  have hMpos : (0 : ℝ) < M := by exact_mod_cast hM.pos
+  -- `k log 2 ≤ log M + θ - log s`
   have hM4096 : (4096 : ℝ) ≤ M := by
-    have h16 : ((16 : ℝ) ^ scale 0) ≤ M := by exact_mod_cast hM.lower.le
+    have h16 : ((16 : ℝ) ^ scale 0) * s ≤ M := by exact_mod_cast hM.lower.le
+    have hs1 : (1 : ℝ) ≤ s := by exact_mod_cast hs
     rw [scale_zero] at h16
-    linarith
-  have hseed : (2 * v : ℝ) * L ≤ log M + θ := by
+    nlinarith
+  have hseed : (k : ℝ) * L ≤ log M + θ - log s := by
     have h1 : ((3 * M + 1 : ℕ) : ℝ) = M * (3 + 1 / M) := by
       push_cast; field_simp
-    have h2 : (2 * v : ℝ) * L = log ((3 * M + 1 : ℕ) : ℝ) := by
-      rw [hv, Nat.cast_pow, log_pow, show ((4 : ℕ) : ℝ) = 2 ^ 2 by norm_num, log_pow]
+    have h2 : (k : ℝ) * L = log ((3 * M + 1 : ℕ) : ℝ) - log s := by
+      rw [hk, Nat.cast_mul, Nat.cast_pow, log_mul (by positivity) hspos.ne', log_pow]
       push_cast; ring
     have h3 : log (3 + 1 / (M : ℝ)) ≤ θ :=
       log_le_log (by positivity) (by gcongr)
@@ -171,17 +187,17 @@ theorem collatzOneWithin_of_mem_sources {M : ℕ} (hM : GoodSeed M) {n : ℕ}
   have hconst : (34881 / 10000 : ℝ) * (L + θ) + 1 ≤ 523 / 50 * L := by
     rw [← hL] at hL2
     nlinarith
-  have hrL : ((1 + 2 * v + (W.length + Word.valSum W) : ℕ) : ℝ) * L ≤
+  have hrL : ((1 + k + (W.length + Word.valSum W) : ℕ) : ℝ) * L ≤
       (34881 / 10000 * (L + θ) + 1) * ℓ := by
-    have e : ((1 + 2 * v + (W.length + Word.valSum W) : ℕ) : ℝ) * L =
-        (d + 1) * L + A * L + (2 * v : ℝ) * L := by
+    have e : ((1 + k + (W.length + Word.valSum W) : ℕ) : ℝ) * L =
+        (d + 1) * L + A * L + (k : ℝ) * L := by
       rw [hd, hA]; push_cast; ring
     have k1 : (d + 1) * (L + θ) ≤ (34881 / 10000 * ℓ) * (L + θ) :=
       mul_le_mul_of_nonneg_right hkap (by positivity)
     rw [e]
     linarith
-  have hfin : ((1 + 2 * v + (W.length + Word.valSum W) : ℕ) : ℝ) ≤ 523 / 50 * ℓ := by
-    have : ((1 + 2 * v + (W.length + Word.valSum W) : ℕ) : ℝ) * L ≤ (523 / 50 * ℓ) * L := by
+  have hfin : ((1 + k + (W.length + Word.valSum W) : ℕ) : ℝ) ≤ 523 / 50 * ℓ := by
+    have : ((1 + k + (W.length + Word.valSum W) : ℕ) : ℝ) * L ≤ (523 / 50 * ℓ) * L := by
       have := mul_le_mul_of_nonneg_right hconst hℓ0
       nlinarith
     exact le_of_mul_le_mul_right this hLpos

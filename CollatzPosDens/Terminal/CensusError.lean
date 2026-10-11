@@ -25,8 +25,8 @@ public import CollatzPosDens.Terminal.UnweightedMass
 /-!
 # The error part of the census
 
-Let `M` be a good seed, `n ≥ 0`, let `X` be admissible for generation `n`, write `k = k_n`, let
-`δ ≥ 0` be a function on `G_k` and let `j ≥ 0`. Then
+Let `s ≥ 1`, let `M` be an `s`-good seed, `n ≥ 0`, let `X` be admissible for generation `n`,
+write `k = k_n`, let `δ ≥ 0` be a function on `G_k` and let `j ≥ 0`. Then
 $$\sum_{(h,w)} \omega(h)\omega(w)\,
   \delta\bigl((4^j \mathrm{src}(w, R_h) + (4^j - 1)/3) \bmod 3^k\bigr)
   \le 33 M \langle\delta\rangle_k,$$
@@ -53,7 +53,7 @@ is used of the growth of the scales, which `b_n ≥ 9` provides.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*]
 -/
 
 @[expose] public section
@@ -93,26 +93,16 @@ private lemma num_cast_eq_censusErrorPerm (k j : ℕ) (x : ℤ) :
   rw [hq, Rat.num_intCast]
   simp [censusErrorPerm, ZMod.coe_unitOfCoprime]
 
-/-- For `b ≥ 3`, `4 · 3^b · 3^b ≤ 16^b`. -/
-lemma four_mul_three_pow_mul_three_pow_le_sixteen_pow {b : ℕ} (hb : 3 ≤ b) :
-    (4 : ℝ) * 3 ^ b * 3 ^ b ≤ 16 ^ b := by
-  obtain ⟨c, rfl⟩ : ∃ c, b = c + 3 := ⟨b - 3, by omega⟩
-  have : (9 : ℝ) ^ c ≤ 16 ^ c := pow_le_pow_left₀ (by norm_num) (by norm_num) c
-  calc (4 : ℝ) * 3 ^ (c + 3) * 3 ^ (c + 3) = 2916 * 9 ^ c := by
-        rw [show (9 : ℝ) = 3 * 3 by norm_num, mul_pow]
-        ring
-    _ ≤ 4096 * 16 ^ c := by nlinarith [pow_pos (by norm_num : (0 : ℝ) < 9) c]
-    _ = 16 ^ (c + 3) := by ring
-
-/-- If `M` is a good seed, `X` is admissible for generation `n` and `𝓗_n(M)` is nonempty, then
-`3^{k_n} ≤ X`. -/
-private lemma censusError_three_pow_level_le {M : ℕ} (hM : GoodSeed M) {n : ℕ} {X : ℝ}
-    (hX : IsAdmissibleScale M n X) {h : Fin n → Word} (hh : h ∈ centralHistories M n) :
+/-- If `s ≥ 1`, `M` is an `s`-good seed, `X` is admissible for generation `n` and `𝓗_n(M)` is
+nonempty, then `3^{k_n} ≤ X`. -/
+private lemma censusError_three_pow_level_le {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
+    {n : ℕ} {X : ℝ} (hX : IsAdmissibleScale M n X) {h : Fin n → Word}
+    (hh : h ∈ centralHistories M n) :
     (3 : ℝ) ^ level n ≤ X := by
   set b := scale n
   have hh' : h ∈ centralHistories (((M : ℤ) : ℚ)) n := by rwa [Int.cast_natCast]
   have hR := historyEndpointAt_large_sixteen_pow_le_endpoint (M := (M : ℤ))
-    (by exact_mod_cast hM.odd) (by exact_mod_cast hM.lower.le) hh'
+    (by exact_mod_cast hM.odd) (by exact_mod_cast (hM.sixteen_pow_lt hs).le) hh'
   rw [Int.cast_natCast] at hR
   have hL := (lowerScale_mono b hR).trans_lt (hX.lowerScale_lt hh)
   refine le_trans ?_ hL.le
@@ -124,35 +114,40 @@ private lemma censusError_three_pow_level_le {M : ℕ} (hM : GoodSeed M) {n : �
     omega
   have h2 : (2 : ℝ) ^ rb b ≤ 4 ^ b := by
     calc (2 : ℝ) ^ rb b ≤ 2 ^ (((2 * b : ℕ)) : ℤ) := zpow_le_zpow_right₀ (by norm_num) hrb
-      _ = 4 ^ b := by
-        rw [zpow_natCast, pow_mul]
-        norm_num
+      _ = 4 ^ b := by rw [zpow_natCast, pow_mul]; norm_num
   have h3 : (3 : ℝ) ^ level n ≤ 3 ^ b :=
     pow_le_pow_right₀ (by norm_num) (le_trans (Nat.le_mul_of_pos_left _ (by norm_num))
       (four_mul_level_le n))
-  have hkey := four_mul_three_pow_mul_three_pow_le_sixteen_pow
-    (le_trans (by norm_num) (nine_le_scale n) : 3 ≤ b)
+  have hb3 : 3 ≤ b := le_trans (by norm_num) (nine_le_scale n)
+  obtain ⟨c, hc⟩ : ∃ c, b = c + 3 := ⟨b - 3, by omega⟩
+  have hkey : (4 : ℝ) * 3 ^ b * 3 ^ b ≤ 16 ^ b := by
+    rw [hc]
+    have : (9 : ℝ) ^ c ≤ 16 ^ c := pow_le_pow_left₀ (by norm_num) (by norm_num) c
+    calc (4 : ℝ) * 3 ^ (c + 3) * 3 ^ (c + 3) = 2916 * 9 ^ c := by
+          rw [show (9 : ℝ) = 3 * 3 by norm_num, mul_pow]; ring
+      _ ≤ 4096 * 16 ^ c := by nlinarith [pow_pos (by norm_num : (0 : ℝ) < 9) c]
+      _ = 16 ^ (c + 3) := by ring
   rw [lowerScale_def, le_div_iff₀ (lowerScale_denom_pos b)]
   calc (3 : ℝ) ^ level n * (4 * 2 ^ rb b * 3 ^ b) ≤ 3 ^ b * (4 * 4 ^ b * 3 ^ b) := by
         gcongr
     _ = 4 ^ b * (4 * 3 ^ b * 3 ^ b) := by ring
     _ ≤ 4 ^ b * 16 ^ b := by gcongr
 
-/-- **Error part of the census.** Let `M` be a good seed, let `X` be admissible for generation
-`n`, write `k = k_n`, let `δ ≥ 0` be a function on `G_k` and let `j ≥ 0`. Then
+/-- **Error part of the census.** Let `s ≥ 1`, let `M` be an `s`-good seed, let `X` be
+admissible for generation `n`, write `k = k_n`, let `δ ≥ 0` be a function on `G_k` and let
+`j ≥ 0`. Then
 `∑_{(h,w)} ω(h) ω(w) δ((4^j src(w, R_h) + (4^j - 1)/3) mod 3^k) ≤ 33 M ⟨δ⟩_k`, the sum over the
 counted pairs of `Υ_{n,X}(M)`. -/
 @[collatz_pos_dens "lem_s06_census_error"]
-theorem GoodSeed.finsum_unweightedMassPairs_residue_le {M : ℕ} (hM : GoodSeed M) {n : ℕ}
-    {X : ℝ} (hX : IsAdmissibleScale M n X) (δ : ResidueGroup (level n) → ℝ) (hδ : 0 ≤ δ)
-    (j : ℕ) :
+theorem GoodSeed.finsum_unweightedMassPairs_residue_le {s M : ℕ} (hM : GoodSeed s M)
+    (hs : 0 < s) {n : ℕ} {X : ℝ} (hX : IsAdmissibleScale M n X)
+    (δ : ResidueGroup (level n) → ℝ) (hδ : 0 ≤ δ) (j : ℕ) :
     ∑ᶠ p ∈ unweightedMassPairs n X M,
       ((concatWord p.1).weight : ℝ) * (p.2.weight : ℝ) *
         δ ((4 ^ j * src p.2 (historyEndpoint M p.1) + (4 ^ j - 1) / 3 : ℚ).num :
           ResidueGroup (level n)) ≤ 33 * M * residueAvg (level n) δ := by
   set σ := censusErrorPerm (level n) j
   set P := (unweightedMassPairs_finite n X M).toFinset
-  have hmem {p} : p ∈ P ↔ p ∈ unweightedMassPairs n X M := Set.Finite.mem_toFinset _
   have havg : 0 ≤ residueAvg (level n) δ := by
     rw [residueAvg_def]
     exact mul_nonneg (by positivity) (Finset.sum_nonneg fun y _ => hδ y)
@@ -161,7 +156,8 @@ theorem GoodSeed.finsum_unweightedMassPairs_residue_le {M : ℕ} (hM : GoodSeed 
   rcases P.eq_empty_or_nonempty with hP | ⟨p₀, hp₀⟩
   · rw [show (unweightedMassPairs_finite n X M).toFinset = ∅ from hP, Finset.sum_empty]
     positivity
-  have h3X : (3 : ℝ) ^ (level n) ≤ X := censusError_three_pow_level_le hM hX (hmem.1 hp₀).1
+  have hp₀' : p₀ ∈ unweightedMassPairs n X M := by simpa [P] using hp₀
+  have h3X : (3 : ℝ) ^ (level n) ≤ X := censusError_three_pow_level_le hM hs hX hp₀'.1
   -- the integer sources
   let z : (Fin n → Word) × Word → ℤ := fun p => (src p.2 (historyEndpoint M p.1)).num
   have hz : ∀ p ∈ unweightedMassPairs n X M, src p.2 (historyEndpoint M p.1) = z p := by
@@ -170,22 +166,23 @@ theorem GoodSeed.finsum_unweightedMassPairs_residue_le {M : ℕ} (hM : GoodSeed 
     simp only [z, hy, Rat.num_intCast]
   have hinj : Set.InjOn z P := by
     rintro ⟨h, w⟩ hp ⟨h', w'⟩ hq he
-    exact eq_of_src_eq_of_mem_unweightedMassPairs hM (hmem.1 hp) (hmem.1 hq)
-      (by rw [hz _ (hmem.1 hp), hz _ (hmem.1 hq), he])
+    have hp' : (h, w) ∈ unweightedMassPairs n X M := by simpa [P] using hp
+    have hq' : (h', w') ∈ unweightedMassPairs n X M := by simpa [P] using hq
+    exact eq_of_src_eq_of_mem_unweightedMassPairs hM hp' hq' (by rw [hz _ hp', hz _ hq', he])
   have hsub : P.image z ⊆ Ico ⌈X⌉ ⌈32 * X⌉ := by
     intro x hx
     obtain ⟨p, hp, rfl⟩ := Finset.mem_image.1 hx
-    have hp' := hmem.1 hp
-    have hw := hM.sources_subset_Ico hX ⟨z p, src_mem_sources hp' (hz p hp'), rfl⟩
+    have hp' : p ∈ unweightedMassPairs n X M := by simpa [P] using hp
+    have hw := hM.sources_subset_Ico hs hX ⟨z p, src_mem_sources hp' (hz p hp'), rfl⟩
     exact Finset.mem_Ico.2 ⟨Int.ceil_le.2 hw.1, Int.lt_ceil.2 hw.2⟩
   calc ∑ p ∈ P, ((concatWord p.1).weight : ℝ) * (p.2.weight : ℝ) *
         δ ((4 ^ j * src p.2 (historyEndpoint M p.1) + (4 ^ j - 1) / 3 : ℚ).num :
           ResidueGroup (level n))
       ≤ ∑ p ∈ P, (M : ℝ) / X * δ (σ (z p : ResidueGroup (level n))) := by
         refine Finset.sum_le_sum fun p hp => ?_
-        have hp' := hmem.1 hp
+        have hp' : p ∈ unweightedMassPairs n X M := by simpa [P] using hp
         rw [hz p hp', num_cast_eq_censusErrorPerm]
-        exact mul_le_mul_of_nonneg_right (hM.weight_mul_weight_le_div hX hp') (hδ _)
+        exact mul_le_mul_of_nonneg_right (hM.weight_mul_weight_le_div hs hX hp') (hδ _)
     _ = (M : ℝ) / X * ∑ x ∈ P.image z, δ (σ (x : ResidueGroup (level n))) := by
         rw [Finset.sum_image hinj, Finset.mul_sum]
     _ ≤ (M : ℝ) / X * ∑ x ∈ Ico ⌈X⌉ ⌈32 * X⌉, δ (σ (x : ResidueGroup (level n))) :=

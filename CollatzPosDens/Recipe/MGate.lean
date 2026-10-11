@@ -13,16 +13,17 @@ public import CollatzPosDens.Transfer.Log2C
 /-!
 # A lower bound for the modulus exponent
 
-The fixed modulus exponent `m = ⌊(2^39 𝓜 C)^{8/9}⌋₊ + 1` satisfies `m > 2^131072`.
+For every endpoint `s ≥ 1`, the modulus exponent `m(s) = ⌊(2^39 𝓜(s) C)^{8/9}⌋₊ + 1`
+satisfies `m(s) > 2^131072`.
 
 Indeed the mixing coefficient satisfies `C ≥ 1` (its binary logarithm is positive), so
-$$m > (2^{39}\mathcal{M}C)^{8/9} \ge \mathcal{M}^{8/9} = 2^{(8/9)\log_2\mathcal{M}}
-  > 2^{(8/9)10^{12}} > 2^{131072},$$
-using `log₂ 𝓜 > 10^12`.
+$$m(s) > (2^{39}\mathcal{M}(s)C)^{8/9} \ge \mathcal{M}(s)^{8/9}
+  = 2^{(8/9)\log_2\mathcal{M}(s)} > 2^{(8/9)10^{12}} > 2^{131072},$$
+using `log₂ 𝓜(s) > 10^12`.
 
 ## Main results
 
-* `CollatzPosDens.two_pow_lt_modulusExponent`: `2 ^ 131072 < m`.
+* `CollatzPosDens.two_pow_lt_modulusExponent`: `2 ^ 131072 < m(s)` for `0 < s`.
 
 ## Implementation notes
 
@@ -35,25 +36,28 @@ namespace CollatzPosDens
 
 open Real
 
-/-- The modulus exponent `modulusExponent` exceeds `2 ^ 131072`. -/
+/-- The modulus passes the gate: `m(s) > 2 ^ 131072` for every
+endpoint `s ≥ 1`. -/
 @[collatz_pos_dens "lem_m_gate"]
-theorem two_pow_lt_modulusExponent : 2 ^ 131072 < modulusExponent := by
-  have hM : (0 : ℝ) < seedBound := by exact_mod_cast seedBound_pos
+theorem two_pow_lt_modulusExponent {s : ℕ} (hs : 0 < s) : 2 ^ 131072 < modulusExponent s := by
+  have hM : (0 : ℝ) < seedBound s := by exact_mod_cast seedBound_pos hs
   have hC : (1 : ℝ) ≤ mixingConst := one_le_mixingConst
-  have hL := logb_two_seedBound_gt
-  have h1 : (seedBound : ℝ) ^ (8 / 9 : ℝ) ≤
-      ((2 : ℝ) ^ 39 * seedBound * mixingConst) ^ (8 / 9 : ℝ) := by
+  have hL := logb_two_seedBound_gt hs
+  -- `𝓜 ^ (8/9) ≤ (2^39 𝓜 C) ^ (8/9)`
+  have h1 : (seedBound s : ℝ) ^ (8 / 9 : ℝ) ≤
+      ((2 : ℝ) ^ 39 * seedBound s * mixingConst) ^ (8 / 9 : ℝ) := by
     apply rpow_le_rpow hM.le _ (by norm_num)
-    have : (seedBound : ℝ) ≤ (2 : ℝ) ^ 39 * seedBound := by
+    have : (seedBound s : ℝ) ≤ (2 : ℝ) ^ 39 * seedBound s := by
       nlinarith [show (1 : ℝ) ≤ 2 ^ 39 by norm_num]
-    calc (seedBound : ℝ) ≤ (2 : ℝ) ^ 39 * seedBound := this
-      _ ≤ (2 : ℝ) ^ 39 * seedBound * mixingConst := by
+    calc (seedBound s : ℝ) ≤ (2 : ℝ) ^ 39 * seedBound s := this
+      _ ≤ (2 : ℝ) ^ 39 * seedBound s * mixingConst := by
         nlinarith [show (0 : ℝ) < 2 ^ 39 by norm_num]
-  have h2 : (2 : ℝ) ^ (131072 : ℝ) < (seedBound : ℝ) ^ (8 / 9 : ℝ) := by
+  -- `2 ^ 131072 < 𝓜 ^ (8/9)`
+  have h2 : (2 : ℝ) ^ (131072 : ℝ) < (seedBound s : ℝ) ^ (8 / 9 : ℝ) := by
     rw [← rpow_logb (by norm_num : (0 : ℝ) < 2) (by norm_num) hM, ← rpow_mul (by norm_num)]
     exact rpow_lt_rpow_of_exponent_lt (by norm_num) (by linarith)
-  have h3 := lt_modulusExponent
-  have h4 : (2 : ℝ) ^ (131072 : ℕ) < modulusExponent := by
+  have h3 := lt_modulusExponent s
+  have h4 : (2 : ℝ) ^ (131072 : ℕ) < modulusExponent s := by
     rw [← rpow_natCast, Nat.cast_ofNat]
     linarith
   exact_mod_cast h4
