@@ -64,8 +64,10 @@ theorem chQm_nonempty (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (A : ℝ) (m : 
     {x | ∃ p ∈ bkPoints, ((n / 2 - m : ℕ) : ℤ) ≤ bkJ p ∧
       x = (chDist n p : ℝ) ^ A * chQ n ξ ε p}.Nonempty := by
   refine ⟨_, (((max (n / 2) 1 : ℕ) : ℤ), 0), ?_, ?_, rfl⟩
-  · simp only [mem_bkPoints, bkJ]; omega
-  · simp only [bkJ]; omega
+  · simp only [mem_bkPoints, bkJ]
+    omega
+  · simp only [bkJ]
+    omega
 
 /-- Each weighted value `d_J(p)^A Q(p)` with `p ∈ 𝒫` and `j(p) ≥ ⌊n/2⌋ ∸ m` is at most `Q_m`,
 provided these values are bounded above. -/

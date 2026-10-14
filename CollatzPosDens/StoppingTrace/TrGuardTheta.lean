@@ -35,8 +35,7 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_tr_guard_theta"]
 theorem trTheta_lt : trTheta < 8 * trMu := by
   rw [trTheta_def]
-  have := trMu_pos
-  linarith
+  linarith [trMu_pos]
 
 /-- The white-bridge floor is positive. -/
 theorem trTheta_pos : 0 < trTheta := by

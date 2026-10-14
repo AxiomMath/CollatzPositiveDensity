@@ -70,13 +70,10 @@ private lemma trWordSumLetter_eq :
 private lemma hasSum_trWordSumLetter : HasSum trWordSumLetter (6701 / 10000) := by
   rw [trWordSumLetter_eq]
   convert ((hasSum_varpi.update 3 (varpi 3 * (1163 / 1250))).update 4 0).update 5 0 using 1
-  simp [varpi_three, varpi_four, varpi_five]
-  norm_num
+  norm_num [varpi_three, varpi_four, varpi_five]
 
-private lemma trWordSumLetter_nonneg (a : ℤ) : 0 ≤ trWordSumLetter a := by
-  unfold trWordSumLetter
-  have := varpiIn_nonneg a
-  positivity
+private lemma trWordSumLetter_nonneg (a : ℤ) : 0 ≤ trWordSumLetter a :=
+  mul_nonneg (varpiIn_nonneg a) (by positivity)
 
 /-- **Weighted sum over nonclosing words.** For every `m`,
 `∑_{c ∈ ℤ^m} (∏ᵢ ϖ_in(cᵢ)) (1163/1250)^{#{i : cᵢ = 3}} = (6701/10000)^m`, where

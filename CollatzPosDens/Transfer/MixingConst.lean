@@ -68,11 +68,11 @@ theorem mixingConst_eq_exp :
 
 /-- `477/20 · X_*^{A_*} < C`. -/
 theorem mul_rpow_lt_mixingConst : 477 / 20 * (Xstar : ℝ) ^ (Aexp : ℝ) < mixingConst := by
-  rw [mixingConst_def]; linarith
+  linarith [mixingConst_def]
 
 /-- `159/10 < C`. -/
 theorem lt_mixingConst : 159 / 10 < mixingConst := by
-  rw [mixingConst_def]; linarith [Xstar_rpow_Aexp_pos]
+  linarith [mixingConst_def, Xstar_rpow_Aexp_pos]
 
 /-- The mixing coefficient is positive. -/
 theorem mixingConst_pos : 0 < mixingConst := by

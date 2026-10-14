@@ -52,9 +52,8 @@ lemma varpi_of_le_one {b : ℤ} (hb : b ≤ 1) : varpi b = 0 := by
   simp [varpi, show ¬ 2 ≤ b by omega]
 
 /-- `ϖ` vanishes below `2`: a letter of nonzero weight is at least `2`. -/
-lemma two_le_of_varpi_ne_zero {b : ℤ} (h : varpi b ≠ 0) : 2 ≤ b := by
-  by_contra h'
-  exact h (varpi_of_le_one (by omega))
+lemma two_le_of_varpi_ne_zero {b : ℤ} (h : varpi b ≠ 0) : 2 ≤ b :=
+  not_lt.mp fun h' => h (varpi_of_le_one (by omega))
 
 /-- Every Pascal weight is nonnegative. -/
 lemma varpi_nonneg (b : ℤ) : 0 ≤ varpi b := by
@@ -63,7 +62,7 @@ lemma varpi_nonneg (b : ℤ) : 0 ≤ varpi b := by
   · have : (2 : ℝ) ≤ b := by exact_mod_cast hb
     have : (0 : ℝ) ≤ (b : ℝ) - 1 := by linarith
     positivity
-  · exact le_rfl
+  · rfl
 
 /-- `ϖ(n + 2) = (n + 1) (1/2)^(n + 2)` for `n ∈ ℕ`. -/
 lemma varpi_natCast_add_two (n : ℕ) : varpi ((n : ℤ) + 2) = (n + 1) * (1 / 2) ^ (n + 2) := by
@@ -73,13 +72,16 @@ lemma varpi_natCast_add_two (n : ℕ) : varpi ((n : ℤ) + 2) = (n + 1) * (1 / 2
   ring
 
 /-- `ϖ(3) = 1/4`. -/
-lemma varpi_three : varpi 3 = 1 / 4 := by rw [varpi_of_two_le (by norm_num)]; norm_num
+lemma varpi_three : varpi 3 = 1 / 4 := by
+  norm_num [varpi]
 
 /-- `ϖ(4) = 3/16`. -/
-lemma varpi_four : varpi 4 = 3 / 16 := by rw [varpi_of_two_le (by norm_num)]; norm_num
+lemma varpi_four : varpi 4 = 3 / 16 := by
+  norm_num [varpi]
 
 /-- `ϖ(5) = 1/8`. -/
-lemma varpi_five : varpi 5 = 1 / 8 := by rw [varpi_of_two_le (by norm_num)]; norm_num
+lemma varpi_five : varpi 5 = 1 / 8 := by
+  norm_num [varpi]
 
 /-- `ϖ` restricted to the closing letters `{4, 5}`. -/
 noncomputable def varpiLast (b : ℤ) : ℝ := if b ∈ ({4, 5} : Set ℤ) then varpi b else 0
@@ -109,11 +111,13 @@ lemma varpiIn_of_le_one {b : ℤ} (hb : b ≤ 1) : varpiIn b = 0 := by
 
 /-- Every weight `ϖ_last(b)` is nonnegative. -/
 lemma varpiLast_nonneg (b : ℤ) : 0 ≤ varpiLast b := by
-  unfold varpiLast; split_ifs <;> simp [varpi_nonneg]
+  unfold varpiLast
+  split_ifs <;> simp [varpi_nonneg]
 
 /-- Every weight `ϖ_in(b)` is nonnegative. -/
 lemma varpiIn_nonneg (b : ℤ) : 0 ≤ varpiIn b := by
-  unfold varpiIn; split_ifs <;> simp [varpi_nonneg]
+  unfold varpiIn
+  split_ifs <;> simp [varpi_nonneg]
 
 /-- `ϖ = ϖ_last + ϖ_in`: every letter is either closing or nonclosing. -/
 lemma varpiLast_add_varpiIn (b : ℤ) : varpiLast b + varpiIn b = varpi b := by
@@ -128,7 +132,8 @@ lemma hasSum_varpi_add_two : HasSum (fun n : ℕ ↦ varpi ((n : ℤ) + 2)) 1 :=
   have h2 := hasSum_geometric_of_lt_one (r := (1 / 2 : ℝ)) (by norm_num) (by norm_num)
   have := ((h1.add h2).mul_left ((1 / 2) ^ 2))
   convert this using 1
-  · ext n; ring
+  · ext n
+    ring
   · norm_num
 
 end CollatzPosDens

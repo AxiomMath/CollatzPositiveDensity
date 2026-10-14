@@ -16,12 +16,12 @@ public import CollatzPosDens.Recipe.PhSeedTower
 
 For every endpoint `s ≥ 1` the cutoff `X_0(s) = 32 (2 ^ B 𝓤 + 1)`, where `B` is the height
 exponent and `𝓤 = 𝓜(s)` the seed bound, is strictly smaller than the endpoint threshold
-`X_end(s) = 2 ^ (s ^ 3 · 2 ^ 2 ^ 2 ^ 140214)`.
+`X_end(s) = 2 ^ (s ^ 3 · 2 ^ 2 ^ 2 ^ 87640)`.
 
 The argument is pure natural-number arithmetic. Since `2 ^ B 𝓤 ≥ 1` and `𝓤 < 2 ^ 𝓤`, we have
 `X_0(s) ≤ 64 · 2 ^ B 𝓤 < 2 ^ (6 + B + 𝓤)`. The height bound `B < 2 ^ 16 𝓤 ^ 3` and
 `6 + 𝓤 ≤ 7 𝓤 ^ 3` give `6 + B + 𝓤 < 2 ^ 17 𝓤 ^ 3 = s ^ 3 · 2 ^ 17 𝓜(1) ^ 3`, which is at most
-`s ^ 3 · 2 ^ 33 𝓜(1) ^ 4 < s ^ 3 · 2 ^ 2 ^ 2 ^ 140214`; monotonicity of `x ↦ 2 ^ x` concludes.
+`s ^ 3 · 2 ^ 33 𝓜(1) ^ 4 < s ^ 3 · 2 ^ 2 ^ 2 ^ 87640`; monotonicity of `x ↦ 2 ^ x` concludes.
 
 ## Main results
 
@@ -29,8 +29,8 @@ The argument is pure natural-number arithmetic. Since `2 ^ B 𝓤 ≥ 1` and `�
 
 ## Implementation notes
 
-The tower `2 ^ 2 ^ 2 ^ 140214` is never evaluated: it enters only through the bound
-`2 ^ 33 𝓜(1) ^ 4 < 2 ^ 2 ^ 2 ^ 140214`, after which it is treated as an opaque natural number.
+The tower `2 ^ 2 ^ 2 ^ 87640` is never evaluated: it enters only through the bound
+`2 ^ 33 𝓜(1) ^ 4 < 2 ^ 2 ^ 2 ^ 87640`, after which it is treated as an opaque natural number.
 -/
 
 @[expose] public section
@@ -49,7 +49,7 @@ theorem cutoff_lt_collatzDensityThresholdDep {s : ℕ} (hs : 0 < s) :
   have hUlt : seedBound s < 2 ^ seedBound s := Nat.lt_two_pow_self
   have hU1 : 1 ≤ seedBound s := one_le_seedBound hs
   rw [cutoff_def, collatzDensityThresholdDep]
-  generalize 2 ^ 2 ^ 2 ^ 140214 = T at hT ⊢
+  generalize 2 ^ 2 ^ 2 ^ 87640 = T at hT ⊢
   generalize heightExponent s = B at hB ⊢
   generalize seedBound s = U at hB hU hUlt hU1 ⊢
   generalize seedBound 1 = M at hT hU hM1

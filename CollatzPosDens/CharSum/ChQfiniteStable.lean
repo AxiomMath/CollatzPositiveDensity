@@ -98,7 +98,8 @@ private lemma prod_chInternalWeight_fin_append (n : ℕ) (ξ : ResidueGroup n) (
     intro k
     refine chInternalWeight_eq_one_of_le ξ ε ?_ _
     have hg := chBlockPath_fst_ge (List.ofFn fun k ↦ (Fin.append u v k).1) (Fin.natAdd K k)
-    rw [hlen, show min (↑(Fin.natAdd K k) : ℕ) (K + D) = K + k by simp] at hg
+    rw [hlen] at hg
+    rw [show min (↑(Fin.natAdd K k) : ℕ) (K + D) = K + k by simp] at hg
     simp only [bkJ, Prod.fst_add] at hK ⊢
     push_cast at hg
     omega
@@ -128,10 +129,11 @@ private lemma chQFiniteTerm_fin_append (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ
       intro x hx
       refine chWhiteFactor_of_not_isBkWhite fun hwh ↦ ?_
       have hg := chBlockPath_fst_ge (List.ofFn fun k ↦ (Fin.append u v k).1) (K + 1 + x)
+      rw [hlen] at hg
       have := hwh.bkJ_le
       simp only [Finset.mem_range] at hx
       simp only [bkJ, Prod.fst_add] at this hK
-      rw [hlen, show min (K + 1 + x) (K + D) = K + 1 + x by omega] at hg
+      rw [show min (K + 1 + x) (K + D) = K + 1 + x by omega] at hg
       push_cast at hg
       omega
     rw [Finset.prod_congr rfl h2, Finset.prod_const_one, mul_one]
@@ -157,7 +159,8 @@ theorem chQFinite_add_of_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {K : ℕ}
     hFf ▸ (Equiv.summable_iff _).mpr (summable_chQFiniteTerm n ξ ε (K + D) p)
   have key := hfsum.hasSum.prod_fiberwise
     fun u ↦ (hasSum_prod_chBlockWeight D).mul_left (chQFiniteTerm n ξ ε K p u)
-  rw [show ∑' x, f x = ∑' β, F β from hFf ▸ (Fin.appendEquiv K D).tsum_eq F] at key
+  have hfF : ∑' x, f x = ∑' β, F β := hFf ▸ (Fin.appendEquiv K D).tsum_eq F
+  rw [hfF] at key
   simp only [mul_one] at key
   rw [chQFinite_eq_tsum, chQFinite_eq_tsum]
   exact key.tsum_eq.symm

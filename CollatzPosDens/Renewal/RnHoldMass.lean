@@ -47,21 +47,17 @@ namespace CollatzPosDens
 theorem hasSum_holdLaw_bkPoints_nu45 :
     HasSum (fun k : ℕ ↦ nu45 ((k : ℤ) + 1)) 1 := by
   simp_rw [nu45_natCast_add_one]
-  have h := (hasSum_geometric_of_lt_one (r := (11 / 16 : ℝ)) (by norm_num) (by norm_num)).mul_left
-    (5 / 16)
-  convert h using 1
+  convert (hasSum_geometric_of_lt_one (r := (11 / 16 : ℝ)) (by norm_num) (by norm_num)).mul_left
+    (5 / 16) using 1
   norm_num
 
 /-- **Total mass of `η`**, parametrized by `ℕ × ℤ`: `∑_{(m, l)} η(m + 1, l) = 1`. -/
 theorem hasSum_holdLaw_bkPoints_succ :
     HasSum (fun x : ℕ × ℤ ↦ holdLaw (x.1 + 1) x.2) 1 := by
-  set f : ℕ × ℤ → ℝ := fun x ↦ holdLaw (x.1 + 1) x.2
-  have h0 : 0 ≤ f := fun _ ↦ holdLaw_nonneg _ _
-  have hfib : ∀ n : ℕ, HasSum (fun l : ℤ ↦ f (n, l)) (nu45 ((n : ℤ) + 1)) := fun n ↦ by
-    have := hasSum_holdLaw (j := n + 1) (by omega)
-    simpa [f] using this
-  have hs : Summable f := by
-    rw [summable_prod_of_nonneg h0]
+  have hfib (n : ℕ) : HasSum (fun l : ℤ ↦ holdLaw (n + 1) l) (nu45 ((n : ℤ) + 1)) := by
+    simpa using hasSum_holdLaw (j := n + 1) (by omega)
+  have hs : Summable fun x : ℕ × ℤ ↦ holdLaw (x.1 + 1) x.2 := by
+    rw [summable_prod_of_nonneg fun _ ↦ holdLaw_nonneg _ _]
     refine ⟨fun n ↦ (hfib n).summable, ?_⟩
     simp_rw [(hfib _).tsum_eq]
     exact hasSum_holdLaw_bkPoints_nu45.summable

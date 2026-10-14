@@ -126,8 +126,7 @@ private lemma fpLawE_eq (s : ℤ) (x : ℤ × ℤ) :
     rcases h with _ | ⟨p, t⟩
     · exact absurd (by simp [fpTerm, not_isFirstPassageWord_nil]) hh
     · exact ⟨(p, t), rfl⟩
-  rw [← hinj.tsum_eq hsupp]
-  rw [ENNReal.tsum_prod (f := fun p t ↦ fpTerm s x (p :: t))]
+  rw [← hinj.tsum_eq hsupp, ENNReal.tsum_prod (f := fun p t ↦ fpTerm s x (p :: t))]
   simp only [fpTerm_cons]
   simp only [ENNReal.tsum_add, ENNReal.tsum_mul_left]
   congr 1
@@ -146,14 +145,21 @@ theorem two_mul_add_two_le_bkL {p : ℤ × ℤ} (hp : p ∈ bkPoints)
   simp only [bkL]
   omega
 
+open Classical in
+private lemma ite_ofReal_holdLaw_eq_zero {p : ℤ × ℤ} {s : ℤ}
+    (hc : ¬(p ∈ bkPoints ∧ 0 ≤ s ∧ holdLaw p.1.toNat p.2 ≠ 0)) :
+    (if p ∈ bkPoints ∧ 0 ≤ s then ENNReal.ofReal (holdLaw p.1.toNat p.2) else 0) = 0 := by
+  split_ifs with h
+  · simp [show holdLaw p.1.toNat p.2 = 0 by tauto]
+  · rfl
+
 /-- The `ℝ≥0∞`-valued first-passage law is finite. -/
 private lemma fpLawE_ne_top : ∀ (n : ℕ) (s : ℤ), s < n → ∀ x, fpLawE s x ≠ ⊤ := by
   intro n
   induction n with
   | zero =>
     intro s hs x
-    rw [fpLawE_of_neg (by exact_mod_cast hs)]
-    exact ENNReal.zero_ne_top
+    simp [fpLawE_of_neg (by exact_mod_cast hs : s < 0)]
   | succ n ih =>
     intro s hs x
     classical
@@ -167,14 +173,8 @@ private lemma fpLawE_ne_top : ∀ (n : ℕ) (s : ℤ), s < n → ∀ x, fpLawE s
         refine ENNReal.mul_ne_top (by split_ifs <;> simp) (ih _ ?_ _)
         push_cast at hs ⊢
         omega
-      · have : (if p ∈ bkPoints ∧ 0 ≤ s then ENNReal.ofReal (holdLaw p.1.toNat p.2)
-            else 0) = 0 := by
-          split_ifs with h
-          · have : holdLaw p.1.toNat p.2 = 0 := by tauto
-            simp [this]
-          · rfl
-        rw [this, zero_mul]
-        exact ENNReal.zero_ne_top
+      · simp only [ite_ofReal_holdLaw_eq_zero hc, zero_mul, ne_eq, ENNReal.zero_ne_top,
+          not_false_eq_true]
     · intro p hp
       by_cases hc : p ∈ bkPoints ∧ 0 ≤ s ∧ holdLaw p.1.toNat p.2 ≠ 0
       · have := two_mul_add_two_le_bkL hc.1 hc.2.2
@@ -186,13 +186,7 @@ private lemma fpLawE_ne_top : ∀ (n : ℕ) (s : ℤ), s < n → ∀ x, fpLawE s
           simp only [bkL] at this hne
           omega
         rw [fpLawE_of_neg hneg, mul_zero]
-      · have : (if p ∈ bkPoints ∧ 0 ≤ s then ENNReal.ofReal (holdLaw p.1.toNat p.2)
-            else 0) = 0 := by
-          split_ifs with h
-          · have : holdLaw p.1.toNat p.2 = 0 := by tauto
-            simp [this]
-          · rfl
-        rw [this, zero_mul]
+      · rw [ite_ofReal_holdLaw_eq_zero hc, zero_mul]
 
 private lemma fpLawE_ne_top' (s : ℤ) (x : ℤ × ℤ) : fpLawE s x ≠ ⊤ :=
   fpLawE_ne_top (s.toNat + 1) s (by omega) x
@@ -228,9 +222,7 @@ theorem firstPassageLaw_eq_first_step (s : ℕ) (x : ℤ × ℤ) :
   classical
   have hs : (0 : ℤ) ≤ s := by positivity
   have hE := fpLawE_eq s x
-  have hfin := fpLawE_ne_top' s x
-  rw [hE] at hfin
-  obtain ⟨hA, hB⟩ := ENNReal.add_ne_top.1 hfin
+  obtain ⟨hA, hB⟩ := ENNReal.add_ne_top.1 (hE ▸ fpLawE_ne_top' s x)
   rw [firstPassageLaw_eq_toReal, hE, ENNReal.toReal_add hA hB,
     firstPassageLaw_eq_first_step_tsum_ite]
   congr 1
@@ -257,7 +249,6 @@ theorem firstPassageLaw_eq_first_step (s : ℕ) (x : ℤ × ℤ) :
           omega
         simp [hp, hl1, this]
     · simp [hp]
-
 
 /-- A letter `p ∈ 𝒫` with `η(p) ≠ 0` has `l(p) ≥ 1`. -/
 theorem one_le_bkL_of_holdLaw_ne_zero {p : ℤ × ℤ} (hp : p ∈ bkPoints)

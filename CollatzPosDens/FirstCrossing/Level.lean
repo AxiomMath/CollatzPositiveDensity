@@ -71,7 +71,7 @@ theorem two_le_level (n : ℕ) : 2 ≤ level n := by
 
 /-- Every level is positive. -/
 theorem level_pos (n : ℕ) : 0 < level n :=
-  lt_of_lt_of_le (by norm_num) (two_le_level n)
+  zero_lt_two.trans_le (two_le_level n)
 
 /-- The scale is at most eight times the level: `b_n ≤ 8 k_n`. -/
 theorem scale_le_eight_mul_level (n : ℕ) : scale n ≤ 8 * level n := by

@@ -68,7 +68,10 @@ theorem Bud_cast {K : Type*} [DivisionRing K] [CharZero K] :
 
 /-- The six-term budget is positive. -/
 theorem Bud_pos : 0 < Bud := by
-  have := ccont_pos; have := Qpack_pos; have := PT_pos; have := PW_pos
+  have := ccont_pos
+  have := Qpack_pos
+  have := PT_pos
+  have := PW_pos
   rw [Bud_def]
   positivity
 

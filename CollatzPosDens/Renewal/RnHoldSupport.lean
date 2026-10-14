@@ -43,10 +43,7 @@ theorem holdWords_nonempty_of_holdLaw_ne_zero {j : ℕ} {l : ℤ} (h : holdLaw j
     (holdWords j l).Nonempty := by
   by_contra hne
   rw [Set.not_nonempty_iff_eq_empty] at hne
-  apply h
-  rw [holdLaw_def]
-  have : IsEmpty (holdWords j l) := by rw [hne]; infer_instance
-  exact tsum_empty
+  exact h (by simp [holdLaw_def, hne])
 
 /-- Support of the holding-time law: if `1 ≤ j` and `holdLaw j l ≠ 0`, then `2j + 2 ≤ l`. -/
 @[collatz_pos_dens "lem_rn_hold_support"]

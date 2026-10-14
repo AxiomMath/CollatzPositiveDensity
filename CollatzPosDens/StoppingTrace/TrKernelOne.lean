@@ -78,12 +78,14 @@ theorem trKernel_one_eq_tsum_trPassage (v : ℤ × ℤ) :
       ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u u.length)) with hF
   set S := {p : List (List ℤ × ℤ) × List (List ℤ × ℤ) | p.1 ∈ trPassage s ∧
         p.2 ∈ trFirstStopSet n ξ (epsStar : ℝ) (trPath v p.1 p.1.length)}
-  have hbij := trEntryWords_bijOn_append n ξ (epsStar : ℝ) v
   have h1 : trKernel n ξ 1 v = ∑' u : trEntryWords n ξ (epsStar : ℝ) v, F u.1 := by
     rw [trKernel_succ]
     simp [hF]
+  -- reindex along the bijection
   have h2 : ∑' u : trEntryWords n ξ (epsStar : ℝ) v, F u.1 = ∑' p : S, F (p.1.1 ++ p.1.2) :=
-    ((hbij.equiv _).tsum_eq (fun u : trEntryWords n ξ (epsStar : ℝ) v ↦ F u.1)).symm
+    (((trEntryWords_bijOn_append n ξ (epsStar : ℝ) v).equiv _).tsum_eq
+      (fun u : trEntryWords n ξ (epsStar : ℝ) v ↦ F u.1)).symm
+  -- the term factorises
   have hfac : ∀ π b : List (List ℤ × ℤ), F (π ++ b) =
       (ENNReal.ofReal (trListWeight π) *
         ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length))) *
@@ -113,8 +115,8 @@ theorem trKernel_one_eq_tsum_trPassage (v : ℤ × ℤ) :
     · rw [Set.indicator_of_notMem (show (π, b) ∉ S from fun h ↦ hb h.2),
         Set.indicator_of_notMem hb]
   · rw [Set.indicator_of_notMem hπ]
-    refine ENNReal.tsum_eq_zero.2 fun b ↦ ?_
-    exact Set.indicator_of_notMem (show (π, b) ∉ S from fun h ↦ hπ h.1) _
+    exact ENNReal.tsum_eq_zero.2 fun b ↦
+      Set.indicator_of_notMem (show (π, b) ∉ S from fun h ↦ hπ h.1) _
 
 /-- **One kernel step.** Let `ξ ∈ G_n` be a unit and `v ∈ 𝒫` a black point. Then
 `m_1(v) ≤ 1 - d_* - δ_tr(gap(v))`. -/

@@ -69,9 +69,11 @@ theorem trStopTime_two_eq_some_iff_trSublist_mem_trEntryWords {v : ℤ × ℤ} (
       q < n / 2 ∧ (0 < q ∧ IsTrHitAfter n ξ ε (trPath v β) 0 q) ∧
         ∀ s < q, ¬(0 < s ∧ IsTrHitAfter n ξ ε (trPath v β) 0 s) := by
     rw [trStopTime_succ_succ_eq_some_iff]
-    refine ⟨fun ⟨t', ht', h⟩ => ?_, fun h => ⟨0, hτ1, h⟩⟩
-    obtain rfl := Option.some_inj.1 (hτ1.symm.trans ht')
-    exact h
+    constructor
+    · rintro ⟨t', ht', h⟩
+      rw [hτ1, Option.some_inj] at ht'
+      exact ht' ▸ h
+    · exact fun h => ⟨0, hτ1, h⟩
   constructor
   · rintro ⟨-, h⟩
     obtain ⟨hqJ, ⟨hq0, hhit⟩, hmin⟩ := hτ2.1 h
@@ -80,11 +82,14 @@ theorem trStopTime_two_eq_some_iff_trSublist_mem_trEntryWords {v : ℤ × ℤ} (
     refine ⟨hq0, hqN, ?_⟩
     rw [mem_trEntryWords, hlenq hqN]
     refine ⟨fun b hb => hβ b (mem_of_mem_trSublist hb), hlive.sublist (trSublist_sublist _ _ _),
-      hq0, ?_, fun t ht1 htq h => hmin t htq ⟨ht1, ?_⟩⟩
+      hq0, ?_, ?_⟩
     · rw [trPath_trSublist_one_of_le v hqN le_rfl]
       simpa [isTrHitAfter_iff] using hhit
-    · rw [trPath_trSublist_one_of_le v hqN htq.le] at h
-      simpa [isTrHitAfter_iff] using h
+    · intro t ht1 htq
+      rw [trPath_trSublist_one_of_le v hqN htq.le]
+      have := hmin t htq
+      simp only [isTrHitAfter_iff, trPath_zero] at this
+      exact fun h => this ⟨ht1, h⟩
   · rintro ⟨hq1, hqN, hu⟩
     rw [mem_trEntryWords, hlenq hqN] at hu
     obtain ⟨-, -, -, hhit, hnot⟩ := hu

@@ -94,15 +94,14 @@ theorem chPairFactor_eq_norm_sum_exp_bkTheta (n : ℕ) (ξ : ResidueGroup n) (j 
     intro t ht
     have ht1 : 1 ≤ t := (Finset.mem_Icc.1 ht).1
     obtain ⟨m, rfl⟩ : ∃ m, t = m + 1 := ⟨t - 1, by omega⟩
+    have h1 : 1 ≤ 2 ^ m := Nat.one_le_two_pow
     have hsplit : -((2 : ResidueGroup n) ^ (m + 1) + 3) * x * ξ =
         -5 * x * ξ + -(((2 ^ m - 1 : ℕ) : ℤ) : ResidueGroup n) * (2 * x * ξ) := by
-      have h1 : 1 ≤ 2 ^ m := Nat.one_le_two_pow
       push_cast [h1]
       ring
     rw [hsplit, fxChar_add_eq_mul, two_mul_chPairPoint_mul, fxChar_neg_intCast_mul_eq_exp_sfr,
       ← bkTheta_def]
     congr 3
-    have h1 : 1 ≤ 2 ^ m := Nat.one_le_two_pow
     simp [h1]
   rw [Finset.sum_congr rfl hterm, ← Finset.mul_sum, norm_mul, fxChar_norm_eq_one, one_mul]
 

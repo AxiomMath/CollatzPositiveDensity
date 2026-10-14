@@ -76,8 +76,7 @@ lemma trFirstRaw_of_forall_le
     (h : ∀ i ∈ Finset.Icc (1 : ℕ) (chBlockPath π π.length).1.toNat, trRawSum π i ≤ s) :
     trFirstRaw s π = (chBlockPath π π.length).1.toNat := by
   rw [trFirstRaw, dite_eq_right]
-  rintro ⟨i, hi, hlt⟩
-  exact absurd (h i hi) (not_le.mpr hlt)
+  exact fun ⟨i, hi, hlt⟩ => (h i hi).not_gt hlt
 
 /-- If some `σ_i(π)` with `1 ≤ i ≤ M` exceeds `s`, then `i_s(π)` lies in `{1, …, M}` and
 `σ_{i_s(π)}(π) > s`. -/
@@ -103,11 +102,10 @@ lemma trFirstRaw_le : trFirstRaw s π ≤ (chBlockPath π π.length).1.toNat := 
 /-- Minimality: `i_s(π) ≤ i` for every `i ∈ {1, …, M}` with `σ_i(π) > s`. -/
 lemma trFirstRaw_le_of_lt {i : ℕ} (hi : 1 ≤ i) (hiM : i ≤ (chBlockPath π π.length).1.toNat)
     (h : (s : ℤ) < trRawSum π i) : trFirstRaw s π ≤ i := by
-  have hex :
-      ∃ i, i ∈ Finset.Icc (1 : ℕ) (chBlockPath π π.length).1.toNat ∧ (s : ℤ) < trRawSum π i :=
-    ⟨i, Finset.mem_Icc.mpr ⟨hi, hiM⟩, h⟩
-  rw [trFirstRaw_of_exists hex]
-  exact Nat.find_min' hex ⟨Finset.mem_Icc.mpr ⟨hi, hiM⟩, h⟩
+  have hi' : i ∈ Finset.Icc (1 : ℕ) (chBlockPath π π.length).1.toNat ∧ (s : ℤ) < trRawSum π i :=
+    ⟨Finset.mem_Icc.mpr ⟨hi, hiM⟩, h⟩
+  rw [trFirstRaw_of_exists ⟨i, hi'⟩]
+  exact Nat.find_min' _ hi'
 
 /-- Below the first raw crossing the raw partial sums stay at most `s`: `σ_i(π) ≤ s` for
 `i < i_s(π)`. -/
@@ -115,9 +113,7 @@ lemma trRawSum_le_of_lt_trFirstRaw {i : ℕ} (hlt : i < trFirstRaw s π) :
     trRawSum π i ≤ s := by
   rcases Nat.eq_zero_or_pos i with rfl | hi
   · simp
-  by_contra hcon
-  exact absurd (trFirstRaw_le_of_lt hi (hlt.le.trans trFirstRaw_le) (not_le.mp hcon))
-    (not_le.mpr hlt)
+  exact not_lt.mp fun hcon => (trFirstRaw_le_of_lt hi (hlt.le.trans trFirstRaw_le) hcon).not_gt hlt
 
 /-- The first coordinate `M` of `chBlockPath π π.length` is at least `1` for a nonempty list
 `π`. -/
@@ -125,7 +121,9 @@ lemma one_le_chBlockPath_length_fst_toNat (hπ : π ≠ []) :
     1 ≤ (chBlockPath π π.length).1.toNat := by
   have hlen : 1 ≤ π.length := List.length_pos_iff.mpr hπ
   have hsum : (0 : ℤ) ≤ ((π.take π.length).map fun b => (b.1.length : ℤ)).sum :=
-    List.sum_nonneg (by simp only [List.mem_map]; rintro _ ⟨b, -, rfl⟩; positivity)
+    List.sum_nonneg fun _ hx => by
+      obtain ⟨_, -, rfl⟩ := List.mem_map.mp hx
+      positivity
   rw [chBlockPath_fst, min_self]
   omega
 

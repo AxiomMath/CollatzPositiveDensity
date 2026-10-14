@@ -40,10 +40,11 @@ namespace BkTriangle
 theorem row_bound_of_mem {Δ : BkTriangle} {p : ℤ × ℤ} (h : p ∈ Δ) :
     ((bkJ p - Δ.j : ℤ) : ℝ) * Real.log 9 ≤ ((bkL p : ℝ) - Δ.tip) * Real.log 2 := by
   have hlog : Real.log 2 ≠ 0 := (Real.log_pos one_lt_two).ne'
-  have key : ((bkL p : ℝ) - Δ.tip) * Real.log 2 =
-      Δ.s - ((Δ.l - bkL p : ℤ) : ℝ) * Real.log 2 := by
-    rw [tip_def]; push_cast; field_simp; ring
-  rw [key]
+  rw [show ((bkL p : ℝ) - Δ.tip) * Real.log 2 = Δ.s - ((Δ.l - bkL p : ℤ) : ℝ) * Real.log 2 by
+    rw [tip_def]
+    push_cast
+    field_simp
+    ring]
   linarith [weight_le_of_mem h]
 
 end BkTriangle

@@ -89,24 +89,16 @@ theorem dyadicRed_off_append (k : ℕ) (u v : Word) :
       dyadicRed k ⟨off u, off_mem_dyadicRationals u⟩ +
         dyadicRed k ⟨u.weight, u.weight_mem_dyadicRationals⟩ *
           dyadicRed k ⟨off v, off_mem_dyadicRationals v⟩ := by
-  have e : (⟨off (u ++ v), off_mem_dyadicRationals _⟩ : dyadicRationals) =
-      ⟨off u, off_mem_dyadicRationals u⟩ +
-        ⟨u.weight, u.weight_mem_dyadicRationals⟩ * ⟨off v, off_mem_dyadicRationals v⟩ :=
-    Subtype.ext (by simp [off_append])
-  rw [e, map_add, map_mul]
+  rw [← map_mul, ← map_add]
+  exact congrArg _ (Subtype.ext (by simp [off_append]))
 
 /-- The residue map of the empty word is the identity of `G_t`. -/
 @[simp]
 theorem residueMap_nil (t : ℕ) (z : ResidueGroup t) : residueMap [] t z = z := by
-  have h1 : dyadicRed t ⟨Word.weight [], Word.weight_mem_dyadicRationals []⟩ = 1 := by
-    have : (⟨Word.weight [], Word.weight_mem_dyadicRationals []⟩ : dyadicRationals) = 1 :=
-      Subtype.ext (by simp)
-    rw [this, map_one]
-  have h0 : dyadicRed t ⟨off [], off_mem_dyadicRationals []⟩ = 0 := by
-    have : (⟨off [], off_mem_dyadicRationals []⟩ : dyadicRationals) = 0 :=
-      Subtype.ext (by simp)
-    rw [this, map_zero]
-  change dyadicRed t _ * (z.val : ResidueGroup t) + dyadicRed t _ = z
-  rw [h1, h0, one_mul, add_zero, ZMod.natCast_zmod_val]
+  have h1 : (⟨Word.weight [], Word.weight_mem_dyadicRationals []⟩ : dyadicRationals) = 1 :=
+    Subtype.ext (by simp)
+  have h0 : (⟨off [], off_mem_dyadicRationals []⟩ : dyadicRationals) = 0 :=
+    Subtype.ext (by simp)
+  rw [residueMap_apply, h1, h0, map_one, map_zero, one_mul, add_zero, ZMod.natCast_zmod_val]
 
 end CollatzPosDens

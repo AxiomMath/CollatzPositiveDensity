@@ -41,9 +41,8 @@ namespace CollatzPosDens
 /-- For every real `A` and every `m ≥ 0`, the weighted supremum `chQm n ξ ε A m` is nonnegative. -/
 @[collatz_pos_dens "lem_ch_Qm_bounded"]
 theorem chQm_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (A : ℝ) (m : ℕ) :
-    0 ≤ chQm n ξ ε A m := by
-  refine Real.sSup_nonneg fun x ⟨p, _, _, hx⟩ => hx ▸ ?_
-  exact mul_nonneg (Real.rpow_nonneg (by exact_mod_cast (chDist_pos n p).le) A)
-    (chQ_range n ξ ε p).1
+    0 ≤ chQm n ξ ε A m :=
+  Real.sSup_nonneg fun _ ⟨p, _, _, hx⟩ => hx ▸
+    mul_nonneg (Real.rpow_nonneg (mod_cast (chDist_pos n p).le) A) (chQ_range n ξ ε p).1
 
 end CollatzPosDens

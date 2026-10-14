@@ -98,11 +98,8 @@ theorem c3Exceptional_indep_entry (n : ℕ) (e e' : ℤ × ℤ) (G v : ℕ) (X :
 /-- The exceptional event shrinks as the threshold `X` grows. -/
 theorem c3Exceptional_anti {n : ℕ} {e : ℤ × ℤ} {G v : ℕ} {X X' : ℝ} (h : X ≤ X') :
     c3Exceptional n e G v X' ⊆ c3Exceptional n e G v X := by
-  rintro a ⟨ha, h1 | h2 | h3 | h4⟩
-  · exact ⟨ha, Or.inl (h.trans h1)⟩
-  · exact ⟨ha, Or.inr (Or.inl (h.trans h2))⟩
-  · exact ⟨ha, Or.inr (Or.inr (Or.inl h3))⟩
-  · exact ⟨ha, Or.inr (Or.inr (Or.inr h4))⟩
+  rintro a ⟨ha, h'⟩
+  exact ⟨ha, h'.imp h.trans (Or.imp_left h.trans)⟩
 
 /-- An atom of `𝒜_n` lies outside the exceptional event iff all four conditions fail:
 `ℓ - G < X`, `∑_{k ≤ v} l(βᵏ) < X`, `|r - G/4| < G^{3/5}` and `∑_{k ≤ v} j(βᵏ) < G^{3/5}`. -/

@@ -81,7 +81,7 @@ open Finset
 `c`. -/
 private lemma hasSum_of_tsum_ofReal {α : Type*} {g : α → ℝ} (hg : ∀ a, 0 ≤ g a) {c : ℝ}
     (hc : 0 ≤ c) (h : ∑' a, ENNReal.ofReal (g a) = ENNReal.ofReal c) : HasSum g c := by
-  have hne : ∑' a, ENNReal.ofReal (g a) ≠ ⊤ := by rw [h]; exact ENNReal.ofReal_ne_top
+  have hne : ∑' a, ENNReal.ofReal (g a) ≠ ⊤ := by simp [h]
   have hs := ENNReal.summable_toReal hne
   simp only [ENNReal.toReal_ofReal (hg _)] at hs
   convert hs.hasSum
@@ -96,10 +96,8 @@ private lemma sum_exitSet (s : ℕ) : ∑ x ∈ exitSet s, firstPassageLaw s x =
   rw [exitSet, sum_image, sum_product]
   · exact sum_firstPassageLaw_eq_p45 s
   · rintro ⟨r, O⟩ - ⟨r', O'⟩ - h
-    simp only [Prod.mk.injEq] at h
-    obtain ⟨h1, h2⟩ := h
-    simp only [Prod.mk.injEq]
-    exact ⟨by exact_mod_cast h1, by omega⟩
+    simp only [Prod.mk.injEq] at h ⊢
+    exact ⟨mod_cast h.1, by omega⟩
 
 /-- The total mass of the passage lists is `1`. -/
 private lemma hasSum_trListWeight_trPassage (s : ℕ) :
@@ -122,8 +120,8 @@ private lemma hasSum_trListWeight_exitSet (s : ℕ) :
   have hl : ∀ π : trPassage s, ENNReal.ofReal
       (if chBlockPath π.1 π.1.length ∈ exitSet s then trListWeight π.1 else 0) =
       ENNReal.ofReal (trListWeight π.1) *
-        (if chBlockPath π.1 π.1.length ∈ exitSet s then 1 else 0) := by
-    intro π; split_ifs <;> simp
+        (if chBlockPath π.1 π.1.length ∈ exitSet s then 1 else 0) := fun π ↦ by
+    split_ifs <;> simp
   simp_rw [hl]
   rw [h, tsum_eq_sum (s := exitSet s) (fun x hx ↦ by simp [hx]),
     ← sum_exitSet, ENNReal.ofReal_sum_of_nonneg (fun x _ ↦ firstPassageLaw_nonneg _ x)]
@@ -186,6 +184,60 @@ private lemma kappaStar_le_trReward {n : ℕ} {ξ : ResidueGroup n} {x : ℤ × 
     split_ifs <;> norm_num
   nlinarith
 
+/-- The count of a passage list is at least the reward of its last block. -/
+private lemma trReward_le_trCount_concat {n : ℕ} {ξ : ResidueGroup n} (v : ℤ × ℤ)
+    (π₀ : List (List ℤ × ℤ)) (b : List ℤ × ℤ) :
+    trReward n ξ (v + chBlockPath (π₀ ++ [b]) π₀.length) b ≤
+      trCount n ξ v (π₀ ++ [b]) (π₀ ++ [b]).length := by
+  rw [show (π₀ ++ [b]).length = π₀.length + 1 by simp, trCount_succ v _ (by simp),
+    ← trPath_eq_add_chBlockPath]
+  simp only [List.getElem_concat_length]
+  linarith [trCount_nonneg (n := n) (ξ := ξ) v (π₀ ++ [b]) π₀.length]
+
+/-- On `𝒜₃(s)`, `s = gap(v)`, the count is at least `κ_*`. -/
+private lemma kappaStar_le_trCount_of_mem_trRawThreeWitness {n : ℕ} {ξ : ResidueGroup n}
+    (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v)
+    {π : List (List ℤ × ℤ)} (h3 : π ∈ trRawThreeWitness (trGap n ξ (epsStar : ℝ) v)) :
+    (kappaStar : ℝ) ≤ trCount n ξ v π π.length := by
+  generalize hs : trGap n ξ (epsStar : ℝ) v = s at h3
+  obtain ⟨π₀, ⟨c, e⟩, rfl⟩ := (List.eq_nil_or_concat' π).resolve_left
+    (ne_nil_of_mem_trPassage (trRawThreeWitness_mem_trPassage h3))
+  obtain ⟨i, hi, hic, hi3, hI⟩ := trRawThreeWitness_lastBlock h3 (List.getLast?_concat)
+  have hlt := trRawThreeWitness_lt_trRawSum h3
+  have hle := trRawThreeWitness_trRawSum_le h3
+  have hf := trRawThreeWitness_trFirstRaw_le h3
+  have hwhite := isBkWhite_add_of_bkBlack_trGap hξ hv hb
+    (r := (trFirstRaw s (π₀ ++ [(c, e)]) : ℤ))
+    (O := trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) - s) (by positivity)
+    (by rw [hs]; exact_mod_cast hf) (by omega) (by omega)
+  rw [hs, show (s : ℤ) + (trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) - s) =
+    trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) by ring] at hwhite
+  rw [show (π₀ ++ [(c, e)]).length - 1 = π₀.length by simp] at hI
+  have hwhite' : IsBkWhite n ξ (epsStar : ℝ)
+      (v + chBlockPath (π₀ ++ [(c, e)]) π₀.length + ((i : ℤ), (c.take i).sum)) := by
+    rwa [add_assoc, ← hI]
+  linarith [kappaStar_le_trReward (e := e) hi hic hi3 hwhite',
+    trReward_le_trCount_concat (n := n) (ξ := ξ) v π₀ (c, e)]
+
+/-- On `𝒜₄₅`, `s = gap(v)`, the count is at least `1`. -/
+private lemma one_le_trCount_of_mem_exitSet {n : ℕ} {ξ : ResidueGroup n}
+    (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v)
+    {π : List (List ℤ × ℤ)} (hπ : π ∈ trPassage (trGap n ξ (epsStar : ℝ) v))
+    (hV : chBlockPath π π.length ∈ exitSet (trGap n ξ (epsStar : ℝ) v)) :
+    1 ≤ trCount n ξ v π π.length := by
+  generalize hs : trGap n ξ (epsStar : ℝ) v = s at hπ hV
+  obtain ⟨π₀, b, rfl⟩ := (List.eq_nil_or_concat' π).resolve_left (ne_nil_of_mem_trPassage hπ)
+  simp only [exitSet, mem_image, mem_product, mem_Icc] at hV
+  obtain ⟨⟨r, O⟩, ⟨⟨hr1, hr⟩, hO1, hO4⟩, hpt⟩ := hV
+  have hwhite := isBkWhite_add_of_bkBlack_trGap hξ hv hb (r := (r : ℤ)) (O := O)
+    (by positivity) (by rw [hs]; exact_mod_cast hr) hO1 hO4
+  simp only at hpt
+  rw [hs, hpt, show (π₀ ++ [b]).length = π₀.length + 1 by simp,
+    chBlockPath_succ _ (by simp)] at hwhite
+  simp only [List.getElem_concat_length, ← add_assoc] at hwhite
+  linarith [one_le_trReward (n := n) (ξ := ξ) _ _ hwhite,
+    trReward_le_trCount_concat (n := n) (ξ := ξ) v π₀ b]
+
 /-- The pointwise bound
 `bw^⊗(π) e^{-γ_* N^*} ≤ bw^⊗(π) - (1 - e^{-γ_*}) bw^⊗(π) 1_{𝒜₄₅}
   - (1 - e^{-κ_* γ_*}) bw^⊗(π) 1_{𝒜₃(s)}` for a passage list `π ∈ Π_s`, `s = gap(v)`. -/
@@ -199,57 +251,25 @@ private lemma trListWeight_mul_exp_le {n : ℕ} {ξ : ResidueGroup n} (hξ : IsR
             trListWeight π else 0) -
         (1 - Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ))) *
           (trRawThreeWitness (trGap n ξ (epsStar : ℝ) v)).indicator trListWeight π := by
-  obtain ⟨s, hs⟩ : ∃ s, trGap n ξ (epsStar : ℝ) v = s := ⟨_, rfl⟩
-  rw [hs] at hπ ⊢
   have hw0 := trListWeight_nonneg π
   have hγ : (0 : ℝ) < gammaStar := by exact_mod_cast gammaStar_pos
-  have hκ : (0 : ℝ) < kappaStar := by exact_mod_cast kappaStar_pos
-  obtain ⟨π₀, b, rfl⟩ := (List.eq_nil_or_concat' π).resolve_left (ne_nil_of_mem_trPassage hπ)
-  have hk : (π₀ ++ [b]).length = π₀.length + 1 := by simp
-  have hN : trReward n ξ (v + chBlockPath (π₀ ++ [b]) π₀.length) b ≤
-      trCount n ξ v (π₀ ++ [b]) (π₀ ++ [b]).length := by
-    rw [hk, trCount_succ v _ (by simp), ← trPath_eq_add_chBlockPath]
-    simp only [List.getElem_concat_length]
-    linarith [trCount_nonneg (n := n) (ξ := ξ) v (π₀ ++ [b]) π₀.length]
-  have hN0 := trCount_nonneg (n := n) (ξ := ξ) v (π₀ ++ [b]) (π₀ ++ [b]).length
-  set N := trCount n ξ v (π₀ ++ [b]) (π₀ ++ [b]).length
-  set w := trListWeight (π₀ ++ [b])
-  by_cases h3 : π₀ ++ [b] ∈ trRawThreeWitness s
-  · have hV := not_mem_exitSet_of_mem_trRawThreeWitness h3
-    rw [ite_eq_right_iff.mpr (fun h ↦ absurd h hV), Set.indicator_of_mem h3]
-    obtain ⟨c, e⟩ := b
-    obtain ⟨i, hi, hic, hi3, hI⟩ := trRawThreeWitness_lastBlock h3 (List.getLast?_concat)
-    have hlt := trRawThreeWitness_lt_trRawSum h3
-    have hle := trRawThreeWitness_trRawSum_le h3
-    have hf := trRawThreeWitness_trFirstRaw_le h3
-    have hwhite := isBkWhite_add_of_bkBlack_trGap hξ hv hb
-      (r := (trFirstRaw s (π₀ ++ [(c, e)]) : ℤ))
-      (O := trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) - s) (by positivity)
-      (by rw [hs]; exact_mod_cast hf) (by omega) (by omega)
-    rw [hs, show (s : ℤ) + (trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) - s) =
-      trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) by ring] at hwhite
-    rw [show (π₀ ++ [(c, e)]).length - 1 = π₀.length by simp] at hI
-    have hwhite' : IsBkWhite n ξ (epsStar : ℝ)
-        (v + chBlockPath (π₀ ++ [(c, e)]) π₀.length + ((i : ℤ), (c.take i).sum)) := by
-      rwa [add_assoc, ← hI]
-    have hR := kappaStar_le_trReward (e := e) hi hic hi3 hwhite'
-    have hexp : Real.exp (-(gammaStar : ℝ) * N) ≤ Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ)) :=
+  have hN0 := trCount_nonneg (n := n) (ξ := ξ) v π π.length
+  by_cases h3 : π ∈ trRawThreeWitness (trGap n ξ (epsStar : ℝ) v)
+  · have hR := kappaStar_le_trCount_of_mem_trRawThreeWitness hξ hv hb h3
+    rw [ite_eq_right_iff.mpr (fun h ↦ absurd h (not_mem_exitSet_of_mem_trRawThreeWitness h3)),
+      Set.indicator_of_mem h3]
+    have hexp : Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤
+        Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ)) :=
       Real.exp_le_exp.mpr (by push_cast; nlinarith)
     nlinarith [mul_le_mul_of_nonneg_left hexp hw0]
   · rw [Set.indicator_of_notMem h3, mul_zero, sub_zero]
     split_ifs with hV
-    · simp only [exitSet, mem_image, mem_product, mem_Icc] at hV
-      obtain ⟨⟨r, O⟩, ⟨⟨hr1, hr⟩, hO1, hO4⟩, hpt⟩ := hV
-      have hwhite := isBkWhite_add_of_bkBlack_trGap hξ hv hb (r := (r : ℤ)) (O := O)
-        (by positivity) (by rw [hs]; exact_mod_cast hr) hO1 hO4
-      simp only at hpt
-      rw [hs, hpt, hk, chBlockPath_succ _ (by simp)] at hwhite
-      simp only [List.getElem_concat_length, ← add_assoc] at hwhite
-      have hR := one_le_trReward (n := n) (ξ := ξ) _ _ hwhite
-      have hexp : Real.exp (-(gammaStar : ℝ) * N) ≤ Real.exp (-(gammaStar : ℝ)) :=
+    · have hR := one_le_trCount_of_mem_exitSet hξ hv hb hπ hV
+      have hexp : Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤
+          Real.exp (-(gammaStar : ℝ)) :=
         Real.exp_le_exp.mpr (by nlinarith)
       nlinarith [mul_le_mul_of_nonneg_left hexp hw0]
-    · have hexp : Real.exp (-(gammaStar : ℝ) * N) ≤ 1 :=
+    · have hexp : Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤ 1 :=
         Real.exp_le_one_iff.mpr (by nlinarith)
       nlinarith [mul_le_mul_of_nonneg_left hexp hw0]
 
@@ -274,7 +294,7 @@ theorem tsum_trPassage_mul_exp_neg_trCount_le {n : ℕ} {ξ : ResidueGroup n}
     ∑' π : trPassage (trGap n ξ (epsStar : ℝ) v),
         trListWeight π.1 * Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length) ≤
       1 - (dStar : ℝ) - trDelta (trGap n ξ (epsStar : ℝ) v) := by
-  set s := trGap n ξ (epsStar : ℝ) v with hs
+  set s := trGap n ξ (epsStar : ℝ) v
   set a := 1 - Real.exp (-(gammaStar : ℝ))
   set b := 1 - Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ))
   have hsum := ((hasSum_trListWeight_trPassage s).sub

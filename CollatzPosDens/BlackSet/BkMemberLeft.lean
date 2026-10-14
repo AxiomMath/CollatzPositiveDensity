@@ -35,14 +35,12 @@ namespace BkTriangle
 @[collatz_pos_dens "lem_bk_member_left"]
 theorem bkJ_le_of_mem {Δ : BkTriangle} {q : ℤ × ℤ} (h : q ∈ Δ) :
     (bkJ q : ℝ) ≤ Δ.j + Δ.s / Real.log 9 := by
-  have hlog9 : 0 < Real.log 9 := Real.log_pos (by norm_num)
-  have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
   have hl : (0 : ℝ) ≤ ((Δ.l - bkL q : ℤ) : ℝ) := by
     exact_mod_cast sub_nonneg.2 (le_l_of_mem h)
   have hw := weight_le_of_mem h
-  rw [← sub_le_iff_le_add', le_div_iff₀ hlog9]
+  rw [← sub_le_iff_le_add', le_div_iff₀ (Real.log_pos (by norm_num))]
   push_cast at hw hl
-  nlinarith [mul_nonneg hl hlog2.le]
+  nlinarith [mul_nonneg hl (Real.log_pos (by norm_num : (1 : ℝ) < 2)).le]
 
 end BkTriangle
 

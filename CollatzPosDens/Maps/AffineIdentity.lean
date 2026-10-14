@@ -38,9 +38,8 @@ theorem eq_weight_mul_src_add_off (w : Word) (R : ℚ) :
   induction w generalizing R with
   | nil => simp
   | cons a w ih =>
-    have h := ih (invStep a R)
     rw [src_cons, Word.weight_cons, off_cons, mul_assoc,
-      eq_sub_of_add_eq h.symm, invStep]
+      eq_sub_of_add_eq (ih (invStep a R)).symm, invStep]
     field_simp
     ring
 

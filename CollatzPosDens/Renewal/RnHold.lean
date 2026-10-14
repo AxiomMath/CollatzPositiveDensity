@@ -62,10 +62,6 @@ theorem holdLaw_nonneg (j : ℕ) (l : ℤ) : 0 ≤ holdLaw j l :=
 theorem holdLaw_zero (l : ℤ) : holdLaw 0 l = if l = 0 then 1 else 0 := by
   have h := holdWords_zero l
   rw [holdLaw_def]
-  split_ifs at h ⊢ with hl
-  · rw [h]
-    exact (tsum_univ (f := fun c : Fin 0 → ℤ ↦ ∏ i, varpi (c i))).trans (by simp)
-  · rw [h]
-    simp
+  split_ifs at h ⊢ <;> simp [h]
 
 end CollatzPosDens

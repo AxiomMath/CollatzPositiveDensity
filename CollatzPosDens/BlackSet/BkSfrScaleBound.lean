@@ -42,16 +42,13 @@ theorem abs_sfr_natCast_mul_le {N : ℕ} (z : ZMod N) (k : ℕ) :
   rcases Nat.eq_zero_or_pos N with rfl | hN
   · simp [sfr_def]
   have : NeZero N := ⟨hN.ne'⟩
-  have hmin : ((k : ZMod N) * z).valMinAbs.natAbs ≤ ((k : ℤ) * z.valMinAbs).natAbs :=
-    ZMod.natAbs_min_of_le_div_two N _ _ (by push_cast; simp)
-      (ZMod.natAbs_valMinAbs_le _)
-  have hmin' : |(((k : ZMod N) * z).valMinAbs : ℝ)| ≤ (k : ℝ) * |(z.valMinAbs : ℝ)| := by
-    rw [Int.natAbs_mul, Int.natAbs_natCast] at hmin
-    have h : (|((k : ZMod N) * z).valMinAbs| : ℤ) ≤ k * |z.valMinAbs| := by
-      rw [Int.abs_eq_natAbs, Int.abs_eq_natAbs]; exact_mod_cast hmin
-    exact_mod_cast h
+  have hmin : ((k : ZMod N) * z).valMinAbs.natAbs ≤ k * z.valMinAbs.natAbs := by
+    simpa [Int.natAbs_mul] using ZMod.natAbs_min_of_le_div_two N _ ((k : ℤ) * z.valMinAbs)
+      (by push_cast; simp) (ZMod.natAbs_valMinAbs_le _)
   have hN' : (0 : ℝ) < N := by exact_mod_cast hN
   rw [sfr_def, sfr_def, abs_div, abs_div, abs_of_pos hN', ← mul_div_assoc]
-  exact div_le_div_of_nonneg_right hmin' hN'.le
+  gcongr
+  rw [← Int.cast_abs, ← Int.cast_abs, Int.abs_eq_natAbs, Int.abs_eq_natAbs]
+  exact_mod_cast hmin
 
 end CollatzPosDens

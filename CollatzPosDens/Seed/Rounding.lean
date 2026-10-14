@@ -54,19 +54,11 @@ theorem off_le_roundedOffset (p : ℤ) (v : Word) : off v ≤ roundedOffset p v 
 /-- The rounded offset exceeds the offset by at most `|v| 2^{-p}`. -/
 theorem roundedOffset_sub_le_off (p : ℤ) (v : Word) :
     roundedOffset p v - v.length * (2 : ℚ) ^ (-p) ≤ off v := by
-  have h := roundedOffset_sub_off_eq p v
-  have hs : ∑ j ∈ Finset.range v.length,
-      (((⌈(2 : ℚ) ^ p * 3 ^ j * ((2 : ℚ) ^ Word.valSum (v.take (j + 1)))⁻¹⌉ : ℤ)
-        : ℚ) - (2 : ℚ) ^ p * 3 ^ j * ((2 : ℚ) ^ Word.valSum (v.take (j + 1)))⁻¹)
-      ≤ v.length := by
-    calc _ ≤ ∑ _j ∈ Finset.range v.length, (1 : ℚ) :=
-          Finset.sum_le_sum fun j _ => by
-            have := Int.ceil_lt_add_one
-              ((2 : ℚ) ^ p * 3 ^ j * ((2 : ℚ) ^ Word.valSum (v.take (j + 1)))⁻¹)
-            linarith
-      _ = v.length := by simp
-  have h2 : (0 : ℚ) < 2 ^ (-p) := zpow_pos two_pos _
-  nlinarith
+  rw [sub_le_comm, roundedOffset_sub_off_eq, mul_comm (v.length : ℚ)]
+  refine mul_le_mul_of_nonneg_left ?_ (zpow_nonneg zero_le_two _)
+  calc _ ≤ ∑ _j ∈ Finset.range v.length, (1 : ℚ) :=
+        Finset.sum_le_sum fun _ _ => sub_le_iff_le_add'.2 (Int.ceil_lt_add_one _).le
+    _ = v.length := by simp
 
 /-- **Rounding lemma.** For every word `v` and every integer `p`,
 `rd_p(v) - |v| 2^{-p} ≤ off(v) ≤ rd_p(v)`. -/

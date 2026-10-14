@@ -28,10 +28,9 @@ namespace CollatzPosDens
 /-- `0 < v∘ < 8π / 217`. -/
 @[collatz_pos_dens "lem_ch_v0_lower"]
 theorem chV0_pos_lt : 0 < (chV0 : ℝ) ∧ (chV0 : ℝ) < 8 * Real.pi / 217 := by
-  have h := pi_gt_6283_div_2000
   refine ⟨by exact_mod_cast chV0_pos, ?_⟩
   rw [chV0_def]
   push_cast
-  linarith
+  linarith [pi_gt_6283_div_2000]
 
 end CollatzPosDens

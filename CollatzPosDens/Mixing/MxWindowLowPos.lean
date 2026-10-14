@@ -24,21 +24,21 @@ $$q^-_n > \tfrac12 \mathrm{Lv}_n - \tfrac{n}{100} - \tfrac{n}{100}
 
 ## Main results
 
-* `CollatzPosDens.mxWindowLow_pos_bound`: `33/100 · n < q^-_n` for `n ≥ 2 ^ 131072`.
+* `CollatzPosDens.mxWindowLow_pos_bound`: `33/100 · n < q^-_n` for `n ≥ 2 ^ 80000`.
 * `CollatzPosDens.mxWindowLow_pos_bound_of_two_pow_eighty_le`: the same bound under the
   weaker hypothesis `n ≥ 2 ^ 80`.
 * `CollatzPosDens.mxWindowLow_pos_bound_rpow_le`: `n^{2049/4096} ≤ n / 32` for `n ≥ 2 ^ 20`.
 
 ## Implementation notes
 
-Mazur bounds $n^{2047/4096}$ below by $2^{65504}$; here the cruder bound
+The source bounds $n^{2047/4096}$ below by $2^{65504}$; here the cruder bound
 $n^{2047/4096} \ge n^{1/4} \ge 2^5$ is used, valid for $n \ge 2^{20}$. The argument then only
-needs the level bound `seven_div_ten_mul_le_mxLevel_of_two_pow_eighty_le`, available for
-$n \ge 2^{80}$; the result is specialised to $n \ge 2^{131072}$.
+needs the level bound, available for $n \ge 2^{80}$; the result is specialised to the source's
+$n \ge 2^{80000}$.
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -50,18 +50,21 @@ theorem mxWindowLow_pos_bound_rpow_le {n : ℕ} (hn : 2 ^ 20 ≤ n) :
     (n : ℝ) ^ ((2049 : ℝ) / 4096) ≤ n / 32 := by
   have hnR : ((2 : ℝ) ^ 20) ≤ n := by exact_mod_cast hn
   have h1 : (1 : ℝ) ≤ n := le_trans (by norm_num) hnR
+  have h0 : (0 : ℝ) ≤ n := by linarith
+  -- `32 ≤ n^{1/4} ≤ n^{2047/4096}`
   have h32 : (32 : ℝ) ≤ (n : ℝ) ^ ((1 : ℝ) / 4) := by
+    have h := Real.rpow_le_rpow (by positivity) hnR (by norm_num : (0 : ℝ) ≤ 1 / 4)
     have e : ((2 : ℝ) ^ 20) ^ ((1 : ℝ) / 4) = 32 := by
       rw [show ((2 : ℝ) ^ 20) = (32 : ℝ) ^ (4 : ℕ) by norm_num, one_div,
         show ((4 : ℝ)) = ((4 : ℕ) : ℝ) by norm_num, Real.pow_rpow_inv_natCast (by norm_num)
         (by norm_num)]
-    exact e ▸ Real.rpow_le_rpow (by positivity) hnR (by norm_num)
+    linarith
   have h14 : (n : ℝ) ^ ((1 : ℝ) / 4) ≤ (n : ℝ) ^ ((2047 : ℝ) / 4096) :=
     Real.rpow_le_rpow_of_exponent_le h1 (by norm_num)
   have hsplit : (n : ℝ) ^ ((2047 : ℝ) / 4096) * (n : ℝ) ^ ((2049 : ℝ) / 4096) = n := by
     rw [← Real.rpow_add (by linarith)]
     norm_num
-  have hpos : (0 : ℝ) ≤ (n : ℝ) ^ ((2049 : ℝ) / 4096) := by positivity
+  have hpos : (0 : ℝ) ≤ (n : ℝ) ^ ((2049 : ℝ) / 4096) := Real.rpow_nonneg h0 _
   nlinarith
 
 /-- For every `n ≥ 2 ^ 80`, `33/100 · n < q^-_n`. -/
@@ -71,12 +74,13 @@ theorem mxWindowLow_pos_bound_of_two_pow_eighty_le {n : ℕ} (hn : 2 ^ 80 ≤ n)
     ((Nat.pow_le_pow_right (by norm_num) (by norm_num) : 2 ^ 20 ≤ 2 ^ 80).trans hn)
   have hlv := seven_div_ten_mul_le_mxLevel_of_two_pow_eighty_le hn
   have hfl := lt_mxWindowLow n
-  have h100 : (100 : ℝ) ≤ n := by exact_mod_cast (show 100 ≤ n by omega)
+  have hnR : ((2 : ℝ) ^ 80) ≤ n := by exact_mod_cast hn
+  have h100 : (100 : ℝ) ≤ n := le_trans (by norm_num) hnR
   linarith
 
-/-- For every integer `n ≥ 2 ^ 131072`, `33/100 · n < q^-_n`. -/
+/-- **Lemma.** For every integer `n ≥ 2 ^ 80000`, `33/100 · n < q^-_n`. -/
 @[collatz_pos_dens "lem_mx_window_low_pos"]
-theorem mxWindowLow_pos_bound {n : ℕ} (hn : 2 ^ 131072 ≤ n) :
+theorem mxWindowLow_pos_bound {n : ℕ} (hn : 2 ^ 80000 ≤ n) :
     33 / 100 * (n : ℝ) < mxWindowLow n :=
   mxWindowLow_pos_bound_of_two_pow_eighty_le
     ((Nat.pow_le_pow_right (by norm_num) (by norm_num)).trans hn)

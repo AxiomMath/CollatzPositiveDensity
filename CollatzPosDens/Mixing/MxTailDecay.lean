@@ -68,7 +68,6 @@ theorem fxDft_tailLaw_eq_refLawDft (T k l : ℕ)
     fxDft (T + (k + 1)) (fun x => ((tailLaw (T + (k + 1)) k l x).toReal : ℂ)) ξ =
       refLawDft T (residueReduction (Nat.le_add_right T (k + 1)) (2⁻¹ ^ l * ξ)) := by
   set p := residueReduction (Nat.le_add_right T (k + 1))
-  have hN : T + (k + 1) - k - 1 = T := by omega
   rw [fxDft_apply, refLawDft_apply]
   simp only [tailLaw, tailLawCoeff_eq]
   suffices aux : ∀ N, N = T → ∑ x : ResidueGroup (T + (k + 1)),
@@ -76,26 +75,22 @@ theorem fxDft_tailLaw_eq_refLawDft (T k l : ℕ)
           3 ^ (k + 1) * 2⁻¹ ^ l * (z.val : ResidueGroup (T + (k + 1))) = x),
         refLaw N z).toReal : ℂ) * fxChar (T + (k + 1)) (-(ξ * x)) =
       ∑ y : ResidueGroup T, ((refLaw T y).toReal : ℂ) * fxChar T (-(p (2⁻¹ ^ l * ξ) * y)) from
-    aux _ hN
+    aux _ (by omega)
   intro N hNT
   subst N
   have hterm : ∀ z : ResidueGroup T,
       ((refLaw T z).toReal : ℂ) *
           fxChar (T + (k + 1)) (-(ξ * (3 ^ (k + 1) * 2⁻¹ ^ l * (z.val : ResidueGroup _)))) =
-        ((refLaw T z).toReal : ℂ) * fxChar T (-(p (2⁻¹ ^ l * ξ) * z)) := by
-    intro z
-    have h : -(ξ * (3 ^ (k + 1) * 2⁻¹ ^ l * (z.val : ResidueGroup (T + (k + 1))))) =
-        3 ^ (k + 1) * (-(2⁻¹ ^ l * ξ * (z.val : ResidueGroup (T + (k + 1))))) := by ring
-    rw [h, fxChar_three_pow_mul, map_neg, map_mul, residueReduction_natCast,
-      ZMod.natCast_zmod_val]
+        ((refLaw T z).toReal : ℂ) * fxChar T (-(p (2⁻¹ ^ l * ξ) * z)) := fun z => by
+    rw [show -(ξ * (3 ^ (k + 1) * 2⁻¹ ^ l * (z.val : ResidueGroup (T + (k + 1))))) =
+        3 ^ (k + 1) * (-(2⁻¹ ^ l * ξ * (z.val : ResidueGroup (T + (k + 1))))) by ring,
+      fxChar_three_pow_mul, map_neg, map_mul, residueReduction_natCast, ZMod.natCast_zmod_val]
   simp_rw [← hterm]
   rw [← Finset.sum_fiberwise Finset.univ
     (fun z : ResidueGroup T => 3 ^ (k + 1) * 2⁻¹ ^ l * (z.val : ResidueGroup (T + (k + 1))))]
   refine Finset.sum_congr rfl fun x _ => ?_
-  rw [ENNReal.toReal_sum (fun y _ => refLaw_ne_top _ y),
-    Complex.ofReal_sum, Finset.sum_mul]
-  refine Finset.sum_congr rfl fun z hz => ?_
-  rw [(Finset.mem_filter.1 hz).2]
+  rw [ENNReal.toReal_sum (fun y _ => refLaw_ne_top _ y), Complex.ofReal_sum, Finset.sum_mul]
+  exact Finset.sum_congr rfl fun z hz => by rw [(Finset.mem_filter.1 hz).2]
 
 /-- If `a ≤ T` and `3^a` does not divide the least nonnegative representative of `ω ∈ G_T`,
 then `|μ̂_T(ω)| ≤ C_* / (T + 1 - a)^{10241/4096}`. -/
@@ -105,30 +100,24 @@ theorem norm_refLawDft_le_of_not_dvd {T a : ℕ} (haT : a ≤ T) (ω : ResidueGr
   have hω0 : ω.val ≠ 0 := fun h => hω (h ▸ dvd_zero _)
   obtain ⟨j, hj1, hj2⟩ : ∃ j, 3 ^ j ∣ ω.val ∧ ¬ 3 ^ (j + 1) ∣ ω.val :=
     ⟨padicValNat 3 ω.val, pow_padicValNat_dvd, pow_succ_padicValNat_not_dvd hω0⟩
-  have hja : j < a := by
-    by_contra h
-    exact hω ((pow_dvd_pow 3 (not_lt.1 h)).trans hj1)
+  have hja : j < a := not_le.1 fun h => hω ((pow_dvd_pow 3 h).trans hj1)
   obtain ⟨η₀, hη₀⟩ := hj1
   have h3η : ¬ 3 ∣ η₀ := by
     rintro ⟨t, rfl⟩
     exact hj2 ⟨t, by rw [hη₀, pow_succ]; ring⟩
   obtain ⟨r, rfl⟩ : ∃ r, T = r + j := ⟨T - j, by omega⟩
-  have hr : 1 ≤ r := by omega
   have hωη : ω = 3 ^ j * (η₀ : ResidueGroup (r + j)) := by
     rw [← ZMod.natCast_zmod_val ω, hη₀]
     push_cast
     rfl
   have hunit : IsResidueUnit (η₀ : ResidueGroup r) := by
     rw [IsResidueUnit, ZMod.val_natCast]
-    intro h
-    exact h3η ((Nat.dvd_mod_iff (dvd_pow_self 3 (by omega))).1 h)
+    exact fun h => h3η ((Nat.dvd_mod_iff (dvd_pow_self 3 (by omega))).1 h)
   rw [hωη, refLawDft_three_pow_mul, residueReduction_natCast]
-  refine (norm_refLawDft_le_Cstar_div_rpow hr hunit).trans ?_
-  have hpos : (0 : ℝ) < ((r + j + 1 - a : ℕ) : ℝ) := by
-    exact_mod_cast (show 0 < r + j + 1 - a by omega)
-  refine div_le_div_of_nonneg_left Cstar_pos.le (Real.rpow_pos_of_pos hpos _) ?_
-  exact Real.rpow_le_rpow hpos.le (by exact_mod_cast (show r + j + 1 - a ≤ r by omega))
-    (by norm_num)
+  refine (norm_refLawDft_le_Cstar_div_rpow (by omega) hunit).trans ?_
+  have hpos : (0 : ℝ) < ((r + j + 1 - a : ℕ) : ℝ) := mod_cast (show 0 < r + j + 1 - a by omega)
+  exact div_le_div_of_nonneg_left Cstar_pos.le (Real.rpow_pos_of_pos hpos _)
+    (Real.rpow_le_rpow hpos.le (mod_cast (show r + j + 1 - a ≤ r by omega)) (by norm_num))
 
 /-- In `G_n`, if the reduction of `ξ` modulo `3^{n-m}` vanishes then `3^m ξ = 0`. -/
 private theorem mxTailDecay_three_pow_mul_eq_zero {n m : ℕ} (hmn : m ≤ n) (ξ : ResidueGroup n)
@@ -162,27 +151,20 @@ theorem norm_fxDft_tailLaw_le {n k l m : ℕ} (hn : 1 ≤ n) (hkm : k + 1 ≤ m)
         (residueReduction (Nat.le_add_right T (k + 1)) (2⁻¹ ^ l * ξ)) = 0 :=
       (residueReduction_eq_zero_iff ha _).2 hd
     rw [residueReduction_residueReduction, map_mul] at h0
-    have h2 : (2 : ResidueGroup (T + (k + 1))) ^ l * 2⁻¹ ^ l = 1 :=
-      two_pow_mul_inv_two_pow _ _
-    have h2' := congrArg (residueReduction (Nat.sub_le (T + (k + 1)) m)) h2
-    rw [map_mul, map_one] at h2'
+    have h2 := congrArg (residueReduction (Nat.sub_le (T + (k + 1)) m))
+      (two_pow_mul_inv_two_pow (T + (k + 1)) l)
+    rw [map_mul, map_one] at h2
     linear_combination (residueReduction (Nat.sub_le (T + (k + 1)) m) (2 ^ l)) * h0 -
-      (residueReduction (Nat.sub_le (T + (k + 1)) m) ξ) * h2'
+      (residueReduction (Nat.sub_le (T + (k + 1)) m) ξ) * h2
   refine (norm_refLawDft_le_of_not_dvd ha _ hnd).trans ?_
-  have hmk : T + 1 - (T + (k + 1) - m) = m - k := by omega
-  rw [hmk]
+  rw [show T + 1 - (T + (k + 1) - m) = m - k by omega]
   set N : ℕ := T + (k + 1)
-  have hNpos : (0 : ℝ) < (N : ℝ) / 20 := by
-    have : (0 : ℝ) < N := by exact_mod_cast (show 0 < N by omega)
-    positivity
+  have hNpos : (0 : ℝ) < (N : ℝ) / 20 := div_pos (mod_cast (show 0 < N by omega)) (by norm_num)
   have hle : (N : ℝ) / 20 ≤ ((m - k : ℕ) : ℝ) := by
+    have h : ((N + 20 * k : ℕ) : ℝ) ≤ ((20 * m : ℕ) : ℝ) := mod_cast (show _ by omega)
     rw [div_le_iff₀ (by norm_num), Nat.cast_sub (by omega)]
-    have : (N : ℝ) ≤ 20 * m - 20 * k := by
-      have h' : N + 20 * k ≤ 20 * m := by omega
-      have h'' : ((N + 20 * k : ℕ) : ℝ) ≤ ((20 * m : ℕ) : ℝ) := by exact_mod_cast h'
-      push_cast at h''
-      linarith only [h'']
-    linarith only [this]
+    push_cast at h
+    linarith
   calc Cstar / ((m - k : ℕ) : ℝ) ^ (10241 / 4096 : ℝ)
       ≤ Cstar / ((N : ℝ) / 20) ^ (10241 / 4096 : ℝ) :=
         div_le_div_of_nonneg_left Cstar_pos.le (Real.rpow_pos_of_pos hNpos _)

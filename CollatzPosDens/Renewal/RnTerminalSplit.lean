@@ -98,27 +98,6 @@ private lemma sum_ofFn_cast {N : ℕ} (h : Fin N → ℕ × ℤ) :
   rw [List.sum_ofFn]
   ext <;> simp [Prod.fst_sum, Prod.snd_sum]
 
-/-- A word of points of `𝒫` is the word `List.ofFn t` of a tuple `t : Fin N → ℕ × ℤ` with
-positive first coordinates. -/
-private lemma exists_ofFn_eq_of_mem_bkPoints {h : List (ℤ × ℤ)} (hP : ∀ a ∈ h, a ∈ bkPoints) :
-    ∃ t : Fin h.length → ℕ × ℤ, (∀ i, 1 ≤ (t i).1) ∧
-      (List.ofFn fun k ↦ (((t k).1 : ℤ), (t k).2)) = h := by
-  have hk : ∀ k, 1 ≤ (h.get k).1 := fun k ↦ by
-    have := hP _ (List.get_mem h k)
-    rwa [mem_bkPoints_mk] at this
-  refine ⟨fun k ↦ ((h.get k).1.toNat, (h.get k).2), fun k ↦ ?_, ?_⟩
-  · have := hk k
-    change 1 ≤ (h.get k).1.toNat
-    omega
-  · conv_rhs => rw [← List.ofFn_get h]
-    congr 1
-    funext k
-    have := hk k
-    ext
-    · simp only
-      omega
-    · rfl
-
 /-- **The Green's function as a sum over words.** In `ℝ≥0∞`, `𝒢(j, s)` is the sum of the
 weights of the words of points of `𝒫` with sum `(j, s)`. -/
 private theorem ofReal_green_eq_tsum_firstPassageLawWeight (j s : ℤ) :
@@ -151,24 +130,31 @@ private theorem ofReal_green_eq_tsum_firstPassageLawWeight (j s : ℤ) :
         obtain rfl : h₁ = h₂ := funext fun k ↦ natCast_prod_injective (congrFun (eq_of_heq heq) k)
         rfl
       · rintro ⟨h, hP, hs⟩ hne
-        obtain ⟨t, htP, ht⟩ := exists_ofFn_eq_of_mem_bkPoints hP
+        let t : Fin h.length → ℕ × ℤ := fun k ↦ ((h.get k).1.toNat, (h.get k).2)
+        have ht : (List.ofFn fun k ↦ (((t k).1 : ℤ), (t k).2)) = h := by
+          conv_rhs => rw [← List.ofFn_get h]
+          congr 1
+          funext k
+          have := hP _ (List.get_mem h k)
+          rw [mem_bkPoints_mk] at this
+          simp only [t]
+          ext
+          · simp only
+            omega
+          · rfl
         have hsum := sum_ofFn_cast t
         rw [ht, hs] at hsum
+        have htP : ∀ i, 1 ≤ (t i).1 := fun k ↦ by
+          have := hP _ (List.get_mem h k)
+          rw [mem_bkPoints_mk] at this
+          simp only [t]
+          omega
         refine ⟨⟨⟨h.length, t, htP, (congrArg Prod.fst hsum).symm,
           (congrArg Prod.snd hsum).symm⟩, ?_⟩, Subtype.ext ht⟩
         simp only [Function.mem_support, ne_eq] at hne ⊢
         rwa [← firstPassageLawWeight_ofFn, ht]
       · rintro ⟨⟨N, h, hh⟩, hx⟩
         exact congrArg ENNReal.ofReal (firstPassageLawWeight_ofFn h)
-
-/-- In a word of points of `𝒫` of nonzero weight, every vertical coordinate is nonnegative. -/
-private lemma bkL_nonneg_of_weight_ne_zero {h : List (ℤ × ℤ)} (hP : ∀ a ∈ h, a ∈ bkPoints)
-    (hw : firstPassageLawWeight h ≠ 0) : ∀ y ∈ h.map bkL, 0 ≤ y := by
-  intro y hy
-  obtain ⟨a, ha, rfl⟩ := List.mem_map.1 hy
-  have := four_le_snd_of_weight_ne_zero hP hw ha
-  change 0 ≤ a.2
-  linarith
 
 /-- Appending a letter `(q + 1, ℓ - s + p)`, with `s < ℓ`, to a word `h'` of points of `𝒫` of
 nonzero weight with sum `(r - q - 1, s - p)` gives a first-passage word for `s` with sum
@@ -180,7 +166,12 @@ private lemma isFirstPassageWord_append_terminal {s : ℕ} {r ℓ : ℤ} (hℓ :
       (h' ++ [((q : ℤ) + 1, ℓ - s + p)]).sum = (r, ℓ) := by
   have hsnd : (h'.map bkL).sum = s - p := by
     rw [← bkL_list_sum, hsum]
-  have hnn := bkL_nonneg_of_weight_ne_zero hP hh'
+  have hnn : ∀ y ∈ h'.map bkL, 0 ≤ y := by
+    intro y hy
+    obtain ⟨a, ha, rfl⟩ := List.mem_map.1 hy
+    have := four_le_snd_of_weight_ne_zero hP hh' ha
+    change 0 ≤ a.2
+    linarith
   refine ⟨⟨by simp, ?_, fun k hk ↦ ?_, ?_⟩, ?_⟩
   · intro a ha
     rcases List.mem_append.1 ha with ha | ha
@@ -219,9 +210,13 @@ private lemma exists_terminal_decomp {s : ℕ} {r ℓ : ℤ} {h : List (ℤ × �
   have ha0 : holdLaw a.1.toNat a.2 ≠ 0 := right_ne_zero_of_mul hw
   have ha1 : 1 ≤ a.1 := hP a ha
   have hle : (h'.map bkL).sum ≤ s := by
-    have := hFP.sum_take_le (k := h'.length) (by rw [← hdec]; simp)
+    have := hFP.sum_take_le (k := h'.length) (by simp [← hdec])
     rwa [← hdec, List.take_left] at this
-  have hnn : 0 ≤ (h'.map bkL).sum := List.sum_nonneg (bkL_nonneg_of_weight_ne_zero hP' hh')
+  have hnn : 0 ≤ (h'.map bkL).sum := List.sum_nonneg fun y hy ↦ by
+    obtain ⟨b, hb, rfl⟩ := List.mem_map.1 hy
+    have := four_le_snd_of_weight_ne_zero hP' hh' hb
+    change 0 ≤ b.2
+    linarith
   have hs' : h'.sum + a = (r, ℓ) := by
     rw [← hsum, ← hdec, List.sum_append]
     simp

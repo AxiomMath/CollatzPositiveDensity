@@ -22,7 +22,7 @@ public import CollatzPosDens.Recipe.MomentTail
 Let `M` be an odd positive integer and `n ≥ N_*`. Then
 $$|Z_n(M) - Z_{N_*}(M)| < \frac{47}{32} 2^{-24}.$$
 
-Since `N_* = 9766262 ≥ 9200000`, the central increment bound applies at every `j ≥ N_*`, so by
+Since `N_* = 6103914 ≥ 6000000`, the central increment bound applies at every `j ≥ N_*`, so by
 the triangle inequality
 `|Z_n(M) - Z_{N_*}(M)| ≤ ∑_{j=N_*}^{n-1} F j^{5/2} ϱ^j ≤ F ∑_{j ≥ N_*} j^{5/2} ϱ^j`,
 a convergent series of nonnegative terms, which is less than `(47/32) 2^{-24}` by the central
@@ -54,7 +54,7 @@ theorem abs_weightedCentralSum_sub_generationThreshold_lt {M : ℤ} (hodd : Odd 
     |weightedCentralSum n M - weightedCentralSum generationThreshold M| <
       47 / 32 * (2 : ℝ) ^ (-24 : ℤ) := by
   set N := generationThreshold with hNdef
-  have hN : 9200000 ≤ N := by rw [hNdef, generationThreshold_eq]; norm_num
+  have hN : 6000000 ≤ N := by rw [hNdef, generationThreshold_eq]; norm_num
   set g : ℕ → ℝ := fun j => (j : ℝ) ^ (5 / 2 : ℝ) * errorDecayRatio ^ j
   obtain ⟨hs, htail⟩ := generationThreshold_central_tail_lt
   have hg0 : ∀ j, 0 ≤ g j := fun j => by

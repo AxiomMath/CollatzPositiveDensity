@@ -84,9 +84,8 @@ private theorem valSum_take_overshootShift (k : ℕ+) {j : ℕ} {v : Word} (hj :
     Word.valSum ((overshootShift k j v).take (j + 1)) + k = Word.valSum (v.take (j + 1)) := by
   have hlen : (v.take j).length = j := by simp; omega
   rw [overshootShift, overshootShift_getD hj, List.take_add_one (l := v),
-    List.getElem?_eq_getElem hj]
-  rw [List.take_append, List.take_take, hlen, Nat.min_eq_right (Nat.le_succ j),
-    Nat.add_sub_cancel_left]
+    List.getElem?_eq_getElem hj, List.take_append, List.take_take, hlen,
+    Nat.min_eq_right (Nat.le_succ j), Nat.add_sub_cancel_left]
   simp only [List.take_succ_cons, List.take_zero, Word.valSum_append, Word.valSum_singleton,
     Option.toList_some, PNat.sub_coe, hk, ↓reduceIte]
   have : (k : ℕ) < v[j] := hk
@@ -126,6 +125,45 @@ private theorem overshoot_crossing_unique {H : ℕ → ℤ} {lo s t : ℕ} {x : 
   · exact h
   · exact absurd (hbs t ht.le h) (not_lt.2 hxt)
 
+/-- At a first overshoot `s` by more than `K`, lowering the `s`-th letter by `K + 1` keeps `s` a
+first crossing of the barrier. -/
+private theorem overshootShift_crossing {H : ℕ → ℤ} (hH : Monotone H) {lo n K s : ℕ}
+    {v : Word} (hlen : v.length = n) (hlo : lo < s) (hsn : s ≤ n)
+    (hbelow : ∀ i, lo ≤ i → i < s → (Word.valSum (v.take i) : ℤ) < H i)
+    (hover : H s + K < (Word.valSum (v.take s) : ℤ)) :
+    ∃ hj : s - 1 < v.length, K.succPNat < v[s - 1] ∧
+      (∀ i, lo ≤ i → i < s →
+        (Word.valSum ((overshootShift K.succPNat (s - 1) v).take i) : ℤ) < H i) ∧
+      H s ≤ (Word.valSum ((overshootShift K.succPNat (s - 1) v).take s) : ℤ) := by
+  have hj : s - 1 < v.length := by omega
+  have hs1 : s - 1 + 1 = s := by omega
+  have hA : (Word.valSum (v.take s) : ℤ) =
+      Word.valSum (v.take (s - 1)) + (v[s - 1] : ℕ) := by
+    have e := List.take_add_one (l := v) (i := s - 1)
+    rw [hs1, List.getElem?_eq_getElem hj] at e
+    rw [e, Option.toList_some, Word.valSum_append, Word.valSum_singleton]
+    push_cast
+    rfl
+  have hprev := hbelow (s - 1) (by omega) (by omega)
+  have hmono : H (s - 1) ≤ H s := hH (by omega)
+  have hkv : K.succPNat < v[s - 1] := by
+    have : (K : ℤ) + 1 < (v[s - 1] : ℕ) := by omega
+    change (K.succPNat : ℕ) < (v[s - 1] : ℕ)
+    rw [Nat.succPNat_coe]
+    omega
+  refine ⟨hj, hkv, fun i hi his => ?_, ?_⟩
+  · rw [take_overshootShift _ hj (by omega)]
+    exact hbelow i hi his
+  · have := valSum_take_overshootShift _ hj hkv
+    rw [hs1] at this
+    have hk' : ((K.succPNat : ℕ) : ℤ) = K + 1 := by
+      rw [Nat.succPNat_coe]
+      push_cast
+      rfl
+    have : (Word.valSum ((overshootShift K.succPNat (s - 1) v).take s) : ℤ) +
+        (K.succPNat : ℕ) = Word.valSum (v.take s) := mod_cast this
+    omega
+
 /-- **Overshoot loss, for a general monotone barrier.** For a monotone `H : ℕ → ℤ`, the words
 `v` of length `n` whose prefix sums stay below `H` on `[lo, s)` and overshoot `H(s)` by more
 than `K` at some `lo < s ≤ n` have geometric mass at most `2^{-(K+1)}`. -/
@@ -135,37 +173,14 @@ theorem geomMass_overshoot_le_of_monotone {H : ℕ → ℤ} (hH : Monotone H) (l
       H s + K < (Word.valSum (v.take s) : ℤ)} ≤ 2⁻¹ ^ (K + 1) := by
   set O := {v : Word | v.length = n ∧ ∃ s, lo < s ∧ s ≤ n ∧
       (∀ i, lo ≤ i → i < s → (Word.valSum (v.take i) : ℤ) < H i) ∧
-      H s + K < (Word.valSum (v.take s) : ℤ)} with hO
+      H s + K < (Word.valSum (v.take s) : ℤ)}
   set k : ℕ+ := K.succPNat with hk
   have key : ∀ v ∈ O, ∃ s, lo < s ∧ s ≤ n ∧ ∃ hj : s - 1 < v.length, k < v[s - 1] ∧
       (∀ i, lo ≤ i → i < s →
         (Word.valSum ((overshootShift k (s - 1) v).take i) : ℤ) < H i) ∧
       H s ≤ (Word.valSum ((overshootShift k (s - 1) v).take s) : ℤ) := by
     rintro v ⟨hlen, s, hlo, hsn, hbelow, hover⟩
-    have hj : s - 1 < v.length := by omega
-    have hs1 : s - 1 + 1 = s := by omega
-    have hA : (Word.valSum (v.take s) : ℤ) =
-        Word.valSum (v.take (s - 1)) + (v[s - 1] : ℕ) := by
-      have e := List.take_add_one (l := v) (i := s - 1)
-      rw [hs1, List.getElem?_eq_getElem hj] at e
-      rw [e, Option.toList_some, Word.valSum_append, Word.valSum_singleton]
-      push_cast; rfl
-    have hprev := hbelow (s - 1) (by omega) (by omega)
-    have hmono : H (s - 1) ≤ H s := hH (by omega)
-    have hkv : k < v[s - 1] := by
-      have : (K : ℤ) + 1 < (v[s - 1] : ℕ) := by omega
-      change (k : ℕ) < (v[s - 1] : ℕ)
-      rw [hk, Nat.succPNat_coe]
-      omega
-    refine ⟨s, hlo, hsn, hj, hkv, fun i hi his => ?_, ?_⟩
-    · rw [take_overshootShift k hj (by omega)]
-      exact hbelow i hi his
-    · have := valSum_take_overshootShift k hj hkv
-      rw [hs1] at this
-      have hk' : ((k : ℕ) : ℤ) = K + 1 := by rw [hk, Nat.succPNat_coe]; push_cast; rfl
-      have : (Word.valSum ((overshootShift k (s - 1) v).take s) : ℤ) + (k : ℕ) =
-          Word.valSum (v.take s) := by exact_mod_cast this
-      omega
+    exact ⟨s, hlo, hsn, overshootShift_crossing hH hlen hlo hsn hbelow hover⟩
   choose sOf hlo hsn hj hkv hbelow hcross using key
   let φ : O → {w : Word | w.length = n} := fun v =>
     ⟨overshootShift k (sOf v v.2 - 1) v, by
@@ -179,8 +194,10 @@ theorem geomMass_overshoot_le_of_monotone {H : ℕ → ℤ} (hH : Monotone H) (l
     have hs : sOf v hv = sOf v' hv' := by
       refine overshoot_crossing_unique (x := overshootShift k (sOf v hv - 1) v)
         (hlo v hv) (hlo v' hv') (hbelow v hv) (hcross v hv) ?_ ?_
-      · rw [h']; exact hbelow v' hv'
-      · rw [h']; exact hcross v' hv'
+      · rw [h']
+        exact hbelow v' hv'
+      · rw [h']
+        exact hcross v' hv'
     rw [← hs] at h'
     have hj' := hj v' hv'
     have hkv' := hkv v' hv'
@@ -195,7 +212,8 @@ theorem geomMass_overshoot_le_of_monotone {H : ℕ → ℤ} (hH : Monotone H) (l
     rw [← this, add_comm]
   calc geomMass O = ∑' v : O, 2⁻¹ ^ (K + 1) *
         ((φ v : {w : Word | w.length = n}) : Word).massWeight := by
-        rw [geomMass_def]; exact tsum_congr hweight
+        rw [geomMass_def]
+        exact tsum_congr hweight
     _ = 2⁻¹ ^ (K + 1) * ∑' v : O, ((φ v : {w : Word | w.length = n}) : Word).massWeight :=
         ENNReal.tsum_mul_left
     _ ≤ 2⁻¹ ^ (K + 1) * ∑' w : {w : Word | w.length = n}, (w : Word).massWeight := by

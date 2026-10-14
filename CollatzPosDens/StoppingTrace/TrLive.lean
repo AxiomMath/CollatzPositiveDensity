@@ -100,13 +100,12 @@ lemma TrLive.chBlockWeight_pos {β : List (List ℤ × ℤ)} (h : TrLive β) {b 
 /-- A list of blocks is live iff the product of the weights of its blocks is nonzero. -/
 lemma trLive_iff_prod_ne_zero (β : List (List ℤ × ℤ)) :
     TrLive β ↔ (β.map chBlockWeight).prod ≠ 0 := by
-  rw [Ne, List.prod_eq_zero_iff]
-  simp [TrLive]
+  simp [TrLive, List.prod_eq_zero_iff]
 
 /-- A list of blocks is live iff the product of the weights of its blocks is positive. -/
 lemma trLive_iff_prod_pos (β : List (List ℤ × ℤ)) :
-    TrLive β ↔ 0 < (β.map chBlockWeight).prod := by
-  refine ⟨fun h ↦ List.prod_pos ?_, fun h ↦ (trLive_iff_prod_ne_zero β).2 h.ne'⟩
-  exact List.forall_mem_map.2 fun _ ↦ h.chBlockWeight_pos
+    TrLive β ↔ 0 < (β.map chBlockWeight).prod :=
+  ⟨fun h ↦ List.prod_pos (List.forall_mem_map.2 fun _ ↦ h.chBlockWeight_pos),
+    fun h ↦ (trLive_iff_prod_ne_zero β).2 h.ne'⟩
 
 end CollatzPosDens

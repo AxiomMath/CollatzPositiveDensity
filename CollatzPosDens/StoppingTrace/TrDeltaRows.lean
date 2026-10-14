@@ -63,12 +63,11 @@ private theorem rows_check : ∀ s ∈ Icc 1 255,
 `δ_tr(s) ≥ δ_tr(6)`. -/
 @[collatz_pos_dens "lem_tr_delta_rows"]
 theorem trDelta_rows {s : ℕ} (h1 : 1 ≤ s) (h2 : s ≤ 255) : trDelta 6 ≤ trDelta s := by
-  have key := rows_check s (mem_Icc.mpr ⟨h1, h2⟩)
-  have key' := (Rat.cast_le (K := ℝ)).mpr key
+  have key := (Rat.cast_le (K := ℝ)).mpr (rows_check s (mem_Icc.mpr ⟨h1, h2⟩))
   simp only [trDelta, p45_eq_p45Q, p3_eq_p3Q, E8_ratCast, gammaStar_eq, kappaStar_def]
-  push_cast at key' ⊢
-  simp only [trDeltaMassQ, E8Q] at key'
-  push_cast at key'
+  push_cast at key ⊢
+  simp only [trDeltaMassQ, E8Q] at key
+  push_cast at key
   linarith
 
 end CollatzPosDens

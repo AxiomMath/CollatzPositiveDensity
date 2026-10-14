@@ -80,7 +80,6 @@ theorem off_flatten_le_of_mem_centralFamily (K : ℕ → ℕ) :
       gcongr
       · norm_num
       · omega
-    have h2b : (0 : ℚ) < 2 ^ scale s := by positivity
     calc off w + w.weight * off L.flatten
         ≤ 2 ^ scale s + w.weight * (16 ^ e * 2 ^ scale s) := by
           gcongr

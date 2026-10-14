@@ -25,12 +25,11 @@ the pair factor satisfies `Fp(j, s, 4) < e^{-21/500}`.
 
 By the formula for the pair factor through the angle, `Fp(j, s, 4) = |1 + E + E³| / 3` with
 `E = e^{-2πiϑ}`. Writing `u = sin²(πϑ)`, the multiple-angle formulas give
-`|1 + E + E³|² = 9 - 4R(u)` with `R(u) = 14u - 28u² + 16u³`. With the rational angle
-`v∘ = 6283 / 54250` (`CollatzPosDens.chV0`) and `u∘ = (v∘ - v∘³/6)²` (`CollatzPosDens.chU0`), one
-has `π|ϑ| ∈ (v∘, π/2]`, so the cubic Taylor bound for the sine gives `u > u∘`. On `[0, 1/4]` the
-cubic `R` is nondecreasing, and for `u > 1/4` one has `R(u) - 7u/4 = 16u(u - 7/8)² ≥ 0`; hence
-`R(u) ≥ min(R(u∘), 7/16)`. The numerical inequality for the letter `4` and the cubic lower bound
-for `e^{-t}` at `t = 2 · 21/500` then give `9 Fp(j, s, 4)² < 9 e^{-2 · 21/500}`.
+`|1 + E + E³|² = 9 - 4R(u)` with `R(u) = 14u - 28u² + 16u³`. Since `π|ϑ| ∈ (v∘, π/2]`, the cubic
+Taylor bound for the sine gives `u > u∘`. On `[0, 1/4]` the cubic `R` is nondecreasing, and for
+`u > 1/4` one has `R(u) - 7u/4 = 16u(u - 7/8)² ≥ 0`; hence `R(u) ≥ min(R(u∘), 7/16)`. The
+numerical inequality for the letter `4` and the cubic lower bound for `e^{-t}` at `t = 2 · 21/500`
+then give `9 Fp(j, s, 4)² < 9 e^{-2 · 21/500}`.
 
 ## Main results
 
@@ -40,12 +39,12 @@ for `e^{-t}` at `t = 2 · 21/500` then give `9 Fp(j, s, 4)² < 9 e^{-2 · 21/500
 
 ## Implementation notes
 
-The hypothesis `j ≥ 1` of [mazur2026] is not needed, since the formula for the pair factor through
+The hypothesis `j ≥ 1` of the source is not needed, since the formula for the pair factor through
 the angle holds for every natural number `j`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §7.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -99,18 +98,6 @@ theorem chPairFactor_four_sq_eq (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : �
     show -2 * π * θ / 2 = -(π * θ) by ring, sin_neg, neg_sq]
   ring
 
-/-- For `u₀ < u`, the cubic `14 u - 28 u ^ 2 + 16 u ^ 3` is bounded below by
-`min (14 u₀ - 28 u₀ ^ 2 + 16 u₀ ^ 3) (7 / 16)`. -/
-theorem min_cubic_le_cubic_of_lt {u₀ u : ℝ} (hu₀ : u₀ < u) :
-    min (14 * u₀ - 28 * u₀ ^ 2 + 16 * u₀ ^ 3) (7 / 16) ≤ 14 * u - 28 * u ^ 2 + 16 * u ^ 3 := by
-  rcases le_or_gt u (1 / 4) with hu | hu
-  · refine min_le_of_left_le ?_
-    have hfac : 0 ≤ 14 - 28 * (u + u₀) + 16 * (u ^ 2 + u * u₀ + u₀ ^ 2) := by
-      nlinarith [sq_nonneg (u + u₀), sq_nonneg u, sq_nonneg u₀]
-    nlinarith [mul_nonneg (sub_nonneg.2 hu₀.le) hfac]
-  · refine min_le_of_right_le ?_
-    nlinarith [mul_nonneg (by linarith : (0 : ℝ) ≤ 16 * u) (sq_nonneg (u - 7 / 8))]
-
 /-- **Cancellation at a white closing letter `4`.** If `|ϑ_{n,ξ}(j, s + 4)| > 8 / 217`, then
 `Fp(j, s, 4) < e^{-21/500}`. -/
 @[collatz_pos_dens "lem_ch_white_cancel_four"]
@@ -120,10 +107,12 @@ theorem chPairFactor_four_lt_exp_neg (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (
   set θ := bkTheta n ξ ((j : ℤ), s + 4)
   have hsq := chPairFactor_four_sq_eq n ξ j s
   set u := sin (π * θ) ^ 2
+  -- `u = sin²(π|θ|)`
   have hu_abs : u = sin (π * |θ|) ^ 2 := by
     rcases abs_cases θ with ⟨h1, -⟩ | ⟨h1, -⟩
     · rw [h1]
     · rw [h1, mul_neg, sin_neg, neg_sq]
+  -- lower bound `u > u∘`
   obtain ⟨hv0, hv1⟩ := chV0_pos_lt
   have hτ : |θ| ≤ 1 / 2 := abs_bkTheta_le n ξ _
   have hπ := pi_pos
@@ -132,14 +121,22 @@ theorem chPairFactor_four_lt_exp_neg (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (
   have hsin : sin (chV0 : ℝ) < sin (π * |θ|) :=
     sin_lt_sin_of_lt_of_le_pi_div_two (by linarith) hle hlt
   have hcub : (chV0 : ℝ) - (chV0 : ℝ) ^ 3 / 6 ≤ sin (chV0 : ℝ) := sin_ge_sub_cube hv0.le
-  have hcpos : (0 : ℝ) < (chV0 : ℝ) - (chV0 : ℝ) ^ 3 / 6 := by
-    exact_mod_cast chV0_sub_cube_pos
+  have hcpos : (0 : ℝ) < (chV0 : ℝ) - (chV0 : ℝ) ^ 3 / 6 := by exact_mod_cast chV0_sub_cube_pos
   have hu0 : (chU0 : ℝ) < u := by
     rw [hu_abs, chU0_def]
     push_cast
     exact pow_lt_pow_left₀ (hcub.trans_lt hsin) hcpos.le two_ne_zero
   have hu0q : (chU0 : ℝ) ≤ 1 / 4 := by rw [chU0_eq]; norm_num
-  have hR := min_cubic_le_cubic_of_lt hu0
+  -- lower bound for `R(u)`
+  have hR : min (14 * (chU0 : ℝ) - 28 * (chU0 : ℝ) ^ 2 + 16 * (chU0 : ℝ) ^ 3) (7 / 16) ≤
+      14 * u - 28 * u ^ 2 + 16 * u ^ 3 := by
+    rcases le_or_gt u (1 / 4) with hu | hu
+    · refine min_le_of_left_le ?_
+      have hfac : 0 ≤ 14 - 28 * (u + chU0) + 16 * (u ^ 2 + u * chU0 + (chU0 : ℝ) ^ 2) := by
+        nlinarith
+      nlinarith [mul_nonneg (sub_nonneg.2 hu0.le) hfac]
+    · refine min_le_of_right_le ?_
+      nlinarith [mul_nonneg (by linarith : (0 : ℝ) ≤ 16 * u) (sq_nonneg (u - 7 / 8))]
   have hnum := ch_fiber4_numeric_real
   have hexp := cubic_le_exp_neg (t := 2 * (21 / 500)) (by norm_num)
   have hexp2 : exp (-(2 * (21 / 500) : ℝ)) = exp (-(21 / 500)) ^ 2 := by

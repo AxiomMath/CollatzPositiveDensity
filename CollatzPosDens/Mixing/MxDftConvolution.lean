@@ -40,8 +40,8 @@ theorem fxDft_eq_mul_of_convolution (n : ℕ) (f g c : ResidueGroup n → ℂ)
   refine Finset.sum_congr rfl fun y _ => ?_
   rw [← Equiv.sum_comp (Equiv.addRight y), Finset.mul_sum]
   refine Finset.sum_congr rfl fun x _ => ?_
-  have h : -(ξ * (x + y)) = -(ξ * y) + -(ξ * x) := by ring
-  rw [Equiv.coe_addRight, add_sub_cancel_right, h, fxChar_add_eq_mul]
+  rw [Equiv.coe_addRight, add_sub_cancel_right,
+    show -(ξ * (x + y)) = -(ξ * y) + -(ξ * x) by ring, fxChar_add_eq_mul]
   ring
 
 end CollatzPosDens

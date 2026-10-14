@@ -62,8 +62,6 @@ theorem trPath_bkL_sub_ge (o : ℤ × ℤ) {β : List (List ℤ × ℤ)} (hβ : 
       linarith
     · rw [trPath_of_length_le o β (by omega : β.length ≤ k + 1),
         ← trPath_of_length_le o β (by omega : β.length ≤ k)]
-      have : min (k + 1) β.length = min k β.length := by omega
-      rw [this]
-      exact ih
+      rwa [show min (k + 1) β.length = min k β.length by omega]
 
 end CollatzPosDens

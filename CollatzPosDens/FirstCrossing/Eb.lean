@@ -58,7 +58,7 @@ theorem natCeil_div_hundred {K : Type*} [Semifield K] [LinearOrder K] [IsStrictO
   · rw [Nat.ceil_le, div_le_iff₀ (by norm_num)]
     exact_mod_cast (by omega : b ≤ (b + 99) / 100 * 100)
   · rcases Nat.eq_zero_or_pos ((b + 99) / 100) with h | h
-    · rw [h]; exact Nat.zero_le _
+    · omega
     · have : (b + 99) / 100 - 1 < ⌈(b : K) / 100⌉₊ := by
         rw [Nat.lt_ceil, lt_div_iff₀ (by norm_num)]
         exact_mod_cast (by omega : ((b + 99) / 100 - 1) * 100 < b)
@@ -91,9 +91,8 @@ theorem eb_isGreatest {b : ℕ} (hb₁ : 13 ≤ b) (hb₂ : b ≤ 255)
   rw [heq]
   have hs := Nat.findGreatest_spec
     (P := fun k => (b + 99) / 100 ≤ k ∧ 9 * 3 ^ b * 16 ^ k < 4 ^ (b + 1)) hk₀b ⟨hk₀, hk₀p⟩
-  refine ⟨⟨hs.1, Nat.findGreatest_le b, hs.2⟩, ?_⟩
-  rintro k ⟨hk, hkb, hkp⟩
-  exact Nat.le_findGreatest hkb ⟨hk, hkp⟩
+  exact ⟨⟨hs.1, Nat.findGreatest_le b, hs.2⟩,
+    fun k ⟨hk, hkb, hkp⟩ => Nat.le_findGreatest hkb ⟨hk, hkp⟩⟩
 
 /-- For `b ≥ 13`, if the candidate set is empty then `e_b = ⌈b/100⌉`. -/
 theorem eb_of_not_exists {b : ℕ} (hb : 13 ≤ b)
@@ -115,10 +114,8 @@ theorem one_le_eb (b : ℕ) : 1 ≤ eb b := by
   split_ifs with h₁ h₂
   · exact le_rfl
   · obtain ⟨_, k, hkb, hk, hkp⟩ := h₂
-    have hspec := Nat.findGreatest_spec
-      (P := fun k => (b + 99) / 100 ≤ k ∧ 9 * 3 ^ b * 16 ^ k < 4 ^ (b + 1)) hkb ⟨hk, hkp⟩
-    have : 1 ≤ (b + 99) / 100 := by omega
-    exact this.trans hspec.1
+    exact le_trans (by omega) (Nat.findGreatest_spec
+      (P := fun k => (b + 99) / 100 ≤ k ∧ 9 * 3 ^ b * 16 ^ k < 4 ^ (b + 1)) hkb ⟨hk, hkp⟩).1
   · omega
 
 end CollatzPosDens

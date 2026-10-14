@@ -11,9 +11,9 @@ public import CollatzPosDens.Transfer.MixingConst
 /-!
 # The error prefactor `F`
 
-The error prefactor is the positive real number
+The error prefactor of the recipe is the positive real number
 $$F := 3\,(C + 1),$$
-where `C` is the mixing constant `CollatzPosDens.mixingConst`.
+where `C` is the mixing coefficient. It multiplies the error terms of the recipe.
 
 ## Main definitions
 
@@ -26,6 +26,10 @@ where `C` is the mixing constant `CollatzPosDens.mixingConst`.
 * `CollatzPosDens.lt_errorPrefactor`, `CollatzPosDens.one_le_errorPrefactor`,
   `CollatzPosDens.mixingConst_lt_errorPrefactor`: the bounds `507/10 < F`, `1 ≤ F` and
   `C < F`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -41,7 +45,7 @@ theorem errorPrefactor_def : errorPrefactor = 3 * (mixingConst + 1) := rfl
 
 /-- The error prefactor exceeds `507/10`. -/
 theorem lt_errorPrefactor : 507 / 10 < errorPrefactor := by
-  rw [errorPrefactor_def]; linarith [lt_mixingConst]
+  linarith [errorPrefactor_def, lt_mixingConst]
 
 /-- The error prefactor is positive. -/
 theorem errorPrefactor_pos : 0 < errorPrefactor := by
@@ -53,6 +57,6 @@ theorem one_le_errorPrefactor : 1 ≤ errorPrefactor := by
 
 /-- The mixing constant is less than the error prefactor. -/
 theorem mixingConst_lt_errorPrefactor : mixingConst < errorPrefactor := by
-  rw [errorPrefactor_def]; linarith [mixingConst_pos]
+  linarith [errorPrefactor_def, mixingConst_pos]
 
 end CollatzPosDens

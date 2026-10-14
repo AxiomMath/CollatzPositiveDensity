@@ -36,8 +36,7 @@ namespace CollatzPosDens
 /-- **The renewal function beyond the cut-off.** If `j(p) > ⌊n/2⌋`, then `Q(p) = 1`. -/
 @[collatz_pos_dens "lem_ch_Q_beyond"]
 theorem chQ_eq_one_of_lt_bkJ (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {p : ℤ × ℤ}
-    (hp : ((n / 2 : ℕ) : ℤ) < bkJ p) : chQ n ξ ε p = 1 := by
-  rw [chQ_def]
-  exact chQFinite_eq_one_of_lt_bkJ n ξ ε (n / 2) hp
+    (hp : ((n / 2 : ℕ) : ℤ) < bkJ p) : chQ n ξ ε p = 1 :=
+  (chQ_def ..).trans (chQFinite_eq_one_of_lt_bkJ n ξ ε (n / 2) hp)
 
 end CollatzPosDens

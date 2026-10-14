@@ -21,8 +21,7 @@ Indeed `δ₀ = α - 1 / 4 ≥ 1 / 16` and `α ≤ 2 / 5`; since `G ≥ 2 ^ 20` 
 
 ## Main results
 
-* `CollatzPosDens.two_mul_rpow_add_alpha_mul_add_one_le_mul_drift`: if `v + 1 ≤ P` and
-  `2 ^ 36 P ≤ G`, then `2 G ^ (3 / 5) + 272 α (v + 1) + 1 ≤ G δ₀`.
+* `CollatzPosDens.two_mul_rpow_add_mul_alpha_add_one_le_mul_drift`: the inequality above.
 
 ## Implementation notes
 
@@ -31,7 +30,7 @@ The integers `P` and `v` are taken in `ℕ`, which encodes `0 ≤ v`; the two hy
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §10.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -39,7 +38,7 @@ The integers `P` and `v` are taken in `ℕ`, which encodes `0 ≤ v`; the two hy
 namespace CollatzPosDens
 
 /-- If `G ≥ 2 ^ 20` then `G ^ (3 / 5) ≤ G / 256`. -/
-private lemma rpow_three_div_five_le_div_of_le {G : ℝ} (hG : 2 ^ 20 ≤ G) :
+private lemma rpow_three_div_five_le_div_256 {G : ℝ} (hG : 2 ^ 20 ≤ G) :
     G ^ ((3 : ℝ) / 5) ≤ G / 256 := by
   have hpos : 0 < G := lt_of_lt_of_le (by norm_num) hG
   have G0 : 0 ≤ G := hpos.le
@@ -61,12 +60,12 @@ private lemma rpow_three_div_five_le_div_of_le {G : ℝ} (hG : 2 ^ 20 ≤ G) :
 /-- **The triangle margin at a far gap**: if `v + 1 ≤ P` (that is, `P ≥ 1` and `0 ≤ v ≤ P - 1`)
 and `G ≥ 2 ^ 36 P`, then `2 G ^ (3 / 5) + 272 α (v + 1) + 1 ≤ G δ₀`. -/
 @[collatz_pos_dens "lem_c3_margin"]
-theorem two_mul_rpow_add_alpha_mul_add_one_le_mul_drift {P v : ℕ} {G : ℝ} (hv : v + 1 ≤ P)
+theorem two_mul_rpow_add_mul_alpha_add_one_le_mul_drift {P v : ℕ} {G : ℝ} (hv : v + 1 ≤ P)
     (hG : 2 ^ 36 * (P : ℝ) ≤ G) :
     2 * G ^ ((3 : ℝ) / 5) + 272 * alpha * ((v : ℝ) + 1) + 1 ≤ G * drift := by
   have hvR : (v : ℝ) + 1 ≤ P := by exact_mod_cast hv
   have hP1 : (1 : ℝ) ≤ P := by linarith [v.cast_nonneg (α := ℝ)]
-  have hr := rpow_three_div_five_le_div_of_le (G := G) (by nlinarith)
+  have hr := rpow_three_div_five_le_div_256 (G := G) (by nlinarith)
   have hd : (1 : ℝ) / 16 ≤ drift := by
     rw [drift_def]
     linarith [five_div_sixteen_le_alpha]

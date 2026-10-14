@@ -130,10 +130,7 @@ theorem historyEndpointAt_eq_src_concatWord (M : ℚ) (h : Fin n → Word) {j : 
     historyEndpointAt M h j = src (concatWord fun i : Fin j => h (Fin.castLE hj i)) M := by
   rw [historyEndpointAt, concatWord]
   congr 2
-  apply List.ext_getElem
-  · simp; omega
-  · intro i h₁ h₂
-    simp
+  exact List.ext_getElem (by simpa using hj) fun _ _ _ => by simp
 
 /-- The generation-`j` endpoints stabilise at `R_n(h)` from `j = n` on. -/
 theorem historyEndpointAt_of_le (M : ℚ) (h : Fin n → Word) {j : ℕ} (hj : n ≤ j) :

@@ -47,8 +47,7 @@ open Finset
 theorem abs_transfer (w : Word) {t : ℕ} (g : ResidueGroup t → ℝ)
     (y : ResidueGroup (t + w.length)) :
     |transfer w g y| = transfer w (fun z => |g z|) y := by
-  have hω : (0 : ℝ) ≤ w.weight := by exact_mod_cast w.weight_pos.le
-  rw [transfer_apply, transfer_apply, abs_mul, abs_of_nonneg hω]
+  rw [transfer_apply, transfer_apply, abs_mul, abs_of_nonneg (by exact_mod_cast w.weight_pos.le)]
   congr 1
   by_cases hy : ∃ z, residueMap w t z = y
   · obtain ⟨z, rfl⟩ := hy
@@ -66,8 +65,7 @@ theorem abs_transfer (w : Word) {t : ℕ} (g : ResidueGroup t → ℝ)
 `∑_{x ∈ G_q} F(π_{q,m} x) = 3^{q-m} ∑_{y ∈ G_m} F(y)`. -/
 theorem sum_comp_residueReduction {m q : ℕ} (h : m ≤ q) (F : ResidueGroup m → ℝ) :
     ∑ x, F (residueReduction h x) = (3 : ℝ) ^ (q - m) * ∑ y, F y := by
-  set π := residueReduction h
-  rw [← sum_fiberwise univ π (fun x => F (π x)), mul_sum]
+  rw [← sum_fiberwise univ (residueReduction h) (fun x => F (residueReduction h x)), mul_sum]
   refine sum_congr rfl fun y _ => ?_
   rw [sum_congr rfl (g := fun _ => F y) (fun x hx => by rw [(mem_filter.mp hx).2]),
     sum_const, card_filter_residueReduction_eq, nsmul_eq_mul]
@@ -99,7 +97,7 @@ theorem residueAvg_liftedTransfer (w : Word) {k Q : ℕ} (h : w.length + k ≤ Q
     congr 1
     · rw [hQ]
     simp only [liftedTransfer_apply]
-    exact Function.Bijective.sum_comp hbij (transfer w f)
+    exact hbij.sum_comp (transfer w f)
   rw [key, residueAvg_transfer, residueAvg_comp_residueReduction]
 
 /-- The mean absolute value of a lifted transfer: for a word `w` of length `d`, `d + k ≤ Q` and

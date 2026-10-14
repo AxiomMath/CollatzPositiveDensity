@@ -114,8 +114,7 @@ theorem rawMass_natCast_succ_eq_sum_antidiagonal (k t : ℕ) :
   · intro a ha
     simp only [mem_Icc] at ha
     simp only [Int.toNat_of_nonneg ha.1]
-  · intro a _
-    simp
+  · simp
   · intro a ha
     simp only [mem_Icc] at ha
     simp only [Int.toNat_of_nonneg ha.1]
@@ -138,7 +137,7 @@ theorem rawMass_succ_natCast (k t : ℕ) :
     rw [rawMass_natCast_succ_eq_sum_antidiagonal]
     have key := sum_antidiagonal_choose_pred_mul_choose_pred t (p := 1) (q := 2 * k + 1)
       le_rfl (by omega)
-    rw [show 1 + (2 * k + 1) + 1 = 2 * (k + 1) + 1 by ring] at key
+    rw [show 1 + (2 * k + 1) + 1 = 2 * (k + 1) + 1 by omega] at key
     rw [← key, Nat.cast_sum, sum_mul]
     refine sum_congr rfl fun ab hab ↦ ?_
     rw [mem_antidiagonal] at hab

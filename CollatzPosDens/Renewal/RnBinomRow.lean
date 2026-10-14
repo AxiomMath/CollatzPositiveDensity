@@ -55,9 +55,8 @@ theorem choose_div_two_pow_sq_le (n k : ℕ) :
   have hmid : (n.choose k : ℝ) ≤ n.choose (n / 2) := by exact_mod_cast Nat.choose_le_middle k n
   obtain ⟨m, rfl | rfl⟩ := Nat.even_or_odd' n
   · rw [show 2 * m / 2 = m by omega, ← Nat.centralBinom_eq_two_mul_choose] at hmid
-    rw [show (2 : ℝ) ^ (2 * m) = 4 ^ m by rw [pow_mul]; norm_num]
-    calc (((2 * m).choose k : ℝ) / 4 ^ m) ^ 2 ≤ ((centralBinom m : ℝ) / 4 ^ m) ^ 2 := by
-          gcongr
+    rw [show (2 : ℝ) ^ (2 * m) = 4 ^ m by norm_num [pow_mul]]
+    calc (((2 * m).choose k : ℝ) / 4 ^ m) ^ 2 ≤ ((centralBinom m : ℝ) / 4 ^ m) ^ 2 := by gcongr
       _ ≤ 1 / (3 * (m : ℝ) + 1) := centralBinom_div_four_pow_sq_le m
       _ = 2 / (3 * ((2 * m : ℕ) : ℝ) + 2) := by
           push_cast

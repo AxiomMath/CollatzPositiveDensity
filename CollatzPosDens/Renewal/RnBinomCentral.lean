@@ -55,14 +55,13 @@ theorem three_mul_add_one_mul_centralBinom_sq_le (m : ℕ) :
     have key : (m + 1) ^ 2 * ((3 * (m + 1) + 1) * c' ^ 2) ≤ (m + 1) ^ 2 * 16 ^ (m + 1) := by
       have e : (m + 1) ^ 2 * ((3 * (m + 1) + 1) * c' ^ 2)
           = 4 * ((3 * m + 4) * (2 * m + 1) ^ 2) * c ^ 2 := by
-        have : ((m + 1) * c') ^ 2 = (2 * (2 * m + 1) * c) ^ 2 := by rw [h]
-        nlinarith [this]
+        rw [show (m + 1) ^ 2 * ((3 * (m + 1) + 1) * c' ^ 2) = (3 * m + 4) * ((m + 1) * c') ^ 2 by
+          ring, h]
+        ring
       rw [e, pow_succ]
       calc 4 * ((3 * m + 4) * (2 * m + 1) ^ 2) * c ^ 2
-          ≤ 4 * (4 * (m + 1) ^ 2 * (3 * m + 1)) * c ^ 2 := by
-            have : (3 * m + 4) * (2 * m + 1) ^ 2 ≤ 4 * (m + 1) ^ 2 * (3 * m + 1) := by
-              nlinarith
-            exact Nat.mul_le_mul_right _ (Nat.mul_le_mul_left _ this)
+          ≤ 4 * (4 * (m + 1) ^ 2 * (3 * m + 1)) * c ^ 2 :=
+            Nat.mul_le_mul_right _ (Nat.mul_le_mul_left _ (by nlinarith))
         _ = 16 * (m + 1) ^ 2 * ((3 * m + 1) * c ^ 2) := by ring
         _ ≤ 16 * (m + 1) ^ 2 * 16 ^ m := Nat.mul_le_mul_left _ ih
         _ = (m + 1) ^ 2 * (16 ^ m * 16) := by ring
@@ -72,14 +71,12 @@ theorem three_mul_add_one_mul_centralBinom_sq_le (m : ℕ) :
 @[collatz_pos_dens "lem_rn_binom_central"]
 theorem centralBinom_div_four_pow_sq_le (m : ℕ) :
     ((centralBinom m : ℝ) / 4 ^ m) ^ 2 ≤ 1 / (3 * m + 1) := by
-  have hx : (0 : ℝ) < 3 * m + 1 := by positivity
-  have h4 : (0 : ℝ) < 4 ^ m := by positivity
   have hN : ((3 * m + 1 : ℕ) : ℝ) * (centralBinom m : ℝ) ^ 2 ≤ ((16 ^ m : ℕ) : ℝ) := by
     exact_mod_cast three_mul_add_one_mul_centralBinom_sq_le m
+  rw [div_pow, ← pow_mul, mul_comm m, pow_mul, le_div_iff₀ (by positivity), div_mul_eq_mul_div,
+    div_le_one (by positivity)]
   push_cast at hN
-  have h16 : (16 : ℝ) ^ m = (4 ^ m) ^ 2 := by rw [← pow_mul, mul_comm, pow_mul]; norm_num
-  rw [h16] at hN
-  rw [div_pow, le_div_iff₀ hx, div_mul_eq_mul_div, div_le_one (by positivity)]
+  norm_num at hN ⊢
   linarith
 
 end CollatzPosDens

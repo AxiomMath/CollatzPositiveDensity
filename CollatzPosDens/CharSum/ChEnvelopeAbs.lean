@@ -56,9 +56,10 @@ series `∑_{w ∈ ℤ_{≥1}^k} 2^{-A(w)} Ep(j, s; w)` converges absolutely. -/
 theorem summable_norm_chPairProduct_series (n : ℕ) (ξ : ResidueGroup n) (k j : ℕ) (s : ℤ) :
     Summable fun w : {w : Word | w.length = k} =>
       ‖(2⁻¹ : ℂ) ^ (w : Word).valSum * chPairProduct n ξ j s w‖ := by
-  have h := ENNReal.summable_toReal (f := fun w : {w : Word | w.length = k} =>
-    (w : Word).massWeight) (by rw [← geomMass_def, geomMass_setOf_length_eq]; simp)
-  refine h.congr fun w => ?_
-  simp [norm_chPairProduct, Word.massWeight, ENNReal.toReal_pow, ENNReal.toReal_inv]
+  refine (ENNReal.summable_toReal (f := fun w : {w : Word | w.length = k} =>
+    (w : Word).massWeight) ?_).congr fun w => ?_
+  · rw [← geomMass_def, geomMass_setOf_length_eq]
+    simp
+  · simp [norm_chPairProduct, Word.massWeight, ENNReal.toReal_pow, ENNReal.toReal_inv]
 
 end CollatzPosDens

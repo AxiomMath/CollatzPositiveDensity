@@ -81,7 +81,9 @@ theorem firstPassageLaw_finite (s : ℤ) (x : ℤ × ℤ) :
     simp only [B, Finset.mem_product, Finset.mem_Icc]
     omega
   lift h to List B using hB
-  exact ⟨h, by simp only [Set.mem_ofPred_eq, List.length_map] at hlen ⊢; omega, rfl⟩
+  refine ⟨h, ?_, rfl⟩
+  simp only [Set.mem_ofPred_eq, List.length_map] at hlen ⊢
+  omega
 
 /-- The summand of the sum defining the first-passage law `F_s(x)` has finite support. -/
 theorem firstPassageLaw_finite_support (s : ℤ) (x : ℤ × ℤ) :

@@ -101,7 +101,7 @@ theorem chPairFactor_five_le_cos (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : 
   linarith
 
 /-- For `8 / 217 < τ ≤ 1 / 2`, `½ (|cos (πτ)| + |cos (4πτ)|) < 1 - 21 / 500`. -/
-theorem abs_cos_add_abs_cos_four_lt {τ : ℝ} (h : 8 / 217 < τ) (hτ : τ ≤ 1 / 2) :
+theorem abs_cos_add_abs_cos_four_mul_div_two_lt {τ : ℝ} (h : 8 / 217 < τ) (hτ : τ ≤ 1 / 2) :
     (|Real.cos (π * τ)| + |Real.cos (4 * (π * τ))|) / 2 < 1 - 21 / 500 := by
   have hc1 := Real.abs_cos_le_one (π * τ)
   have hc4 := Real.abs_cos_le_one (4 * (π * τ))
@@ -115,8 +115,7 @@ theorem abs_cos_add_abs_cos_four_lt {τ : ℝ} (h : 8 / 217 < τ) (hτ : τ ≤ 
     have hnn : 0 ≤ Real.cos (4 * (π * τ)) :=
       Real.cos_nonneg_of_mem_Icc ⟨by nlinarith, by nlinarith⟩
     have hlt : Real.cos (4 * (π * τ)) < Real.cos (4 * (chV0 : ℝ)) :=
-      Real.cos_lt_cos_of_nonneg_of_le_pi_div_two (by linarith) (by nlinarith)
-        (by nlinarith)
+      Real.cos_lt_cos_of_nonneg_of_le_pi_div_two (by linarith) (by nlinarith) (by nlinarith)
     have hquart := cos_le_one_sub_sq_div_two_add_pow_four_div (4 * (chV0 : ℝ))
     rw [abs_of_nonneg hnn]
     linarith
@@ -132,7 +131,7 @@ theorem abs_cos_add_abs_cos_four_lt {τ : ℝ} (h : 8 / 217 < τ) (hτ : τ ≤ 
   · have hnn : 0 ≤ Real.cos (π * τ) :=
       Real.cos_nonneg_of_mem_Icc ⟨by nlinarith, by nlinarith⟩
     have hle : Real.cos (π * τ) ≤ Real.cos (π / 6) :=
-      Real.cos_le_cos_of_nonneg_of_le_pi (by positivity) (by nlinarith) (by nlinarith)
+      Real.cos_le_cos_of_nonneg_of_le_pi (by nlinarith) (by nlinarith) (by nlinarith)
     have hs : Real.sqrt 3 < 87 / 50 := by
       rw [Real.sqrt_lt' (by norm_num)]
       norm_num
@@ -154,7 +153,7 @@ theorem chPairFactor_five_lt_exp {n : ℕ} {ξ : ResidueGroup n} {j : ℕ} {s : 
     rw [← Real.cos_abs (4 * (π * θ)), abs_mul, abs_mul, abs_of_pos pi_pos,
       abs_of_pos (by norm_num : (0 : ℝ) < 4)]
   rw [e1, e4] at hF
-  linarith [abs_cos_add_abs_cos_four_lt h (abs_bkTheta_le n ξ _),
-    Real.add_one_le_exp (-(21 / 500 : ℝ))]
+  have hB := abs_cos_add_abs_cos_four_mul_div_two_lt h (abs_bkTheta_le n ξ _)
+  linarith [Real.add_one_le_exp (-(21 / 500 : ℝ))]
 
 end CollatzPosDens

@@ -72,20 +72,14 @@ theorem bkColTop_spec_of_exists (h : ∃ t : ℤ, 1 ≤ t ∧ IsBkWhite n ξ ε 
   classical
   have h' : ∃ s : ℕ, IsBkWhite n ξ ε (bkJ p, bkL p + (s + 1)) := by
     obtain ⟨t, ht, hw⟩ := h
-    refine ⟨(t - 1).toNat, ?_⟩
-    have : ((t - 1).toNat : ℤ) + 1 = t := by omega
-    rwa [this]
+    exact ⟨(t - 1).toNat, by rwa [show ((t - 1).toNat : ℤ) + 1 = t by omega]⟩
   have hc : bkColTop n ξ ε p = bkL p + Nat.find h' := by
     rw [bkColTop, dite_eq_left_of_eq_true (eq_true h')]
-  refine ⟨by omega, ?_, ?_⟩
-  · have := Nat.find_spec h'
-    rw [hc, add_assoc]
-    exact this
-  · intro m hm hmt hw
-    have hlt : (m - bkL p - 1).toNat < Nat.find h' := by omega
-    apply Nat.find_min h' hlt
-    have : bkL p + (((m - bkL p - 1).toNat : ℕ) + 1 : ℤ) = m := by omega
-    rwa [this]
+  refine ⟨by omega, ?_, fun m hm hmt hw => ?_⟩
+  · rw [hc, add_assoc]
+    exact Nat.find_spec h'
+  · refine Nat.find_min h' (m := (m - bkL p - 1).toNat) (by omega) ?_
+    rwa [show bkL p + ((m - bkL p - 1).toNat + 1 : ℤ) = m by omega]
 
 /-- `l ≤ l_*(p)`. -/
 theorem le_bkColTop : bkL p ≤ bkColTop n ξ ε p := by

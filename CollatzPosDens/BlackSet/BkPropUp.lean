@@ -49,17 +49,14 @@ theorem abs_bkTheta_add_le_of_east (n : ℕ) (ξ : ResidueGroup n) {j l : ℤ} (
   induction m with
   | zero => simpa using h₀
   | succ m ih =>
-    have hm : |bkTheta n ξ (j, l + m)| ≤ ε :=
-      ih fun k hk₁ hk₂ => h k hk₁ (Nat.le_succ_of_le hk₂)
-    have he := h (m + 1) (Nat.le_add_left 1 m) le_rfl
-    have hp' : (j, l + ((m + 1 : ℕ) : ℤ)) ∈ bkPoints := mem_bkPoints_mk.2 (mem_bkPoints_mk.1 hp)
-    have hs : l + ((m + 1 : ℕ) : ℤ) - 1 = l + m := by push_cast; ring
-    have key := two_mul_bkTheta_eq_of_east_of_south n ξ hp' (A₀ := ε) (B₀ := ε)
-      (by linarith) he (by rw [hs]; exact hm)
+    have hm := ih fun k hk₁ hk₂ => h k hk₁ (Nat.le_succ_of_le hk₂)
+    have hs : l + ((m + 1 : ℕ) : ℤ) - 1 = l + m := by omega
+    have key := two_mul_bkTheta_eq_of_east_of_south n ξ
+      (mem_bkPoints_mk.2 (mem_bkPoints_mk.1 hp)) (A₀ := ε) (B₀ := ε) (by linarith)
+      (h (m + 1) (Nat.le_add_left 1 m) le_rfl) (hs ▸ hm)
     rw [hs] at key
-    have hε0 : 0 ≤ ε := (abs_nonneg _).trans h₀
     have h2 := congrArg abs key
     rw [abs_mul, abs_two] at h2
-    linarith
+    linarith [(abs_nonneg _).trans h₀]
 
 end CollatzPosDens

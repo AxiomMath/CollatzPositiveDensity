@@ -33,12 +33,12 @@ theorem logb_two_three_bounds :
     (79 / 50 : ℝ) ≤ logb 2 3 ∧ logb 2 3 ≤ 317 / 200 := by
   have h2 : (0 : ℝ) < log 2 := log_pos (by norm_num)
   rw [logb, le_div_iff₀ h2, div_le_iff₀ h2]
-  have hn : (3 : ℕ) ^ 200 ≤ 2 ^ 317 := by
+  -- `2 ^ 317` is split so that each power stays below `norm_num`'s evaluation threshold.
+  have hn : (3 : ℝ) ^ 200 ≤ 2 ^ 317 := by
     rw [show 317 = 200 + 117 from rfl, pow_add]
     norm_num
-  have h₁ := log_le_log (by positivity)
-    (by exact_mod_cast (by norm_num : (2 : ℕ) ^ 158 ≤ 3 ^ 100) : (2 : ℝ) ^ 158 ≤ 3 ^ 100)
-  have h₂ := log_le_log (by positivity) (by exact_mod_cast hn : (3 : ℝ) ^ 200 ≤ 2 ^ 317)
+  have h₁ := log_le_log (by positivity) (by norm_num : (2 : ℝ) ^ 158 ≤ 3 ^ 100)
+  have h₂ := log_le_log (by positivity) hn
   simp only [log_pow, Nat.cast_ofNat] at h₁ h₂
   constructor <;> linarith
 

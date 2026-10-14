@@ -48,7 +48,6 @@ theorem dw_le_ceil_sqrt (b : ℕ) : dw b ≤ ⌈√(32 * (b : ℝ) * (lg b : ℝ
         · have hlg : 1 ≤ lg b := by
             by_contra h
             have := lg_le_iff_le_two_pow.1 (show lg b ≤ 0 by omega)
-            simp at this
             omega
           calc (3 * b / 5) ^ 2 ≤ 2 ^ 2 := Nat.pow_le_pow_left (by omega) 2
             _ ≤ 32 * b * lg b := by nlinarith
@@ -57,9 +56,8 @@ theorem dw_le_ceil_sqrt (b : ℕ) : dw b ≤ ⌈√(32 * (b : ℝ) * (lg b : ℝ
           have := lg_le_iff_le_two_pow.1 (show lg b ≤ 2 by omega)
           omega
         have h1 : (3 * b / 5) * 5 ≤ 3 * b := Nat.div_mul_le_self _ _
-        generalize hq : 3 * b / 5 = q at h1
+        generalize 3 * b / 5 = q at h1
         generalize lg b = L at hlg
-        have hqb : q ≤ b := by omega
         have e1 : q * 5 * (q * 5) ≤ 3 * b * (3 * b) := Nat.mul_le_mul h1 h1
         have e2 : b * b ≤ 255 * b := Nat.mul_le_mul_right _ (by omega)
         have e3 : 3 * b ≤ b * L := by nlinarith

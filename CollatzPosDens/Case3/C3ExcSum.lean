@@ -45,9 +45,9 @@ namespace CollatzPosDens
 private lemma exp_neg_fourteen_le : Real.exp (-14) ≤ (3 / 8 : ℝ) ^ 14 := by
   have he : (8 / 3 : ℝ) ≤ Real.exp 1 := le_trans (by norm_num) Real.exp_one_gt_d9.le
   have h14 : Real.exp 14 = Real.exp 1 ^ 14 := by
-    rw [← Real.exp_nat_mul]
-    norm_num
-  have hpow : (8 / 3 : ℝ) ^ 14 ≤ Real.exp 14 := h14 ▸ pow_le_pow_left₀ (by norm_num) he 14
+    rw [← Real.exp_nat_mul]; norm_num
+  have hpow : (8 / 3 : ℝ) ^ 14 ≤ Real.exp 14 := by
+    rw [h14]; exact pow_le_pow_left₀ (by norm_num) he 14
   rw [Real.exp_neg, show (3 / 8 : ℝ) ^ 14 = ((8 / 3 : ℝ) ^ 14)⁻¹ by norm_num]
   exact inv_anti₀ (by positivity) hpow
 
@@ -60,28 +60,25 @@ theorem c3Exc_le_geom {v : ℕ} (hv : 1 ≤ v) :
   rw [c3Exc_of_one_le hv]
   have hb : (25 / 27 : ℝ) ^ (136 * (v + 1)) =
       (25 / 27 : ℝ) ^ 136 * ((25 / 27 : ℝ) ^ 136) ^ v := by
-    rw [pow_mul, pow_succ]
-    ring
+    rw [pow_mul, pow_succ]; ring
   have he : Real.exp (-14 * ((v : ℝ) + 1)) = Real.exp (-14) ^ (v + 1) := by
-    rw [← Real.exp_nat_mul]
-    push_cast
-    ring_nf
+    rw [← Real.exp_nat_mul]; push_cast; ring_nf
   have he' : Real.exp (-14) ^ (v + 1) ≤ ((3 / 8 : ℝ) ^ 14) ^ (v + 1) :=
     pow_le_pow_left₀ (Real.exp_pos _).le exp_neg_fourteen_le _
   rw [pow_succ' ((3 / 8 : ℝ) ^ 14)] at he'
   rw [hb, he, mul_pow]
   linarith [he']
 
-/-- **The exceptional allowances are summable**: for every finite set `V` of offsets `v ≥ 1`,
-`Exc(0) + ∑_{v ∈ V} Exc(v) < 1/3360`. -/
+/-- **The exceptional allowances are summable**: for every finite
+set `V` of offsets `v ≥ 1`, `Exc(0) + ∑_{v ∈ V} Exc(v) < 1/3360`. -/
 @[collatz_pos_dens "lem_c3_exc_sum"]
 theorem c3Exc_zero_add_sum_lt (V : Finset ℕ) (hV : ∀ v ∈ V, 1 ≤ v) :
     c3Exc 0 + ∑ v ∈ V, c3Exc v < 1 / 3360 := by
   set b : ℝ := (25 / 27 : ℝ) ^ 136 with hb
   set b₂ : ℝ := (3 / 8 : ℝ) ^ 14 with hb₂
-  have hb1 : b < 1 := by norm_num [hb]
-  have h8b1 : 8 * b < 1 := by norm_num [hb]
-  have hb₂1 : b₂ < 1 := by norm_num [hb₂]
+  have hb1 : b < 1 := by rw [hb]; norm_num
+  have h8b1 : 8 * b < 1 := by rw [hb]; norm_num
+  have hb₂1 : b₂ < 1 := by rw [hb₂]; norm_num
   set N := V.sup id + 1
   have hVsub : V ⊆ Finset.Ico 1 N := fun v hv =>
     Finset.mem_Ico.2 ⟨hV v hv, Nat.lt_succ_of_le (Finset.le_sup (f := id) hv)⟩
@@ -106,8 +103,7 @@ theorem c3Exc_zero_add_sum_lt (V : Finset ℕ) (hV : ∀ v ∈ V, 1 ≤ v) :
           · exact hgeom b₂ (by positivity) hb₂1
   have hfin : 9 * b + (9 * b * (b / (1 - b)) + b * (8 * b / (1 - 8 * b)) +
       b₂ * (b₂ / (1 - b₂))) < 1 / 3360 := by
-    rw [hb, hb₂]
-    norm_num
+    rw [hb, hb₂]; norm_num
   rw [c3Exc_zero]
   linarith
 

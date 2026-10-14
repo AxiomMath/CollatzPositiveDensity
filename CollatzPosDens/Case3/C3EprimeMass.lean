@@ -76,7 +76,7 @@ private lemma c3EprimeMass_sum_take {α : Type*} (f : α → ℤ) (β : List α)
   rw [h, List.map_ofFn, List.sum_ofFn]
   rfl
 
-/-- Event (i): the overshoot `ℓ - G ≥ X` has `F_G`-mass less than `9 (25/27)^X`. -/
+/-- Event (i): the overshoot `ℓ - G ≥ X` has `F_G`-mass at most `9 (25/27)^X`. -/
 private lemma c3EprimeMass_overshoot {G X : ℕ} (hG : 64 ≤ G) (hX : 1 ≤ X) :
     ∑' x : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw G ((x.1 : ℤ), x.2)) *
         {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}.indicator 1 x ≤
@@ -147,96 +147,63 @@ private lemma c3EprimeMass_threeFifths {G : ℕ} (hG : 1 ≤ G) :
           (fun _ ↦ tsum_nonneg fun _ ↦ firstPassageLaw_nonneg _ _) (hF.prod.subtype S)).symm
     _ ≤ _ := ENNReal.ofReal_le_ofReal (tsum_firstPassageLaw_threeFifths_tail_le G hG)
 
-/-- If `1 ≤ G` and `s^2 < 2G`, then `s / 2 < G^{3/5}`. -/
-private lemma c3EprimeMass_half_lt {G : ℕ} (hG : 1 ≤ G) {s : ℝ} (hsG : s ^ 2 < 2 * G) :
-    s / 2 < (G : ℝ) ^ ((3 : ℝ) / 5) := by
-  have htsq : (G : ℝ) ≤ ((G : ℝ) ^ ((3 : ℝ) / 5)) ^ 2 := by
-    rw [← Real.rpow_natCast, ← Real.rpow_mul (Nat.cast_nonneg G)]
-    exact (Real.rpow_one _).symm.le.trans
-      (Real.rpow_le_rpow_of_exponent_le (by exact_mod_cast hG) (by norm_num))
-  refine lt_of_pow_lt_pow_left₀ 2 (by positivity) ?_
-  rw [show (s / 2) ^ 2 = s ^ 2 / 4 by ring]
-  linarith [(Nat.cast_nonneg G : (0 : ℝ) ≤ G)]
+/-- If `T` is at least `1` on an event `S ⊆ 𝒜_n`, the fresh-law mass of `S` is bounded by the
+integral of `T` against the displacement marginal. -/
+theorem tsum_trFreshLaw_le_of_one_le {n : ℕ} (e : ℤ × ℤ) (g : ℕ) {v : ℕ} (hv : v ≤ n / 2)
+    {S : Set ((ℕ × ℤ) × List (List ℤ × ℤ))} (hS : S ⊆ trAtoms n)
+    (T : ℕ × ℤ → (Fin v → ℤ × ℤ) → ℝ≥0∞)
+    (hT : ∀ a ∈ S, (ha : a ∈ trAtoms n) → 1 ≤ T a.1 (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(by
+      have := (mem_trAtoms.1 ha).1; omega)))) :
+    ∑' a : S, ENNReal.ofReal (trFreshLaw n e g a) ≤
+      ∑' rl : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw g ((rl.1 : ℤ), rl.2)) *
+        ∑' h : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
+          ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) * T rl h.1 := by
+  rw [← tsum_trFreshLaw_mul_chBlockPoint n e g v hv T]
+  calc _ ≤ ∑' a : S, (fun b : trAtoms n ↦ ENNReal.ofReal (trFreshLaw n e g b) *
+          T b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
+            have := (mem_trAtoms.1 b.2).1; omega)))) (Set.inclusion hS a) :=
+        ENNReal.tsum_le_tsum fun a ↦ le_mul_of_one_le_right' (hT a.1 a.2 (hS a.2))
+    _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective (Set.inclusion_injective hS)
+        (fun b : trAtoms n ↦ ENNReal.ofReal (trFreshLaw n e g b) *
+          T b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
+            have := (mem_trAtoms.1 b.2).1; omega))))
 
-/-- For `G ≥ 2^160` and `0 < s` with `s^2 < 2G`, `2^55 exp(-G^{1/5}/65536) ≤ 1/s`. -/
-private lemma c3EprimeMass_threeFifths_le_inv {G : ℕ} (hG : 2 ^ 160 ≤ G) {s : ℝ} (hs0 : 0 < s)
-    (hsG : s ^ 2 < 2 * G) : 2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536)) ≤ 1 / s := by
-  have h1 := c3HorSmall (G := (G : ℝ)) (by exact_mod_cast hG)
-  rw [neg_div] at h1
-  refine h1.le.trans ?_
-  have h2G : (0 : ℝ) ≤ 2 * G := by positivity
-  rw [show (-1 / 2 : ℝ) = -(1 / 2) by ring, Real.rpow_neg h2G, ← Real.sqrt_eq_rpow, one_div]
-  exact inv_anti₀ hs0 ((Real.lt_sqrt hs0.le).2 hsG).le
-
-/-- Every atom of the exceptional event lies in one of its four constituent events. -/
-private lemma c3EprimeMass_one_le_indicator {n : ℕ} {e : ℤ × ℤ} {G v X : ℕ}
-    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (hex : a ∈ c3Exceptional n e G v X)
-    (hlen : v ≤ a.2.length) :
-    (1 : ℝ≥0∞) ≤ {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}.indicator 1 a.1 +
-      {x : ℕ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤ |(x.1 : ℝ) - (G : ℝ) / 4|}.indicator 1 a.1 +
-      ({h : Fin v → ℤ × ℤ | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)}.indicator 1
-          (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(lt_of_lt_of_le i.2 hlen))) +
-        {h : Fin v → ℤ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤ ∑ i, ((h i).1 : ℝ)}.indicator 1
-          (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(lt_of_lt_of_le i.2 hlen)))) := by
-  obtain ⟨-, h1 | h2 | h3 | h4⟩ := hex
-  · refine le_add_right (le_add_right ?_)
-    rw [Set.indicator_of_mem]
-    · rfl
-    · exact h1
-  · refine le_add_left (le_add_right ?_)
-    rw [Set.indicator_of_mem]
-    · rfl
-    · simp only [Set.mem_ofPred_eq]
-      rw [c3EprimeMass_sum_take (fun b ↦ bkL (chBlockPoint b)) a.2 hlen] at h2
-      exact_mod_cast h2
-  · refine le_add_right (le_add_left ?_)
-    rw [Set.indicator_of_mem]
-    · rfl
-    · exact h3
-  · refine le_add_left (le_add_left ?_)
-    rw [Set.indicator_of_mem]
-    · rfl
-    · simp only [Set.mem_ofPred_eq]
-      rw [c3EprimeMass_sum_take (fun b ↦ bkJ (chBlockPoint b)) a.2 hlen] at h4
-      exact_mod_cast h4
-
-/-- Against weights `F` and `η` of total mass at most `1`, the double sum of
-`p x + q x + (u h + w h)` is at most the sum of the four separate masses. -/
-private lemma c3EprimeMass_tsum_mul_le {α β : Type*} (F : α → ℝ≥0∞) (η : β → ℝ≥0∞)
-    (hF : ∑' x, F x ≤ 1) (hη : ∑' h, η h ≤ 1) (p q : α → ℝ≥0∞) (u w : β → ℝ≥0∞) :
-    ∑' x, F x * ∑' h, η h * (p x + q x + (u h + w h)) ≤
-      ∑' x, F x * p x + ∑' x, F x * q x + (∑' h, η h * u h + ∑' h, η h * w h) := by
-  have hinner : ∀ x, ∑' h, η h * (p x + q x + (u h + w h)) ≤
-      p x + q x + (∑' h, η h * u h + ∑' h, η h * w h) := by
+/-- Integrating a sum `A x + B x + (C h + D h)` against a product of two sub-probability weights
+is bounded by the sum of the four separate integrals. -/
+theorem tsum_mul_tsum_mul_add_le {α β : Type*} {F : α → ℝ≥0∞} {η : β → ℝ≥0∞}
+    (hF : ∑' x, F x ≤ 1) (hη : ∑' h, η h ≤ 1) (A B : α → ℝ≥0∞) (C D : β → ℝ≥0∞) :
+    ∑' x, F x * ∑' h, η h * (A x + B x + (C h + D h)) ≤
+      ∑' x, F x * A x + ∑' x, F x * B x + (∑' h, η h * C h + ∑' h, η h * D h) := by
+  have hinner : ∀ x, ∑' h, η h * (A x + B x + (C h + D h)) ≤
+      A x + B x + (∑' h, η h * C h + ∑' h, η h * D h) := by
     intro x
-    calc ∑' h, η h * (p x + q x + (u h + w h)) =
-          ∑' h, (η h * (p x + q x) + (η h * u h + η h * w h)) :=
+    calc ∑' h, η h * (A x + B x + (C h + D h)) =
+          ∑' h, (η h * (A x + B x) + (η h * C h + η h * D h)) :=
           tsum_congr fun h ↦ by ring
-      _ = (∑' h, η h) * (p x + q x) + (∑' h, η h * u h + ∑' h, η h * w h) := by
+      _ = (∑' h, η h) * (A x + B x) + (∑' h, η h * C h + ∑' h, η h * D h) := by
           rw [ENNReal.tsum_add, ENNReal.tsum_add, ENNReal.tsum_mul_right]
-      _ ≤ 1 * (p x + q x) + (∑' h, η h * u h + ∑' h, η h * w h) := by
-          gcongr
+      _ ≤ 1 * (A x + B x) + (∑' h, η h * C h + ∑' h, η h * D h) := by gcongr
       _ = _ := by rw [one_mul]
-  calc _ ≤ ∑' x, F x * (p x + q x + (∑' h, η h * u h + ∑' h, η h * w h)) :=
+  calc _ ≤ ∑' x, F x * (A x + B x + (∑' h, η h * C h + ∑' h, η h * D h)) :=
         ENNReal.tsum_le_tsum fun x ↦ mul_le_mul_right (hinner x) _
-    _ = ∑' x, (F x * p x + F x * q x + F x * (∑' h, η h * u h + ∑' h, η h * w h)) :=
+    _ = ∑' x, (F x * A x + F x * B x + F x * (∑' h, η h * C h + ∑' h, η h * D h)) :=
         tsum_congr fun x ↦ by ring
-    _ = ∑' x, F x * p x + ∑' x, F x * q x +
-          (∑' x, F x) * (∑' h, η h * u h + ∑' h, η h * w h) := by
+    _ = ∑' x, F x * A x + ∑' x, F x * B x +
+          (∑' x, F x) * (∑' h, η h * C h + ∑' h, η h * D h) := by
         rw [ENNReal.tsum_add, ENNReal.tsum_add, ENNReal.tsum_mul_right]
-    _ ≤ ∑' x, F x * p x + ∑' x, F x * q x + 1 * (∑' h, η h * u h + ∑' h, η h * w h) := by
+    _ ≤ ∑' x, F x * A x + ∑' x, F x * B x + 1 * (∑' h, η h * C h + ∑' h, η h * D h) := by
         gcongr
     _ = _ := by rw [one_mul]
 
-/-- Event (ii): `∑_{k ≤ v} l(βᵏ) ≥ X` has `η^{⊗v}`-mass at most `8^v (25/27)^X`, and `0`
-if `v = 0`. -/
+/-- Event (ii): `∑_{k ≤ v} l(βᵏ) ≥ X` has `η^{⊗v}`-mass at most `8^v (25/27)^X`, and none if
+`v = 0`. -/
 private lemma c3EprimeMass_verTail (v X : ℕ) (hX : 1 ≤ X) :
     ∑' h : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
         ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) *
           {h : Fin v → ℤ × ℤ | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)}.indicator 1 h.1 ≤
       ENNReal.ofReal (if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ X else 0) := by
   rcases Nat.eq_zero_or_pos v with rfl | hv0
-  · refine (ENNReal.tsum_eq_zero.2 fun h ↦ ?_).le.trans zero_le
+  · refine (ENNReal.tsum_eq_zero.2 fun h ↦ ?_).trans_le zero_le
     have : h.1 ∉ {h : Fin 0 → ℤ × ℤ | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)} := by
       simp only [Set.mem_ofPred_eq, not_le, Finset.univ_eq_empty, Finset.sum_empty]
       exact_mod_cast hX
@@ -247,20 +214,19 @@ private lemma c3EprimeMass_verTail (v X : ℕ) (hX : 1 ≤ X) :
     refine (tsum_holdListLaw_verTail_le v X).trans (le_of_eq ?_)
     rw [Real.rpow_natCast]
 
-/-- Event (iv): for `t > 2048 · 136 (v + 1)`, `∑_{k ≤ v} j(βᵏ) ≥ t` has `η^{⊗v}`-mass at most
-`e^{-14(v+1)}`, and `0` if `v = 0`. -/
+/-- Event (iv): `∑_{k ≤ v} j(βᵏ) ≥ t` has `η^{⊗v}`-mass at most `e^{-14(v+1)}` once
+`t > 2048 · 136 (v + 1)`, and none if `v = 0`. -/
 private lemma c3EprimeMass_horTail (v : ℕ) {t : ℝ} (ht : 2048 * (136 * ((v : ℝ) + 1)) < t) :
     ∑' h : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
         ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) *
           {h : Fin v → ℤ × ℤ | t ≤ ∑ i, ((h i).1 : ℝ)}.indicator 1 h.1 ≤
       ENNReal.ofReal (if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0) := by
-  have hv : (0 : ℝ) ≤ v := Nat.cast_nonneg v
-  have ht0 : 0 < t := lt_of_le_of_lt (by positivity) ht
+  have hv : (0 : ℝ) ≤ v := by positivity
+  have ht0 : 0 < t := by linarith
   rcases Nat.eq_zero_or_pos v with rfl | hv0
-  · refine (ENNReal.tsum_eq_zero.2 fun h ↦ ?_).le.trans zero_le
+  · refine (ENNReal.tsum_eq_zero.2 fun h ↦ ?_).trans_le zero_le
     have : h.1 ∉ {h : Fin 0 → ℤ × ℤ | t ≤ ∑ i, ((h i).1 : ℝ)} := by
-      simp only [Set.mem_ofPred_eq, not_le, Finset.univ_eq_empty, Finset.sum_empty]
-      exact ht0
+      simpa only [Set.mem_ofPred_eq, not_le, Finset.univ_eq_empty, Finset.sum_empty] using ht0
     rw [Set.indicator_of_notMem this, mul_zero]
   · simp only [show 1 ≤ v from hv0, ↓reduceIte]
     refine (tsum_holdListLaw_bkPoints_mul_indicator_le (fun h ↦ t ≤ ∑ i, ((h i).1 : ℝ))
@@ -278,28 +244,50 @@ private lemma c3EprimeMass_horTail (v : ℕ) {t : ℝ} (ht : 2048 * (136 * ((v :
       rw [exp_le_exp]
       linarith
 
+/-- Event (iii) is below `1/s`: `2^55 exp(-G^{1/5}/65536) ≤ 1/s` when `G ≥ 2^160` and
+`s^2 < 2G`. -/
+private lemma c3EprimeMass_threeFifths_le_one_div {G : ℕ} (hG : (2 : ℝ) ^ 160 ≤ G)
+    {s : ℝ} (hs : 0 < s) (hsG : s ^ 2 < 2 * G) :
+    2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536)) ≤ 1 / s := by
+  have h1 := c3HorSmall hG
+  rw [neg_div] at h1
+  refine h1.le.trans ?_
+  have h2G : (0 : ℝ) ≤ 2 * G := by positivity
+  rw [show (-1 / 2 : ℝ) = -(1 / 2) by ring, Real.rpow_neg h2G, ← Real.sqrt_eq_rpow, one_div]
+  exact inv_anti₀ hs ((Real.lt_sqrt hs.le).2 hsG).le
+
+/-- `s/2 < G^{3/5}` when `s^2 < 2G`. -/
+private lemma c3EprimeMass_half_lt_rpow {G : ℕ} (hG : 1 ≤ G) {s : ℝ} (hsG : s ^ 2 < 2 * G) :
+    s / 2 < (G : ℝ) ^ ((3 : ℝ) / 5) := by
+  have hG0 : (0 : ℝ) ≤ G := by positivity
+  have htsq : (G : ℝ) ≤ ((G : ℝ) ^ ((3 : ℝ) / 5)) ^ 2 := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hG0]
+    exact (Real.rpow_one _).symm.le.trans
+      (Real.rpow_le_rpow_of_exponent_le (by exact_mod_cast hG) (by norm_num))
+  refine lt_of_pow_lt_pow_left₀ 2 (by positivity) ?_
+  rw [show (s / 2) ^ 2 = s ^ 2 / 4 by ring]
+  linarith
+
 /-- The four bounds add up to `1/s + Exc(v)`. -/
-private lemma c3EprimeMass_ofReal_add_le {G v X : ℕ} (hX : X = 136 * (v + 1)) {s : ℝ}
-    (hBs : 2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536)) ≤ 1 / s) :
-    ENNReal.ofReal (9 * (25 / 27) ^ X) +
-        ENNReal.ofReal (2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536))) +
-        (ENNReal.ofReal (if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ X else 0) +
+private lemma c3EprimeMass_add_le (v : ℕ) {p s : ℝ} (hp : 0 ≤ p) (hps : p ≤ 1 / s) :
+    ENNReal.ofReal (9 * (25 / 27) ^ (136 * (v + 1))) + ENNReal.ofReal p +
+        (ENNReal.ofReal (if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ (136 * (v + 1)) else 0) +
           ENNReal.ofReal (if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0)) ≤
       ENNReal.ofReal (1 / s + c3Exc v) := by
-  have hi1 : (0 : ℝ) ≤ if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ X else 0 := by
+  have hi1 : (0 : ℝ) ≤ if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ (136 * (v + 1)) else 0 := by
     split_ifs <;> positivity
   have hi2 : (0 : ℝ) ≤ if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0 := by
     split_ifs <;> positivity
-  calc _ = ENNReal.ofReal (9 * (25 / 27) ^ X +
-          2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536)) +
-          ((if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ X else 0) +
-            (if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0))) := by
-        rw [ENNReal.ofReal_add (by positivity) (add_nonneg hi1 hi2),
-          ENNReal.ofReal_add (by positivity) (by positivity), ENNReal.ofReal_add hi1 hi2]
-    _ ≤ _ := by
-        refine ENNReal.ofReal_le_ofReal ?_
-        rw [c3Exc, hX]
-        split_ifs <;> linarith
+  rw [← ENNReal.ofReal_add (by positivity) hp, ← ENNReal.ofReal_add hi1 hi2,
+    ← ENNReal.ofReal_add (add_nonneg (by positivity) hp) (add_nonneg hi1 hi2)]
+  refine ENNReal.ofReal_le_ofReal ?_
+  rw [c3Exc]
+  split_ifs <;> linarith
+
+private lemma c3EprimeMass_pos {v : ℕ} {s : ℝ} (hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ s) :
+    0 < s := by
+  have : (0 : ℝ) ≤ v := by positivity
+  linarith
 
 /-- **Mass of the exceptional event.** For `G ≥ 2^160`, `v ≤ ⌊n/2⌋` and a real `s` with
 `4096 · 136 (v + 1) ≤ s` and `s^2 < 2G`, `μ_{e,G}(Ex_{e,G,v,136(v+1)}) ≤ 1/s + Exc(v)`. -/
@@ -316,46 +304,41 @@ theorem tsum_trFreshLaw_c3Exceptional_le {n : ℕ} (e : ℤ × ℤ) {G v : ℕ} 
   rw [hXr]
   have hX1 : 1 ≤ X := by omega
   have hG1 : 1 ≤ G := Nat.one_le_two_pow.trans hG
-  have hG64 : 64 ≤ G := le_trans (by norm_num) hG
-  have hs0 : 0 < s := by linarith [(Nat.cast_nonneg v : (0 : ℝ) ≤ v)]
+  have ht2 := c3EprimeMass_half_lt_rpow hG1 hsG
   set t : ℝ := (G : ℝ) ^ ((3 : ℝ) / 5)
-  have ht : s / 2 < t := c3EprimeMass_half_lt hG1 hsG
   set SA : Set (ℕ × ℤ) := {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}
   set SB : Set (ℕ × ℤ) := {x : ℕ × ℤ | t ≤ |(x.1 : ℝ) - (G : ℝ) / 4|}
-  set SC : Set (Fin v → ℤ × ℤ) := {h | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)}
-  set SD : Set (Fin v → ℤ × ℤ) := {h | t ≤ ∑ i, ((h i).1 : ℝ)}
+  set SC : Set (Fin v → ℤ × ℤ) := {h | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)} with hSC
+  set SD : Set (Fin v → ℤ × ℤ) := {h | t ≤ ∑ i, ((h i).1 : ℝ)} with hSD
   set T : ℕ × ℤ → (Fin v → ℤ × ℤ) → ℝ≥0∞ := fun x h ↦
     SA.indicator 1 x + SB.indicator 1 x + (SC.indicator 1 h + SD.indicator 1 h)
-  set η : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints} → ℝ≥0∞ :=
-    fun h ↦ ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2))
-  set F : ℕ × ℤ → ℝ≥0∞ := fun x ↦ ENNReal.ofReal (firstPassageLaw G ((x.1 : ℤ), x.2))
   have hcover : ∀ a ∈ c3Exceptional n e G v X, (ha : a ∈ trAtoms n) →
       1 ≤ T a.1 (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(by
-          have := (mem_trAtoms.1 ha).1; omega))) :=
-    fun a hex ha ↦ c3EprimeMass_one_le_indicator hex (by have := (mem_trAtoms.1 ha).1; omega)
-  have step1 : ∑' a : c3Exceptional n e G v X, ENNReal.ofReal (trFreshLaw n e G a) ≤
-      ∑' x : ℕ × ℤ, F x * ∑' h, η h * T x h.1 := by
-    rw [← tsum_trFreshLaw_mul_chBlockPoint n e G v hv T]
-    calc _ ≤ ∑' a : c3Exceptional n e G v X,
-          (fun b : trAtoms n ↦ ENNReal.ofReal (trFreshLaw n e G b) *
-            T b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
-              have := (mem_trAtoms.1 b.2).1; omega))))
-            (Set.inclusion (c3Exceptional_subset_trAtoms n e G v X) a) :=
-          ENNReal.tsum_le_tsum fun a ↦ le_mul_of_one_le_right'
-            (hcover a.1 a.2 (c3Exceptional_subset_trAtoms n e G v X a.2))
-      _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective
-          (Set.inclusion_injective (c3Exceptional_subset_trAtoms n e G v X))
-          (fun b : trAtoms n ↦ ENNReal.ofReal (trFreshLaw n e G b) *
-            T b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
-              have := (mem_trAtoms.1 b.2).1; omega))))
-  calc _ ≤ _ := step1
-    _ ≤ _ := c3EprimeMass_tsum_mul_le F η (tsum_ofReal_firstPassageLaw_natCast_le_one G)
-        (tsum_ofReal_holdListLaw_bkPoints_le_one v) (SA.indicator 1) (SB.indicator 1)
-        (fun h ↦ SC.indicator 1 h.1) (fun h ↦ SD.indicator 1 h.1)
-    _ ≤ _ := add_le_add
-        (add_le_add (c3EprimeMass_overshoot hG64 hX1) (c3EprimeMass_threeFifths hG1))
-        (add_le_add (c3EprimeMass_verTail v X hX1) (c3EprimeMass_horTail v (t := t) (by linarith)))
-    _ ≤ _ := c3EprimeMass_ofReal_add_le hXdef (c3EprimeMass_threeFifths_le_inv hG hs0 hsG)
+          have := (mem_trAtoms.1 ha).1; omega))) := by
+    intro a hex ha
+    have hlen : v ≤ a.2.length := by have := (mem_trAtoms.1 ha).1; omega
+    obtain ⟨-, h1 | h2 | h3 | h4⟩ := hex
+    · exact le_add_right (le_add_right (Set.indicator_of_mem (show a.1 ∈ SA from h1) 1).ge)
+    · have hmem : (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(lt_of_lt_of_le i.2 hlen))) ∈ SC := by
+        simp only [hSC, Set.mem_ofPred_eq]
+        rw [c3EprimeMass_sum_take (fun b ↦ bkL (chBlockPoint b)) a.2 hlen] at h2
+        exact_mod_cast h2
+      exact le_add_left (le_add_right (Set.indicator_of_mem hmem 1).ge)
+    · exact le_add_right (le_add_left (Set.indicator_of_mem (show a.1 ∈ SB from h3) 1).ge)
+    · have hmem : (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(lt_of_lt_of_le i.2 hlen))) ∈ SD := by
+        simp only [hSD, Set.mem_ofPred_eq]
+        rw [c3EprimeMass_sum_take (fun b ↦ bkJ (chBlockPoint b)) a.2 hlen] at h4
+        exact_mod_cast h4
+      exact le_add_left (le_add_left (Set.indicator_of_mem hmem 1).ge)
+  calc _ ≤ _ := (tsum_trFreshLaw_le_of_one_le e G hv (c3Exceptional_subset_trAtoms n e G v X)
+        T hcover).trans (tsum_mul_tsum_mul_add_le (tsum_ofReal_firstPassageLaw_natCast_le_one G)
+          (tsum_ofReal_holdListLaw_bkPoints_le_one v) (SA.indicator 1) (SB.indicator 1)
+          (fun h ↦ SC.indicator 1 h) (fun h ↦ SD.indicator 1 h))
+    _ ≤ _ := add_le_add (add_le_add (c3EprimeMass_overshoot (le_trans (by norm_num) hG) hX1)
+        (c3EprimeMass_threeFifths hG1))
+        (add_le_add (c3EprimeMass_verTail v X hX1) (c3EprimeMass_horTail v (by linarith)))
+    _ ≤ _ := c3EprimeMass_add_le v (by positivity)
+        (c3EprimeMass_threeFifths_le_one_div (by exact_mod_cast hG) (c3EprimeMass_pos hs) hsG)
 
 /-- The fresh law is summable on the exceptional event, under the hypotheses of
 `tsum_trFreshLaw_c3Exceptional_le`. -/
@@ -372,12 +355,10 @@ theorem tsum_trFreshLaw_c3Exceptional_le_real {n : ℕ} (e : ℤ × ℤ) {G v : 
     (hG : 2 ^ 160 ≤ G) (hv : v ≤ n / 2) {s : ℝ} (hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ s)
     (hsG : s ^ 2 < 2 * G) :
     ∑' a : c3Exceptional n e G v (136 * ((v : ℝ) + 1)), trFreshLaw n e G a ≤ 1 / s + c3Exc v := by
-  have hs0 : 0 < s := by
-    have : (0 : ℝ) ≤ v := by positivity
-    linarith
   have h := tsum_trFreshLaw_c3Exceptional_le e hG hv hs hsG
   rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ trFreshLaw_nonneg _ _ _ _)
     (summable_trFreshLaw_c3Exceptional e hG hv hs hsG)] at h
-  exact (ENNReal.ofReal_le_ofReal_iff (by have := c3Exc_pos v; positivity)).1 h
+  exact (ENNReal.ofReal_le_ofReal_iff
+    (add_pos (one_div_pos.2 (c3EprimeMass_pos hs)) (c3Exc_pos v)).le).1 h
 
 end CollatzPosDens

@@ -53,9 +53,8 @@ lemma hasSum_nu45_mul_exp {t : ℝ} (ht : 11 * exp t < 16) :
     HasSum (fun r : ℕ ↦ nu45 ((r : ℤ) + 1) * exp (t * ((r : ℝ) + 1)))
       (5 * exp t / (16 - 11 * exp t)) := by
   simp_rw [nu45_natCast_add_one_mul_exp]
-  have h0 : 0 ≤ 11 / 16 * exp t := by positivity
-  have h1 : 11 / 16 * exp t < 1 := by linarith
-  convert (hasSum_geometric_of_lt_one h0 h1).mul_left (5 * exp t / 16) using 1
+  convert (hasSum_geometric_of_lt_one (r := 11 / 16 * exp t) (by positivity)
+    (by linarith)).mul_left (5 * exp t / 16) using 1
   have : (16 : ℝ) - 11 * exp t ≠ 0 := by linarith
   have : (1 : ℝ) - 11 / 16 * exp t ≠ 0 := by linarith
   field_simp
@@ -76,7 +75,6 @@ lemma mgfNu45_eq_ofReal {t : ℝ} (ht : 11 * exp t < 16) :
 /-- For `11 e^t < 16`, the exponential moment `M₄₅(t)` is finite. -/
 @[collatz_pos_dens "lem_rn_mgf_summable"]
 theorem mgfNu45_ne_top {t : ℝ} (ht : 11 * exp t < 16) : mgfNu45 t ≠ ∞ := by
-  rw [mgfNu45_eq_ofReal ht]
-  exact ENNReal.ofReal_ne_top
+  simp [mgfNu45_eq_ofReal ht]
 
 end CollatzPosDens

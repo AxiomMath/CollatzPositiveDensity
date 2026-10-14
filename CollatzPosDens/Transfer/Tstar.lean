@@ -42,7 +42,6 @@ theorem tStar_def : tStar = 101 := rfl
 theorem tStar_add_one : tStar + 1 = 102 := rfl
 
 /-- The low-count threshold is positive. -/
-theorem tStar_pos : 0 < tStar := by
-  rw [tStar_def]; decide
+theorem tStar_pos : 0 < tStar := by decide
 
 end CollatzPosDens

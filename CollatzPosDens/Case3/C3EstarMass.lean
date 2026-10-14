@@ -115,101 +115,68 @@ theorem sum_c3Exc_block_lt {P kb : ℕ} (hkb : 2 ^ kb ≤ P) :
   have h₃ := Nat.one_le_two_pow (n := i + 1)
   omega
 
-/-- The mass of the `k`-th dyadic block: if `2^k ≤ P_*`, then `Big_{e,G,v_k,s_k}` has mass at
-most `Q_pack X_k / s_k + 1 / s_k + Exc(v_k)`, under the hypotheses of
-`CollatzPosDens.tsum_trFreshLaw_trEStar_lt`. -/
+/-- The mass of the `k`-th dyadic block `Big_{e,G,v_k,s_k}` is at most
+`Q_pack X_k / s_k + 1 / s_k + Exc(v_k)`, where `v_k = min(P - 1, 2^{k+1} - 2)`,
+`X_k = 136 (v_k + 1)` and `s_k = β_*(2^k - 1)`. -/
 theorem tsum_trFreshLaw_c3Big_block_le {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ)
     {Δ₀ : BkTriangle} (hΔ₀ : Δ₀ ∈ bkFamily n ξ epsStar) {e : ℤ × ℤ} (he : e ∈ Δ₀) {G : ℕ}
-    (hG : bkL e + G = Δ₀.l) {m : ℝ} (hm : (Dsc : ℝ) ≤ m) (hP : pStar ≤ n / 2)
-    (hmG : m / Real.log m ^ 2 < G) {k : ℕ} (hk : 2 ^ k ≤ pStar) :
-    ∑' a : c3Big n ξ epsStar e G (min (pStar - 1) (2 ^ (k + 1) - 2)) (betaStar (2 ^ k - 1)),
+    (hG : bkL e + G = Δ₀.l) (hG160 : 2 ^ 160 ≤ G) {P k : ℕ} (hP : P ≤ n / 2) (hk : 2 ^ k ≤ P)
+    (hPG : 2 ^ 36 * (P : ℝ) ≤ G) (hBG : (betaStar (P - 1) : ℝ) ^ 2 < 2 * G) :
+    ∑' a : c3Big n ξ epsStar e G (min (P - 1) (2 ^ (k + 1) - 2)) (betaStar (2 ^ k - 1)),
         ENNReal.ofReal (trFreshLaw n e G a) ≤
-      ENNReal.ofReal (Qpack * (136 * (((min (pStar - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) /
+      ENNReal.ofReal (Qpack * (136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) /
         betaStar (2 ^ k - 1)) + 1 / (betaStar (2 ^ k - 1) : ℝ) +
-        c3Exc (min (pStar - 1) (2 ^ (k + 1) - 2))) := by
-  have hSG : (sStar : ℝ) < G := (sStar_lt_div_log_sq hm).trans hmG
-  have hBG : (Bstar : ℝ) ^ 2 < 2 * G := by linarith [sq_Bstar_div_two_lt_div_log_sq hm]
-  have hG160 : 2 ^ 160 ≤ G := by
-    have h365 : 2 ^ 160 < sStar :=
-      lt_trans (Nat.pow_lt_pow_right (by norm_num) (by norm_num)) two_pow_365_lt_sStar
-    have : ((2 ^ 160 : ℕ) : ℝ) < G := lt_trans (by exact_mod_cast h365) hSG
-    exact_mod_cast this.le
-  have hSG' : 2 ^ 36 * (pStar : ℝ) ≤ G := by
-    rw [← sStar_cast]
-    exact hSG.le
-  have hP1 : 1 ≤ pStar := Nat.one_le_two_pow.trans two_pow_le_pStar
-  have hvP : min (pStar - 1) (2 ^ (k + 1) - 2) + 1 ≤ pStar := by omega
-  have hs : 4096 * (136 * (((min (pStar - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1)) ≤
-      betaStar (2 ^ k - 1) := by
-    have hgap := betaStar_block_gap k (pStar - 1)
-    generalize min (pStar - 1) (2 ^ (k + 1) - 2) = v at hgap ⊢
+          c3Exc (min (P - 1) (2 ^ (k + 1) - 2))) := by
+  have hvP : min (P - 1) (2 ^ (k + 1) - 2) + 1 ≤ P := by
+    have := Nat.one_le_two_pow (n := k)
+    omega
+  have hgap := betaStar_block_gap k (P - 1)
+  have hsB : betaStar (2 ^ k - 1) ≤ betaStar (P - 1) := betaStar_monotone (by omega)
+  generalize min (P - 1) (2 ^ (k + 1) - 2) = v at hvP hgap ⊢
+  have hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ betaStar (2 ^ k - 1) := by
     have : ((4096 * 136 * (v + 1) : ℕ) : ℝ) < betaStar (2 ^ k - 1) := by exact_mod_cast hgap
     push_cast at this
     linarith
-  have hBdef : betaStar (pStar - 1) = Bstar := by
-    rw [Bstar_def, pStar_def, Nat.add_sub_cancel]
-  have hsB : (betaStar (2 ^ k - 1) : ℝ) ≤ Bstar := by
-    rw [← hBdef]
-    exact_mod_cast betaStar_monotone (by omega)
-  exact tsum_trFreshLaw_c3Big_le hξ hΔ₀ he hG hG160 (by omega) hs
-    ((pow_le_pow_left₀ (Nat.cast_nonneg _) hsB 2).trans_lt hBG)
-    (by linarith [two_mul_rpow_add_alpha_mul_add_one_le_mul_drift hvP hSG'])
+  have hsG : (betaStar (2 ^ k - 1) : ℝ) ^ 2 < 2 * G :=
+    (pow_le_pow_left₀ (Nat.cast_nonneg _) (by exact_mod_cast hsB) 2).trans_lt hBG
+  exact tsum_trFreshLaw_c3Big_le hξ hΔ₀ he hG hG160 (by omega) hs hsG
+    (by linarith [two_mul_rpow_add_mul_alpha_add_one_le_mul_drift hvP hPG])
 
-/-- The block masses sum to less than `(2 + 272 (H_* + 1) Q_pack) / K_* + 1/3360`. -/
-theorem sum_block_mass_lt {P kb : ℕ} (hkb : 2 ^ kb ≤ P) :
-    ∑ k ∈ Finset.range (kb + 1), (Qpack * (136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) /
-        betaStar (2 ^ k - 1)) + 1 / (betaStar (2 ^ k - 1) : ℝ) +
-        c3Exc (min (P - 1) (2 ^ (k + 1) - 2))) <
+/-- The block bounds `Q_pack X_k / s_k + 1 / s_k + Exc(v_k)` of the dyadic blocks `k ≤ k̄` sum
+to less than `(2 + 272 (H_* + 1) Q_pack) / K_* + 1/3360`. -/
+theorem sum_block_mass_bound_lt {P kb : ℕ} (hkb : 2 ^ kb ≤ P) :
+    ∑ k ∈ Finset.range (kb + 1),
+        (Qpack * (136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) / betaStar (2 ^ k - 1)) +
+          1 / (betaStar (2 ^ k - 1) : ℝ) + c3Exc (min (P - 1) (2 ^ (k + 1) - 2))) <
       (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar + 1 / 3360 := by
-  obtain ⟨v, hv⟩ : ∃ v : ℕ → ℕ, v = fun k ↦ min (P - 1) (2 ^ (k + 1) - 2) := ⟨_, rfl⟩
-  obtain ⟨s, hsdef⟩ : ∃ s : ℕ → ℝ, s = fun k ↦ (betaStar (2 ^ k - 1) : ℝ) := ⟨_, rfl⟩
-  have hvk (k : ℕ) : v k = min (P - 1) (2 ^ (k + 1) - 2) := by rw [hv]
-  have hsk (k : ℕ) : s k = (betaStar (2 ^ k - 1) : ℝ) := by rw [hsdef]
-  simp only [← hvk, ← hsk]
   obtain ⟨hXs, hXlt⟩ := betaStar_two_pow_sub_one_summable_window (P - 1)
+  obtain ⟨hOs, hOle⟩ := betaStar_two_pow_sub_one_summable_inv
   have hXeq (k : ℕ) : ((136 * (min (P - 1) (2 ^ (k + 1) - 2) + 1) : ℕ) : ℝ) /
-      betaStar (2 ^ k - 1) = 136 * ((v k : ℝ) + 1) / s k := by
-    rw [hvk, hsk]
+      betaStar (2 ^ k - 1) =
+        136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) / betaStar (2 ^ k - 1) := by
     push_cast
     rfl
-  have hA : ∑ k ∈ Finset.range (kb + 1), 136 * ((v k : ℝ) + 1) / s k <
-      272 * (Hstar + 1) / Kstar := by
+  have hA : ∑ k ∈ Finset.range (kb + 1),
+      136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) / betaStar (2 ^ k - 1) <
+        272 * (Hstar + 1) / Kstar := by
     refine lt_of_le_of_lt ?_ hXlt
     simp_rw [← hXeq]
     exact hXs.sum_le_tsum _ fun k _ ↦ div_nonneg (Nat.cast_nonneg _) (Nat.cast_nonneg _)
-  obtain ⟨hOs, hOle⟩ := betaStar_two_pow_sub_one_summable_inv
-  have hO : ∑ k ∈ Finset.range (kb + 1), 1 / s k ≤ 2 / Kstar := by
-    refine le_trans ?_ hOle
-    simp_rw [hsk]
-    exact hOs.sum_le_tsum _ fun k _ ↦ div_nonneg zero_le_one (Nat.cast_nonneg _)
-  have hC : ∑ k ∈ Finset.range (kb + 1), c3Exc (v k) < 1 / 3360 := by
-    simpa only [hvk] using sum_c3Exc_block_lt hkb
-  rw [Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.mul_sum,
-    show (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar =
-      Qpack * (272 * (Hstar + 1) / Kstar) + 2 / Kstar by field_simp; ring]
-  linarith [mul_lt_mul_of_pos_left hA (show (0 : ℝ) < Qpack by exact_mod_cast Qpack_pos)]
+  have hB : ∑ k ∈ Finset.range (kb + 1), 1 / (betaStar (2 ^ k - 1) : ℝ) ≤ 2 / Kstar :=
+    (hOs.sum_le_tsum _ fun k _ ↦ div_nonneg zero_le_one (Nat.cast_nonneg _)).trans hOle
+  have hC := sum_c3Exc_block_lt hkb
+  have hQ : (0 : ℝ) < Qpack := by exact_mod_cast Qpack_pos
+  have hK : (0 : ℝ) < Kstar := by exact_mod_cast Kstar_pos
+  have : (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar =
+      Qpack * (272 * (Hstar + 1) / Kstar) + 2 / Kstar := by
+    field_simp
+    ring
+  rw [Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.mul_sum, this]
+  linarith [mul_lt_mul_of_pos_left hA hQ]
 
-/-- The `ℝ≥0∞`-valued form of `CollatzPosDens.sum_block_mass_lt`. -/
-theorem sum_ofReal_block_mass_lt {P kb : ℕ} (hkb : 2 ^ kb ≤ P) :
-    ∑ k ∈ Finset.range (kb + 1),
-        ENNReal.ofReal (Qpack * (136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) /
-          betaStar (2 ^ k - 1)) + 1 / (betaStar (2 ^ k - 1) : ℝ) +
-          c3Exc (min (P - 1) (2 ^ (k + 1) - 2))) <
-      ENNReal.ofReal ((2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar + 1 / 3360) := by
-  have h₀ (k : ℕ) : 0 ≤ Qpack * (136 * (((min (P - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) /
-      betaStar (2 ^ k - 1)) + 1 / (betaStar (2 ^ k - 1) : ℝ) +
-      c3Exc (min (P - 1) (2 ^ (k + 1) - 2)) :=
-    add_nonneg (add_nonneg (mul_nonneg (by exact_mod_cast Qpack_pos.le)
-      (div_nonneg (by positivity) (Nat.cast_nonneg _)))
-      (div_nonneg zero_le_one (Nat.cast_nonneg _))) (c3Exc_pos _).le
-  have hsum := sum_block_mass_lt hkb
-  rw [← ENNReal.ofReal_sum_of_nonneg fun k _ ↦ h₀ k,
-    ENNReal.ofReal_lt_ofReal_iff ((Finset.sum_nonneg fun k _ ↦ h₀ k).trans_lt hsum)]
-  exact hsum
-
-/-- **Mass of the large-triangle event.** Let `ξ` be a unit, `e ∈ Δ₀ ∈ 𝔗_{n,ξ,ε_*}`, `G ∈ ℕ`
-with `l(e) + G = l_{Δ₀}`, and `m` a real number with `m ≥ D_sc`, `P_* ≤ ⌊n/2⌋` and
-`m / (log m)^2 < G`. Then
+/-- **Mass of the large-triangle event.** Let `ξ` be a unit,
+`e ∈ Δ₀ ∈ 𝔗_{n,ξ,ε_*}`, `G ∈ ℕ` with `l(e) + G = l_{Δ₀}`, and `m` a real number with `m ≥ D_sc`,
+`P_* ≤ ⌊n/2⌋` and `m / (log m)^2 < G`. Then
 `μ_{e,G}(E^{*,e}) < (2 + 272 (H_* + 1) Q_pack) / K_* + 1/3360`. -/
 @[collatz_pos_dens "lem_c3_estar_mass"]
 theorem tsum_trFreshLaw_trEStar_lt {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ)
@@ -218,22 +185,39 @@ theorem tsum_trFreshLaw_trEStar_lt {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResi
     (hmG : m / Real.log m ^ 2 < G) :
     ∑' a : trEStar n ξ e, ENNReal.ofReal (trFreshLaw n e G a) <
       ENNReal.ofReal ((2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar + 1 / 3360) := by
+  have hSG : (sStar : ℝ) < G := (sStar_lt_div_log_sq hm).trans hmG
+  have hBdef : betaStar (pStar - 1) = Bstar := by
+    rw [Bstar_def, pStar_def, Nat.add_sub_cancel]
+  have hBG : (betaStar (pStar - 1) : ℝ) ^ 2 < 2 * G := by
+    rw [hBdef]
+    linarith [sq_Bstar_div_two_lt_div_log_sq hm]
+  have hG160 : 2 ^ 160 ≤ G := by
+    have h365 : 2 ^ 160 < sStar :=
+      lt_trans (Nat.pow_lt_pow_right (by norm_num) (by norm_num)) two_pow_365_lt_sStar
+    have : ((2 ^ 160 : ℕ) : ℝ) < G := lt_trans (by exact_mod_cast h365) hSG
+    exact_mod_cast this.le
+  have hSG' : 2 ^ 36 * (pStar : ℝ) ≤ G := by
+    rw [← sStar_cast]
+    exact hSG.le
   obtain ⟨kb, hkb1, hkb2⟩ : ∃ kb, 2 ^ kb ≤ pStar ∧ pStar < 2 ^ (kb + 1) :=
-    ⟨Nat.log 2 pStar,
-      Nat.pow_log_le_self 2 (Nat.pos_iff_ne_zero.1 (Nat.one_le_two_pow.trans two_pow_le_pStar)),
+    ⟨Nat.log 2 pStar, Nat.pow_log_le_self 2 (pow_pos two_pos _ |>.trans_le two_pow_le_pStar).ne',
       Nat.lt_pow_succ_log_self (by norm_num) _⟩
-  calc ∑' a : trEStar n ξ e, ENNReal.ofReal (trFreshLaw n e G a)
-      ≤ ∑' a : ↥(⋃ k ∈ Finset.range (kb + 1),
-          c3Big n ξ epsStar e G (min (pStar - 1) (2 ^ (k + 1) - 2)) (betaStar (2 ^ k - 1))),
-          ENNReal.ofReal (trFreshLaw n e G a) :=
-        ENNReal.tsum_mono_subtype (fun a ↦ ENNReal.ofReal (trFreshLaw n e G a))
-          (trEStar_subset_iUnion_c3Big n ξ e G hkb2)
-    _ ≤ ∑ k ∈ Finset.range (kb + 1), ∑' a : c3Big n ξ epsStar e G
-          (min (pStar - 1) (2 ^ (k + 1) - 2)) (betaStar (2 ^ k - 1)),
-          ENNReal.ofReal (trFreshLaw n e G a) :=
-        ENNReal.tsum_biUnion_le (fun a ↦ ENNReal.ofReal (trFreshLaw n e G a)) _ _
-    _ ≤ _ := Finset.sum_le_sum fun k hk ↦ tsum_trFreshLaw_c3Big_block_le hξ hΔ₀ he hG hm hP hmG
-          ((Nat.pow_le_pow_right two_pos (Nat.lt_succ_iff.1 (Finset.mem_range.1 hk))).trans hkb1)
-    _ < _ := sum_ofReal_block_mass_lt hkb1
+  refine (ENNReal.tsum_mono_subtype (fun a ↦ ENNReal.ofReal (trFreshLaw n e G a))
+    (trEStar_subset_iUnion_c3Big n ξ e G hkb2)).trans_lt <|
+    (ENNReal.tsum_biUnion_le (fun a ↦ ENNReal.ofReal (trFreshLaw n e G a)) _ _).trans_lt <|
+    (Finset.sum_le_sum fun k (hk : k ∈ Finset.range (kb + 1)) ↦
+      tsum_trFreshLaw_c3Big_block_le hξ hΔ₀ he hG hG160 hP ((Nat.pow_le_pow_right two_pos
+        (Nat.lt_succ_iff.1 (Finset.mem_range.1 hk))).trans hkb1) hSG' hBG).trans_lt ?_
+  have hQ : (0 : ℝ) < Qpack := by exact_mod_cast Qpack_pos
+  have hF0 (k : ℕ) : 0 ≤ Qpack * (136 * (((min (pStar - 1) (2 ^ (k + 1) - 2) : ℕ) : ℝ) + 1) /
+      betaStar (2 ^ k - 1)) + 1 / (betaStar (2 ^ k - 1) : ℝ) +
+        c3Exc (min (pStar - 1) (2 ^ (k + 1) - 2)) :=
+    add_nonneg (add_nonneg (mul_nonneg hQ.le (div_nonneg (mul_nonneg (by norm_num)
+      (add_nonneg (Nat.cast_nonneg _) zero_le_one)) (Nat.cast_nonneg _)))
+      (div_nonneg zero_le_one (Nat.cast_nonneg _))) (c3Exc_pos _).le
+  have hsum := sum_block_mass_bound_lt hkb1
+  rw [← ENNReal.ofReal_sum_of_nonneg fun k _ ↦ hF0 k,
+    ENNReal.ofReal_lt_ofReal_iff ((Finset.sum_nonneg fun k _ ↦ hF0 k).trans_lt hsum)]
+  exact hsum
 
 end CollatzPosDens

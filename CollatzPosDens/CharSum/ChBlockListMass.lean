@@ -80,8 +80,7 @@ private def listMassSigmaEquiv : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set
   left_inv _ := rfl
   right_inv := by
     rintro ⟨⟨p, hp⟩, ⟨β, he, hβ⟩⟩
-    change chBlockPoint β = p at hβ
-    subst hβ
+    obtain rfl : chBlockPoint β = p := hβ
     rfl
 
 /-- **The block weights form a probability distribution.** `∑_{β ∈ 𝔅} bw(β) = 1`, where
@@ -100,8 +99,7 @@ theorem hasSum_prod_chBlockWeight_single :
     exact hasSum_holdLaw_bkPoints.summable
   have hf : HasSum f 1 :=
     (hs.hasSum.sigma hfib).unique hasSum_holdLaw_bkPoints ▸ hs.hasSum
-  rw [← listMassSigmaEquiv.symm.hasSum_iff]
-  exact hf
+  exact listMassSigmaEquiv.symm.hasSum_iff.mp hf
 
 /-- The terms `∏_{k=1}^K bw(βᵏ)` of the series over lists of blocks are nonnegative. -/
 @[collatz_pos_dens "lem_ch_block_list_mass"]

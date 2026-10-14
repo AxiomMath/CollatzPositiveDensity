@@ -43,12 +43,9 @@ theorem holdWords_subset_pi_Icc (j : ℕ) (l : ℤ) :
     holdWords j l ⊆ Set.univ.pi fun _ : Fin j ↦ Set.Icc (2 : ℤ) l := by
   intro c hc
   have hge := holdWords_two_le hc
-  simp only [Set.mem_pi, Set.mem_univ, Set.mem_Icc, true_implies]
-  refine fun i ↦ ⟨hge i, ?_⟩
-  rw [← holdWords_sum_eq hc, ← Finset.add_sum_erase _ _ (Finset.mem_univ i)]
-  have : 0 ≤ ∑ k ∈ Finset.univ.erase i, c k :=
-    Finset.sum_nonneg fun k _ ↦ by have := hge k; omega
-  omega
+  refine fun i _ ↦ ⟨hge i, ?_⟩
+  rw [← holdWords_sum_eq hc]
+  exact Finset.single_le_sum (fun k _ ↦ (hge k).trans' (by norm_num)) (Finset.mem_univ i)
 
 /-- For every `j` and `l`, the set of hold words `holdWords j l` is finite. -/
 @[collatz_pos_dens "lem_rn_hold_finite"]

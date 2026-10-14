@@ -57,6 +57,7 @@ theorem tsum_nu45_mul_max_rpow_neg_le {A w : ℝ} (hA : 0 ≤ A) (hw₀ : 0 < w)
     {m : ℤ} (hm : (256 * A / w) ^ 2 + 2 ≤ (m : ℝ)) :
     ∑' r : ℕ, nu45 ((r : ℤ) + 1) * (((max (m - ((r : ℤ) + 1)) 1 : ℤ) : ℝ) ^ (-A)) ≤
       (m : ℝ) ^ (-A) * exp (w / 2) := by
+  -- `m ≥ 2`, so `m` is a natural number `n`.
   have hm2 : (2 : ℝ) ≤ m := by nlinarith [sq_nonneg (256 * A / w)]
   have hm2' : (2 : ℤ) ≤ m := by exact_mod_cast hm2
   obtain ⟨n, rfl⟩ : ∃ n : ℕ, m = n := ⟨m.toNat, by omega⟩
@@ -65,10 +66,10 @@ theorem tsum_nu45_mul_max_rpow_neg_le {A w : ℝ} (hA : 0 ≤ A) (hw₀ : 0 < w)
   set t := moRate A n
   have ht₀ : 0 ≤ t := moRate_nonneg hA n
   have htw : t ≤ w / 32 := moRate_le_div_thirtyTwo hA hw₀ hmn
-  have ht₁ : t ≤ 1 / 1024 := by linarith
+  -- The majorant series `∑ ν₄₅(r) e^{t r}` converges, with sum at most `e^{13t/4}`.
   set g : ℕ → ℝ := fun r ↦ nu45 ((r : ℤ) + 1) * exp (t * ((r : ℝ) + 1)) with hg
   have hg0 : ∀ r, 0 ≤ g r := fun r ↦ mul_nonneg (nu45_nonneg _) (exp_pos _).le
-  have hM := mgfNu45_le_exp ht₀ ht₁
+  have hM := mgfNu45_le_exp ht₀ (by linarith)
   rw [mgfNu45_def] at hM
   have hne : ∑' r : ℕ, ENNReal.ofReal (g r) ≠ ⊤ :=
     ne_top_of_le_ne_top ENNReal.ofReal_ne_top hM
@@ -77,6 +78,7 @@ theorem tsum_nu45_mul_max_rpow_neg_le {A w : ℝ} (hA : 0 ≤ A) (hw₀ : 0 < w)
   have hgsum : ∑' r, g r ≤ exp (13 * t / 4) := by
     rw [← ENNReal.ofReal_tsum_of_nonneg hg0 hgs] at hM
     exact (ENNReal.ofReal_le_ofReal_iff (exp_pos _).le).mp hM
+  -- Termwise comparison via the envelope bound.
   have hbound : ∀ r : ℕ,
       nu45 ((r : ℤ) + 1) * ((((max ((n : ℤ) - ((r : ℤ) + 1)) 1 : ℤ)) : ℝ) ^ (-A)) ≤
         (n : ℝ) ^ (-A) * g r := by
@@ -91,9 +93,7 @@ theorem tsum_nu45_mul_max_rpow_neg_le {A w : ℝ} (hA : 0 ≤ A) (hw₀ : 0 < w)
           gcongr
           · exact nu45_nonneg _
           · simpa using max_sub_one_rpow_neg_le_mul_exp_moRate hA hn (r + 1)
-      _ = (n : ℝ) ^ (-A) * g r := by
-          rw [hg]
-          ring
+      _ = (n : ℝ) ^ (-A) * g r := by rw [hg]; ring
   calc ∑' r : ℕ, nu45 ((r : ℤ) + 1) * ((((max ((n : ℤ) - ((r : ℤ) + 1)) 1 : ℤ)) : ℝ) ^ (-A))
       ≤ ∑' r, (n : ℝ) ^ (-A) * g r :=
         (summable_nu45_mul_max_rpow_neg A (n : ℤ)).tsum_le_tsum hbound (hgs.mul_left _)

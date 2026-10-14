@@ -59,7 +59,7 @@ theorem PT_cast {K : Type*} [DivisionRing K] [CharZero K] :
 theorem one_le_PT : 1 ≤ PT := by
   rw [PT_def, Finset.sum_range_succ']
   simp only [pow_zero, Nat.factorial_zero, Nat.cast_one, div_one, le_add_iff_nonneg_left]
-  exact Finset.sum_nonneg fun j _ => by have := Lstar_pos; positivity
+  exact Finset.sum_nonneg fun j _ => div_nonneg (pow_nonneg Lstar_pos.le _) (Nat.cast_nonneg _)
 
 /-- The trace Taylor sum is positive. -/
 theorem PT_pos : 0 < PT := zero_lt_one.trans_le one_le_PT

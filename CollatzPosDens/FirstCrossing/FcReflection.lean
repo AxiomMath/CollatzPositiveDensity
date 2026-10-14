@@ -63,11 +63,9 @@ theorem fcReflection_half_le_geomMass (m : ℕ) :
     rw [geomMass_setOf_length_eq]
     exact ENNReal.inv_le_one.mpr one_le_two
   · rw [geomMass_setOf_length_eq_le_valSum _ _ (by omega)]
-    have hs : 2 * (k + 1) - 1 = 2 * k + 1 := by omega
-    rw [hs]
-    have hsum := Nat.sum_range_choose_halfway k
+    rw [show 2 * (k + 1) - 1 = 2 * k + 1 by omega]
     have hc : ∑ t ∈ Finset.range (k + 1), ((2 * k + 1).choose t : ℝ≥0∞) = 4 ^ k := by
-      exact_mod_cast hsum
+      exact_mod_cast Nat.sum_range_choose_halfway k
     rw [hc, show (4 : ℝ≥0∞) = 2 ^ 2 by norm_num, ← pow_mul, pow_succ, mul_right_comm, ← mul_pow,
       ENNReal.inv_mul_cancel two_ne_zero ENNReal.ofNat_ne_top, one_pow, one_mul]
 
@@ -82,7 +80,8 @@ theorem fcReflection_geomMass_le (H : ℕ) (v : ℝ) :
   induction H generalizing v with
   | zero =>
     have : {x : Word | x.length = 0 ∧ fcMaximalExceeds 0 v x} = ∅ := by
-      ext x; simp [fcMaximalExceeds_zero]
+      ext x
+      simp [fcMaximalExceeds_zero]
     rw [this, geomMass_empty]
     exact bot_le
   | succ H ih =>
@@ -100,22 +99,26 @@ theorem fcReflection_geomMass_le (H : ℕ) (v : ℝ) :
     by_cases hav : v ≤ (a : ℝ) - 2
     · have hset : {x : Word | x.length = H ∧ fcMaximalExceeds (H + 1) v (a :: x)} =
           {x : Word | x.length = H} := by
-        ext x; simp [fcMaximalExceeds_cons, hav]
+        ext x
+        simp [fcMaximalExceeds_cons, hav]
       rw [hset, geomMass_setOf_length_eq]
       have hsub : {y : Word | y.length = H ∧ 2 * H ≤ y.valSum} ⊆
           {y : Word | y.length = H ∧ v - ((a : ℝ) - 2) ≤ (y.valSum : ℝ) - 2 * H} := by
         rintro y ⟨h1, h2⟩
         refine ⟨h1, ?_⟩
-        have : ((2 * H : ℕ) : ℝ) ≤ y.valSum := by exact_mod_cast h2
-        push_cast at this
+        have : (2 * H : ℝ) ≤ y.valSum := by exact_mod_cast h2
         linarith
       calc (1 : ℝ≥0∞) = 2 * 2⁻¹ := (ENNReal.mul_inv_cancel two_ne_zero ENNReal.ofNat_ne_top).symm
         _ ≤ 2 * geomMass {y : Word | y.length = H ∧ 2 * H ≤ y.valSum} := by
-          gcongr; exact fcReflection_half_le_geomMass H
-        _ ≤ _ := by gcongr; exact geomMass_mono hsub
+          gcongr
+          exact fcReflection_half_le_geomMass H
+        _ ≤ _ := by
+          gcongr
+          exact geomMass_mono hsub
     · have hset : {x : Word | x.length = H ∧ fcMaximalExceeds (H + 1) v (a :: x)} =
           {x : Word | x.length = H ∧ fcMaximalExceeds H (v - ((a : ℝ) - 2)) x} := by
-        ext x; simp [fcMaximalExceeds_cons, hav]
+        ext x
+        simp [fcMaximalExceeds_cons, hav]
       rw [hset]
       exact ih _
 

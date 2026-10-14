@@ -112,7 +112,7 @@ theorem card_filter_residueReduction_eq {m q : ℕ} (h : m ≤ q) (b : ResidueGr
   have htot := card_eq_sum_card_fiberwise (f := residueReduction h)
     (s := (univ : Finset (ResidueGroup q))) (t := univ) (fun _ _ => mem_coe.2 (mem_univ _))
   simp only [hfib, sum_const, card_univ, ZMod.card, smul_eq_mul] at htot
-  have hpow : 3 ^ q = 3 ^ m * 3 ^ (q - m) := by rw [← pow_add, Nat.add_sub_cancel' h]
-  exact Nat.eq_of_mul_eq_mul_left (pow_pos (by norm_num) m) (htot.symm.trans hpow)
+  exact Nat.eq_of_mul_eq_mul_left (by positivity)
+    (htot.symm.trans (by rw [← pow_add, Nat.add_sub_cancel' h]))
 
 end CollatzPosDens

@@ -43,10 +43,8 @@ private theorem nine_pow_lt_two_pow : 9 ^ 50000 < 2 ^ 158497 := by
 @[collatz_pos_dens "lem_c3_gap_ratio"]
 theorem log_nine_div_log_two_lt : Real.log 9 / Real.log 2 < 158497 / 50000 := by
   rw [div_lt_div_iff₀ (Real.log_pos (by norm_num)) (by norm_num)]
-  have hR : ((9 : ℕ) : ℝ) ^ 50000 < ((2 : ℕ) : ℝ) ^ 158497 := by
-    rw [← Nat.cast_pow, ← Nat.cast_pow]
-    exact Nat.cast_lt.mpr nine_pow_lt_two_pow
-  have h := Real.log_lt_log (by positivity) hR
+  have h := Real.log_lt_log (by positivity)
+    (by exact_mod_cast nine_pow_lt_two_pow : (9 : ℝ) ^ 50000 < 2 ^ 158497)
   rw [Real.log_pow, Real.log_pow] at h
   push_cast at h
   linarith

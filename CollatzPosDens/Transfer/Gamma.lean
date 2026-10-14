@@ -42,7 +42,7 @@ theorem gammaStar_eq : gammaStar = 87 / 200 := rfl
 /-- The value of the trace tilt cast into a division ring of characteristic zero. -/
 theorem gammaStar_cast {K : Type*} [DivisionRing K] [CharZero K] :
     (gammaStar : K) = 87 / 200 := by
-  simp [gammaStar_eq]
+  simp
 
 /-- The trace tilt is positive. -/
 theorem gammaStar_pos : 0 < gammaStar := by norm_num

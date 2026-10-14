@@ -39,9 +39,9 @@ private theorem monotone_ceilLog3 : Monotone ceilLog3 := fun _ _ hij =>
 
 /-- For fixed `b` and `u`, the barrier `s ↦ H_{b,u}(s)` is monotone. -/
 theorem monotone_barrier (b : ℕ) (u : ℤ) : Monotone (barrier b u) := fun s t hst => by
-  have h1 : (ceilLog3 (s - b) : ℤ) ≤ ceilLog3 (t - b) := by
+  have h₁ : (ceilLog3 (s - b) : ℤ) ≤ ceilLog3 (t - b) := by
     exact_mod_cast monotone_ceilLog3 (Nat.sub_le_sub_right hst b)
-  have h2 : (ceilLog3 (b - t) : ℤ) ≤ ceilLog3 (b - s) := by
+  have h₂ : (ceilLog3 (b - t) : ℤ) ≤ ceilLog3 (b - s) := by
     exact_mod_cast monotone_ceilLog3 (Nat.sub_le_sub_left hst b)
   rw [barrier_def, barrier_def]
   linarith

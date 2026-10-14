@@ -63,8 +63,7 @@ theorem boundaryWeight_of_pos {t : ℕ} {j : ℤ} (ht : 1 ≤ t) (hj : 1 ≤ j) 
 /-- The boundary weight `e_t(j)` vanishes unless `t ≥ 1` and `j ≥ 1`. -/
 theorem boundaryWeight_of_not {t : ℕ} {j : ℤ} (h : ¬(1 ≤ t ∧ 1 ≤ j)) :
     boundaryWeight t j = 0 := by
-  simp only [boundaryWeight, ite_eq_right_iff]
-  exact fun h' => absurd h' h
+  simp [boundaryWeight, h]
 
 /-- The boundary weight `e_0(j)` vanishes. -/
 @[simp]
@@ -79,17 +78,15 @@ theorem boundaryWeight_of_nonpos (t : ℕ) {j : ℤ} (hj : j ≤ 0) : boundaryWe
 @[simp]
 theorem boundaryWeight_succ_natCast_succ (t j : ℕ) :
     boundaryWeight (t + 1) ((j : ℤ) + 1) = (t.choose (2 * j + 1) : ℝ) / 8 / 2 ^ (t + 1) := by
-  rw [boundaryWeight_of_pos (by omega) (by omega)]
-  have h : ((j : ℤ) + 1).toNat = j + 1 := by omega
-  rw [h, show 2 * (j + 1) - 1 = 2 * j + 1 by omega, Nat.add_sub_cancel]
+  rw [boundaryWeight_of_pos (by omega) (by omega), show ((j : ℤ) + 1).toNat = j + 1 by omega,
+    show 2 * (j + 1) - 1 = 2 * j + 1 by omega, Nat.add_sub_cancel]
 
 /-- For `t ≥ 1` and `j ≥ 1`, `e_t(j) = (1/16) binom(t - 1, 2j - 1) 2^{-(t-1)}`. -/
 theorem boundaryWeight_eq_div_sixteen {t : ℕ} {j : ℤ} (ht : 1 ≤ t) (hj : 1 ≤ j) :
     boundaryWeight t j = ((t - 1).choose (2 * j.toNat - 1) : ℝ) / 16 / 2 ^ (t - 1) := by
   rw [boundaryWeight_of_pos ht hj]
   obtain ⟨s, rfl⟩ : ∃ s, t = s + 1 := ⟨t - 1, by omega⟩
-  rw [Nat.add_sub_cancel, pow_succ, div_div, div_div]
-  congr 1
+  rw [Nat.add_sub_cancel, pow_succ]
   ring
 
 /-- The boundary weight `e_t(j)` is nonnegative. -/

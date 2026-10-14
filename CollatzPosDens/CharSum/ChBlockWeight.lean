@@ -80,15 +80,13 @@ lemma chBlockWeight_append (c d : List ℤ) (e : ℤ) :
 
 /-- Every block weight is nonnegative. -/
 lemma chBlockWeight_nonneg (β : List ℤ × ℤ) : 0 ≤ chBlockWeight β :=
-  mul_nonneg (varpi_nonneg _) <| List.prod_nonneg fun x hx ↦ by
-    obtain ⟨b, -, rfl⟩ := List.mem_map.mp hx
-    exact varpiIn_nonneg b
+  mul_nonneg (varpi_nonneg _) <| List.prod_nonneg <| List.forall_mem_map.mpr fun b _ ↦
+    varpiIn_nonneg b
 
 /-- A block one of whose nonclosing letters is `4` or `5` has weight zero. -/
 lemma chBlockWeight_eq_zero_of_mem {β : List ℤ × ℤ} {a : ℤ} (ha : a ∈ β.1)
-    (h45 : a ∈ ({4, 5} : Set ℤ)) : chBlockWeight β = 0 := by
-  refine mul_eq_zero_of_right _ (List.prod_eq_zero ?_)
-  exact List.mem_map.mpr ⟨a, ha, varpiIn_of_mem h45⟩
+    (h45 : a ∈ ({4, 5} : Set ℤ)) : chBlockWeight β = 0 :=
+  mul_eq_zero_of_right _ <| List.prod_eq_zero <| List.mem_map.mpr ⟨a, ha, varpiIn_of_mem h45⟩
 
 /-- On words avoiding `{4, 5}`, the block weight is `ϖ(e) ∏ ϖ(cᵢ)`. -/
 lemma chBlockWeight_of_forall_notMem {c : List ℤ} (e : ℤ)
@@ -106,9 +104,8 @@ lemma chBlockWeight_ofFn {m : ℕ} (v : Fin m → ℤ) (e : ℤ) :
 theorem two_le_of_chBlockWeight_ne_zero {β : List ℤ × ℤ} (hβ : chBlockWeight β ≠ 0)
     {a : ℤ} (ha : a ∈ β.1) : 2 ≤ a := by
   by_contra h
-  apply hβ
-  exact mul_eq_zero_of_right _
-    (List.prod_eq_zero (List.mem_map.mpr ⟨a, ha, varpiIn_of_le_one (by omega)⟩))
+  exact hβ <| mul_eq_zero_of_right _ <|
+    List.prod_eq_zero <| List.mem_map.mpr ⟨a, ha, varpiIn_of_le_one (by omega)⟩
 
 /-- The closing letter of a block of nonzero weight is at least `2`. -/
 theorem two_le_snd_of_chBlockWeight_ne_zero {β : List ℤ × ℤ} (hβ : chBlockWeight β ≠ 0) :
@@ -120,22 +117,12 @@ theorem two_le_of_mem_append_of_chBlockWeight_ne_zero {β : List ℤ × ℤ}
     (hβ : chBlockWeight β ≠ 0) {x : ℤ} (hx : x ∈ β.1 ++ [β.2]) : 2 ≤ x := by
   rcases List.mem_append.mp hx with hx | hx
   · exact two_le_of_chBlockWeight_ne_zero hβ hx
-  · rw [List.mem_singleton.mp hx]
-    exact two_le_snd_of_chBlockWeight_ne_zero hβ
+  · exact List.mem_singleton.mp hx ▸ two_le_snd_of_chBlockWeight_ne_zero hβ
 
 /-- The nonclosing word `c` of a block `β = (c, e)` of nonzero weight has `2|c| ≤ ∑ c`. -/
 theorem two_mul_length_le_sum_of_chBlockWeight_ne_zero {β : List ℤ × ℤ}
     (hβ : chBlockWeight β ≠ 0) : 2 * (β.1.length : ℤ) ≤ β.1.sum := by
-  have key : ∀ c : List ℤ, (∀ a ∈ c, 2 ≤ a) → 2 * (c.length : ℤ) ≤ c.sum := by
-    intro c hc
-    induction c with
-    | nil => simp
-    | cons a t ih =>
-      simp only [List.length_cons, List.sum_cons, List.mem_cons] at hc ⊢
-      have := hc a (Or.inl rfl)
-      have := ih fun b hb ↦ hc b (Or.inr hb)
-      push_cast
-      omega
-  exact key β.1 fun a ha ↦ two_le_of_chBlockWeight_ne_zero hβ ha
+  simpa [nsmul_eq_mul, mul_comm] using
+    β.1.length_nsmul_le_sum 2 fun a ha ↦ two_le_of_chBlockWeight_ne_zero hβ ha
 
 end CollatzPosDens

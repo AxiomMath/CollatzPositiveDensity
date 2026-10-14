@@ -53,15 +53,13 @@ theorem trMu_value_p45 : p45 5 = 61 / 256 := by
   rw [p45, show (5 * 5 + 16) / 16 = 2 by norm_num]
   simp only [show Icc (4 : ℤ) 5 = {4, 5} by decide, show Icc (1 : ℤ) 4 = {1, 2, 3, 4} by decide,
     show Icc (1 : ℕ) 2 = {1, 2} by decide]
-  simp [rawMass_zero, rawMass_one, varpi_of_two_le, zpow_neg]
-  norm_num
+  norm_num [rawMass_zero, rawMass_one, varpi_of_two_le, zpow_neg]
 
 /-- The raw-three exit mass at gap five: `p₃(5) = 9/64`. -/
 theorem trMu_value_p3 : p3 5 = 9 / 64 := by
   rw [p3, show (5 * 5 + 16) / 16 = 2 by norm_num]
   simp only [show Icc (1 : ℕ) 3 = {1, 2, 3} by decide, show Icc (1 : ℕ) 2 = {1, 2} by decide]
-  simp [rawMass_zero, rawMass_one, varpi_of_two_le, zpow_neg]
-  norm_num
+  norm_num [rawMass_zero, rawMass_one, varpi_of_two_le, zpow_neg]
 
 /-- The passage surplus at gap five:
 `δ_tr(5) = 4730304540206345078315898630590427 / 448000000000000000000000000000000000`. -/

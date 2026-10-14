@@ -66,7 +66,8 @@ lemma trSublist_def (β : List α) (a b : ℕ) :
 @[simp]
 lemma length_trSublist {β : List α} {a b : ℕ} (ha : 1 ≤ a) (hb : b ≤ β.length) :
     (trSublist β a b).length = b + 1 - a := by
-  simp [trSublist]; omega
+  simp only [trSublist, List.length_take, List.length_drop]
+  omega
 
 /-- The length of `β_{[a,b]}` in general (truncated at the end of `β`). -/
 lemma length_trSublist_eq_min (β : List α) (a b : ℕ) :
@@ -109,9 +110,8 @@ lemma trSublist_append_right (u f : List α) :
 `1 ≤ a ≤ b + 1 ≤ c + 1`. -/
 lemma trSublist_append_trSublist (β : List α) {a b c : ℕ} (ha : 1 ≤ a) (hab : a ≤ b + 1)
     (hbc : b ≤ c) : trSublist β a b ++ trSublist β (b + 1) c = trSublist β a c := by
-  have h1 : c + 1 - a = (b + 1 - a) + (c + 1 - (b + 1)) := by omega
-  have h2 : b + 1 - 1 = (a - 1) + (b + 1 - a) := by omega
-  rw [trSublist, trSublist, trSublist, h1, List.take_add, h2, ← List.drop_drop]
+  rw [trSublist, trSublist, trSublist, show c + 1 - a = (b + 1 - a) + (c + 1 - (b + 1)) by omega,
+    List.take_add, show b + 1 - 1 = (a - 1) + (b + 1 - a) by omega, ← List.drop_drop]
 
 /-- `β_{[a,b]}` is a sublist of `β`. -/
 lemma trSublist_sublist (β : List α) (a b : ℕ) : (trSublist β a b).Sublist β :=
@@ -130,6 +130,6 @@ of `β_{[a,b]}`. -/
 @[simp]
 lemma trSublist_map {γ : Type*} (g : α → γ) (β : List α) (a b : ℕ) :
     trSublist (β.map g) a b = (trSublist β a b).map g := by
-  simp [trSublist, List.map_take, List.map_drop]
+  simp [trSublist]
 
 end CollatzPosDens

@@ -47,14 +47,12 @@ mass of the length-`h` words with no prefix in `𝒱` sum to `1`. -/
 theorem geomMass_add_geomMass_setOf_not_prefix_mem {V : Set Word} (hV : IsPrefixFree V)
     {h : ℕ} (hlen : ∀ w ∈ V, w.length ≤ h) :
     geomMass V + geomMass {u : Word | u.length = h ∧ ¬ ∃ w ∈ V, w <+: u} = 1 := by
-  rw [geomMass_eq_geomMass_setOf_prefix_mem hV hlen, ← geomMass_union, ←
-    geomMass_setOf_length_eq h]
+  rw [geomMass_eq_geomMass_setOf_prefix_mem hV hlen, ← geomMass_union,
+    ← geomMass_setOf_length_eq h]
   · congr 1
     ext u
     simp only [Set.mem_union, Set.mem_ofPred_eq, ← and_or_left, or_not, and_true]
-  · rw [Set.disjoint_left]
-    rintro u ⟨_, hu⟩ ⟨_, hu'⟩
-    exact hu' hu
+  · exact Set.disjoint_left.2 fun _ hu hu' => hu'.2 hu.2
 
 /-- **Complement of a prefix-disjoint family.** If `𝒱` is a prefix-disjoint set of words, all of
 length at most `h`, then `1 - 𝐩(𝒱) = 𝐩({v ∈ ℤ_{≥1}^h : no prefix of v lies in 𝒱})`. -/

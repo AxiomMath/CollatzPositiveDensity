@@ -25,15 +25,15 @@ primitive frequencies.
 ## Main results
 
 * `CollatzPosDens.Cstar_def`: the defining formula `C_* = (160 D_*)^{10241/4096}`.
-* `CollatzPosDens.Cstar_pos`: `0 < C_*`.
 * `CollatzPosDens.one_le_Cstar`: `1 ≤ C_*`.
+* `CollatzPosDens.Cstar_pos`: `0 < C_*`.
 
 ## Implementation notes
 
 The exponent `10241/4096` is not an integer, so the power is the real power `Real.rpow`.
 Its base `160 D_*` is positive, so the real power is the genuine positive power. Since `D_*`
 is a number with thousands of digits, `C_*` is irreducible and is used only through
-`Cstar_def`, `Cstar_pos` and `one_le_Cstar`.
+`Cstar_def` and the lemmas of this file.
 
 ## References
 
@@ -51,20 +51,15 @@ noncomputable def Cstar : ℝ :=
 
 /-- The defining formula of `C_*`. -/
 theorem Cstar_def : Cstar = (160 * (Dstar : ℝ)) ^ (10241 / 4096 : ℝ) := by
-  unfold Cstar; rfl
-
-/-- The base `160 D_*` of `C_*` is at least `1`. -/
-theorem one_le_160_mul_Dstar : (1 : ℝ) ≤ 160 * (Dstar : ℝ) := by
-  have h : (1 : ℝ) ≤ Dstar := by exact_mod_cast one_le_Dstar
-  linarith
+  rw [Cstar]
 
 /-- `C_*` is at least `1`. -/
 theorem one_le_Cstar : 1 ≤ Cstar := by
+  have h : (1 : ℝ) ≤ Dstar := by exact_mod_cast one_le_Dstar
   rw [Cstar_def]
-  exact Real.one_le_rpow one_le_160_mul_Dstar (by norm_num)
+  exact Real.one_le_rpow (by linarith) (by norm_num)
 
 /-- `C_*` is positive. -/
-theorem Cstar_pos : 0 < Cstar :=
-  zero_lt_one.trans_le one_le_Cstar
+theorem Cstar_pos : 0 < Cstar := zero_lt_one.trans_le one_le_Cstar
 
 end CollatzPosDens

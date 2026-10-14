@@ -43,7 +43,8 @@ open scoped ENNReal
 
 namespace CollatzPosDens
 
-private theorem summable_inv_two_pow_valSum (n : ℕ) :
+/-- The terms `2^{-A(w)}`, `w ∈ ℤ_{≥1}^n`, form a summable family of reals. -/
+private theorem summable_two_pow_valSum_inv_fxCharSum (n : ℕ) :
     Summable fun w : {w : Word | w.length = n} => ((2 : ℝ) ^ (w : Word).valSum)⁻¹ := by
   have h := ENNReal.summable_toReal (f := fun w : {w : Word | w.length = n} =>
     (w : Word).massWeight) (by rw [← geomMass_def, geomMass_setOf_length_eq]; simp)
@@ -56,7 +57,7 @@ theorem summable_norm_fxCharSum (n : ℕ) (ξ : ResidueGroup n) :
     Summable fun w : {w : Word | w.length = n} =>
       ‖((2 : ℂ) ^ (w : Word).valSum)⁻¹ *
         fxChar n (-(dyadicRed n ⟨off w, off_mem_dyadicRationals w⟩ * ξ))‖ := by
-  simpa [fxChar_norm_eq_one] using summable_inv_two_pow_valSum n
+  simpa [fxChar_norm_eq_one] using summable_two_pow_valSum_inv_fxCharSum n
 
 /-- **Character-sum formula.** For every `n ∈ ℕ` and `ξ ∈ G_n`,
 `μ̂_n(ξ) = ∑_{w ∈ ℤ_{≥1}^n} 2^{-A(w)} e_n(-[off(w)]_n ξ)`. -/
@@ -67,7 +68,6 @@ theorem refLawDft_eq_tsum_off (n : ℕ) (ξ : ResidueGroup n) :
         fxChar n (-(dyadicRed n ⟨off w, off_mem_dyadicRationals w⟩ * ξ)) := by
   set r : {w : Word | w.length = n} → ResidueGroup n :=
     fun w => dyadicRed n ⟨off w, off_mem_dyadicRationals w⟩
-  have hs := summable_inv_two_pow_valSum n
   have hterm : ∀ y : ResidueGroup n, ((refLaw n y).toReal : ℂ) * fxChar n (-(ξ * y)) =
       ∑' w : {w : Word | w.length = n},
         (if r w = y then ((2 : ℂ) ^ (w : Word).valSum)⁻¹ else 0) * fxChar n (-(ξ * y)) := by
@@ -81,7 +81,7 @@ theorem refLawDft_eq_tsum_off (n : ℕ) (ξ : ResidueGroup n) :
     simp_rw [ite_mul, zero_mul]
     rw [Finset.sum_ite_eq, ite_eq_left (Finset.mem_univ _), mul_comm ξ]
   · intro y _
-    refine Summable.of_norm_bounded hs fun w => ?_
+    refine Summable.of_norm_bounded (summable_two_pow_valSum_inv_fxCharSum n) fun w => ?_
     split_ifs <;> simp
 
 end CollatzPosDens

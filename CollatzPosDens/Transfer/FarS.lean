@@ -12,25 +12,30 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # Far scales dominate the far-gap scale
 
-For every real `m ≥ Dsc` we have `m / (log m)^2 > sStar`, where `sStar` is the far-gap scale and
-`Dsc` the scale threshold.
+For every real `m ≥ D_sc` we have `m / (log m)^2 > S_*`, where `S_*` is the far-gap scale and
+`D_sc` the scale threshold of the analytic recipe.
 
 This follows from a general estimate: if `m > 1` and `(16 S)^2 ≤ m` then `S < m / (log m)^2`.
 Indeed, writing `m = y^4` with `y = m^{1/4} ≥ 1`, the inequality `log y ≤ y - 1` gives
-`0 < log m = 4 log y < 4 y`, so `S (log m)^2 < 16 S y^2 = 16 S √m ≤ m`. Since `Dsc ≥ (100 sStar)^2`
-and `(100 sStar)^2 ≥ (16 sStar)^2` and `Dsc ≥ 2`, the threshold statement follows.
+`0 < log m = 4 log y < 4 y`, so `S (log m)^2 < 16 S y^2 = 16 S √m ≤ m`. Since
+`D_sc ≥ (100 S_*)^2 ≥ (16 S_*)^2` and `D_sc ≥ 2`, the threshold statement follows.
 
 ## Main results
 
 * `CollatzPosDens.sStar_lt_div_log_sq_of_sq_le`: if `1 < m` and `(16 S)^2 ≤ m` then
   `S < m / (log m)^2`.
-* `CollatzPosDens.sStar_lt_div_log_sq`: for every real `m ≥ Dsc`, `sStar < m / (log m)^2`.
+* `CollatzPosDens.sStar_lt_div_log_sq`: for every real `m ≥ D_sc`, `S_* < m / (log m)^2`.
 
 ## Implementation notes
 
-Rather than using monotonicity of `x ↦ x / (log x)^2` on `[e^2, ∞)` together with numerical
-bounds on logarithms, the elementary bound `log y ≤ y - 1` is applied to `y = m^{1/4}` directly
-at `m`; this needs only `(16 sStar)^2 ≤ m`.
+[mazur2026] argues via monotonicity of `x ↦ x / (log x)^2` on `[e^2, ∞)` and the numerical
+bounds `log (10^4) < 10` and `log S_* < √S_*`, comparing with `m₀ = (100 S_*)^2`. Here instead
+the elementary bound `log y ≤ y - 1` is applied to `y = m^{1/4}` directly at `m`, which avoids
+both the monotonicity argument and the numerical estimates, and needs only `(16 S_*)^2 ≤ m`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -57,18 +62,22 @@ theorem sStar_lt_div_log_sq_of_sq_le {S m : ℝ} (hm : 1 < m) (h : (16 * S) ^ 2 
   · have h16 : 16 * S ≤ y ^ 2 := hy2 ▸ Real.le_sqrt_of_sq_le h
     have hsq : Real.log y ^ 2 < y ^ 2 := by nlinarith
     calc S * Real.log m ^ 2 = 16 * S * Real.log y ^ 2 := by
-          linear_combination S * (Real.log m + 4 * Real.log y) * hlog
+          rw [hlog]
+          ring
       _ < 16 * S * y ^ 2 := by gcongr
       _ ≤ y ^ 2 * y ^ 2 := by gcongr
-      _ = m := by linear_combination hy4
+      _ = m := by
+          rw [← hy4]
+          ring
 
 /-- For every real `m ≥ Dsc`, `m / (log m)^2 > sStar`. -/
 @[collatz_pos_dens "lem_s02_far_S"]
 theorem sStar_lt_div_log_sq {m : ℝ} (hm : (Dsc : ℝ) ≤ m) :
     m / Real.log m ^ 2 > (sStar : ℝ) := by
-  have h2 : (2 : ℝ) ≤ Dsc := mod_cast two_le_Dsc
-  have hsq : (100 * (sStar : ℝ)) ^ 2 ≤ Dsc := mod_cast sq_hundred_sStar_le_Dsc
+  have h2 : (2 : ℝ) ≤ Dsc := by exact_mod_cast two_le_Dsc
+  have hsq : (100 * (sStar : ℝ)) ^ 2 ≤ Dsc := by exact_mod_cast sq_hundred_sStar_le_Dsc
   have hS : (0 : ℝ) ≤ sStar := Nat.cast_nonneg _
-  exact sStar_lt_div_log_sq_of_sq_le (by linarith) (by nlinarith)
+  refine sStar_lt_div_log_sq_of_sq_le (by linarith) ?_
+  nlinarith
 
 end CollatzPosDens

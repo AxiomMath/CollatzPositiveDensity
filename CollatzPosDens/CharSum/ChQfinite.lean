@@ -92,20 +92,14 @@ theorem chQFiniteTerm_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K : ℕ
 theorem chQFiniteTerm_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K : ℕ) (p : ℤ × ℤ)
     (β : Fin K → {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}) :
     chQFiniteTerm n ξ ε K p β ≤ ∏ k, chBlockWeight (β k) := by
-  have hw : ∏ i ∈ Finset.range (K + 1),
-      chWhiteFactor n ξ ε (p + chBlockPath (List.ofFn fun k ↦ (β k).1) i) ≤ 1 :=
-    Finset.prod_le_one₀ (fun _ _ ↦ chWhiteFactor_nonneg _ _ _ _)
-      fun _ _ ↦ chWhiteFactor_le_one _ _ _ _
-  have hI : ∏ k : Fin K,
-      chInternalWeight n ξ ε (p + chBlockPath (List.ofFn fun k ↦ (β k).1) k) (β k) ≤ 1 :=
-    Finset.prod_le_one₀ (fun _ _ ↦ chInternalWeight_nonneg _ _ _ _ _)
-      fun _ _ ↦ chInternalWeight_le_one _ _ _ _ _
   have h0 := prod_chBlockWeight_nonneg β
-  unfold chQFiniteTerm
-  calc _ ≤ (∏ k, chBlockWeight (β k)) * 1 * 1 := by
-        gcongr
-        · exact Finset.prod_nonneg fun _ _ ↦ chInternalWeight_nonneg _ _ _ _ _
-    _ = _ := by ring
+  exact (mul_le_of_le_one_right (mul_nonneg h0
+      (Finset.prod_nonneg fun _ _ ↦ chWhiteFactor_nonneg _ _ _ _))
+      (Finset.prod_le_one₀ (fun _ _ ↦ chInternalWeight_nonneg _ _ _ _ _)
+        fun _ _ ↦ chInternalWeight_le_one _ _ _ _ _)).trans
+    (mul_le_of_le_one_right h0
+      (Finset.prod_le_one₀ (fun _ _ ↦ chWhiteFactor_nonneg _ _ _ _)
+        fun _ _ ↦ chWhiteFactor_le_one _ _ _ _))
 
 /-- The series defining `Q^{(K)}(p)` converges. -/
 theorem summable_chQFiniteTerm (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K : ℕ) (p : ℤ × ℤ) :
@@ -122,7 +116,6 @@ theorem chQFinite_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K : ℕ) (p
 @[simp]
 theorem chQFinite_zero (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
     chQFinite n ξ ε 0 p = chWhiteFactor n ξ ε p := by
-  rw [chQFinite, tsum_fintype, Fintype.sum_unique]
-  simp
+  simp [chQFinite, tsum_fintype]
 
 end CollatzPosDens

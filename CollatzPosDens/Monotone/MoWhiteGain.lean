@@ -34,11 +34,8 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_mo_white_gain"]
 theorem exp_neg_zStar_add_wStar_div_two_le :
     Real.exp (-(zStar : ℝ) + (wStar : ℝ) / 2) ≤ 1 - 3 / 5 * (zStar : ℝ) := by
-  have h := exp_neg_le_one_sub_add_sq_div_two (x := (zStar : ℝ) - (wStar : ℝ) / 2)
-    (by rw [zStar_cast, wStar_cast]; norm_num)
   rw [show -(zStar : ℝ) + (wStar : ℝ) / 2 = -((zStar : ℝ) - (wStar : ℝ) / 2) by ring]
-  refine h.trans ?_
-  rw [zStar_cast, wStar_cast]
-  norm_num
+  refine (exp_neg_le_one_sub_add_sq_div_two (by norm_num [zStar_cast, wStar_cast])).trans ?_
+  norm_num [zStar_cast, wStar_cast]
 
 end CollatzPosDens

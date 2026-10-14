@@ -88,10 +88,7 @@ variable {n : ℕ} {ξ : ResidueGroup n} {y : ℤ × ℤ}
 private lemma singleton_mem_trPassage_zero {β : List ℤ × ℤ} (he : β.2 ∈ ({4, 5} : Set ℤ))
     (hw : chBlockWeight β ≠ 0) : [β] ∈ trPassage 0 := by
   have h4 : 4 ≤ β.2 := by
-    rcases he with h | h
-    · rw [h]
-    · rw [Set.mem_singleton_iff.1 h]
-      norm_num
+    rcases he with h | h <;> simp_all
   have hl := four_le_bkL_chBlockPoint_of_chBlockWeight_ne_zero h4 hw
   refine mem_trPassage.2 ⟨fun b hb => ?_, trLive_singleton.2 hw, List.cons_ne_nil _ _,
     fun i hi => ?_, ?_⟩
@@ -110,6 +107,11 @@ private lemma trTheta_le_trBridgeLossReal (hξ : IsResidueUnit ξ) {p : ℤ × �
   rw [trBridgeLoss_eq_coe_trBridgeLossReal hξ hp] at h
   exact_mod_cast h
 
+private lemma add_chBlockPoint_mem_bkPoints (hy : y ∈ bkPoints) (β : List ℤ × ℤ) :
+    y + chBlockPoint β ∈ bkPoints := by
+  simp only [mem_bkPoints, bkJ, Prod.fst_add, chBlockPoint_fst] at hy ⊢
+  omega
+
 /-- The real inequality behind the pairing estimate. -/
 private lemma pair_real {μ θ b x L4 L5 : ℝ} {W4 W5 : Prop} [Decidable W4] [Decidable W5]
     (hb0 : 0 ≤ b) (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (hθ0 : 0 ≤ θ) (hθμ : θ < 8 * μ)
@@ -119,18 +121,14 @@ private lemma pair_real {μ θ b x L4 L5 : ℝ} {W4 W5 : Prop} [Decidable W4] [D
       1 / 8 * (b * (if W5 then x else 1) * L5) := by
   have hxθ : x * θ ≤ θ := by nlinarith
   have hbx : 0 ≤ b * x := mul_nonneg hb0 hx0
-  have hb4 : 0 ≤ b * L4 := mul_nonneg hb0 hL4
-  have hb5 : 0 ≤ b * L5 := mul_nonneg hb0 hL5
   have hbx4 : 0 ≤ b * x * L4 := mul_nonneg hbx hL4
   have hbx5 : 0 ≤ b * x * L5 := mul_nonneg hbx hL5
   rcases h with ⟨h4, h5, hμL⟩ | ⟨hW, hL⟩ | ⟨hW, hL⟩
   · simp only [h4, h5, ↓reduceIte, mul_one]
-    have h1 : x * θ / 8 ≤ μ := by linarith
-    nlinarith [mul_le_mul_of_nonneg_left hμL hb0, mul_le_mul_of_nonneg_left h1 hb0]
-  · have := mul_le_mul_of_nonneg_left hL hbx
-    simp only [hW, ↓reduceIte]
-    split_ifs <;> nlinarith
-  · have := mul_le_mul_of_nonneg_left hL hbx
+    nlinarith [mul_le_mul_of_nonneg_left hμL hb0,
+      mul_le_mul_of_nonneg_left (show x * θ / 8 ≤ μ by linarith) hb0]
+  all_goals
+    have := mul_le_mul_of_nonneg_left hL hbx
     simp only [hW, ↓reduceIte]
     split_ifs <;> nlinarith
 
@@ -157,10 +155,7 @@ private lemma pair_bound (hξ : IsResidueUnit ξ) (hy : y ∈ bkPoints) (c : Lis
     · rw [hb, mul_one]
       congr 1
       ring
-  have hmem : ∀ e, y + chBlockPoint (c, e) ∈ bkPoints := by
-    intro e
-    simp only [mem_bkPoints, bkJ, Prod.fst_add, chBlockPoint_fst] at hy ⊢
-    omega
+  have hmem := fun e => add_chBlockPoint_mem_bkPoints hy (c, e)
   set y4 := y + chBlockPoint (c, 4) with hy4
   have hy5 : y + chBlockPoint (c, 5) = (bkJ y4, bkL y4 + 1) := by
     refine Prod.ext rfl ?_
@@ -206,10 +201,8 @@ private lemma term_eq (hξ : IsResidueUnit ξ) (hy : y ∈ bkPoints) (β : List 
     term n ξ y β = ENNReal.ofReal (chBlockWeight β *
       Real.exp (-(gammaStar : ℝ) * trReward n ξ y β) *
         trBridgeLossReal n ξ (y + chBlockPoint β)) := by
-  have hmem : y + chBlockPoint β ∈ bkPoints := by
-    simp only [mem_bkPoints, bkJ, Prod.fst_add, chBlockPoint_fst] at hy ⊢
-    omega
-  rw [term, toENNReal_trBridgeLoss hξ hmem, ← ENNReal.ofReal_mul (chBlockWeight_nonneg β),
+  rw [term, toENNReal_trBridgeLoss hξ (add_chBlockPoint_mem_bkPoints hy β),
+    ← ENNReal.ofReal_mul (chBlockWeight_nonneg β),
     ← ENNReal.ofReal_mul (mul_nonneg (chBlockWeight_nonneg β) (Real.exp_pos _).le)]
 
 open Finset in
@@ -221,18 +214,13 @@ private lemma pair_ennreal (hξ : IsResidueUnit ξ) (hy : y ∈ bkPoints) {m : �
       term n ξ y (List.ofFn v, 4) + term n ξ y (List.ofFn v, 5) := by
   have hpair := pair_bound (n := n) (ξ := ξ) hξ hy (List.ofFn v)
   have hq := pow_le_exp_neg_trInnerReward (n := n) (ξ := ξ) y v
-  have hmem : ∀ e, y + chBlockPoint (List.ofFn v, e) ∈ bkPoints := by
-    intro e
-    simp only [mem_bkPoints, bkJ, Prod.fst_add, chBlockPoint_fst] at hy ⊢
-    omega
   set W := ∏ i, varpiIn (v i) with hW
   have hW0 : 0 ≤ W := Finset.prod_nonneg fun i _ => varpiIn_nonneg _
   rw [term_eq hξ hy, term_eq hξ hy, chBlockWeight_ofFn, chBlockWeight_ofFn, varpi_four,
     varpi_five, ← hW, ← ENNReal.ofReal_add]
   rotate_left
-  · exact mul_nonneg (mul_nonneg (by positivity) (Real.exp_pos _).le)
-      (trBridgeLossReal_nonneg n ξ _)
-  · exact mul_nonneg (mul_nonneg (by positivity) (Real.exp_pos _).le)
+  iterate 2
+    exact mul_nonneg (mul_nonneg (by positivity) (Real.exp_pos _).le)
       (trBridgeLossReal_nonneg n ξ _)
   refine ENNReal.ofReal_le_ofReal ?_
   set K := Real.exp (-(gammaStar : ℝ)) * trTheta / 8 with hK
@@ -262,6 +250,21 @@ private lemma empty_bound {v : ℤ × ℤ} (hξ : IsResidueUnit ξ) (hv : v ∈ 
   rw [mul_one]
   nlinarith
 
+private lemma tsum_term_le_tsum_trPassage_zero (v : ℤ × ℤ) :
+    ∑' β : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockWeight β ≠ 0},
+      term n ξ v β.1 ≤ ∑' π : trPassage 0, ENNReal.ofReal (trListWeight π.1) *
+        ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length)) *
+          (trBridgeLoss n ξ (trPath v π.1 π.1.length)).toENNReal := by
+  refine le_of_eq_of_le ?_ (ENNReal.tsum_comp_le_tsum_of_injective
+    (f := fun β : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockWeight β ≠ 0} =>
+      (⟨[β.1], singleton_mem_trPassage_zero β.2.1 β.2.2⟩ : trPassage 0)) ?_ _)
+  · refine tsum_congr fun β => ?_
+    simp only [term, List.length_singleton, trListWeight_singleton]
+    rw [trCount_cons_succ, trCount_nil, add_zero, trPath_cons_succ, trPath_nil]
+  · intro β β' h
+    simp only [Subtype.mk.injEq, List.cons.injEq, and_true] at h
+    exact Subtype.ext h
+
 open Finset in
 /-- **The loss of a gap-zero entry.** Let `ξ ∈ G_n` be a unit and let `v ∈ 𝒫` be black with
 `gap(v) = 0`. Then
@@ -279,28 +282,12 @@ theorem le_tsum_trPassage_zero_trBridgeLoss {v : ℤ × ℤ} (hξ : IsResidueUni
   have hK0 : 0 ≤ K := by
     have := trTheta_nonneg
     positivity
-  -- the one-block lists
-  have hA : ∑' β : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockWeight β ≠ 0},
-      term n ξ v β.1 ≤ ∑' π : trPassage 0, ENNReal.ofReal (trListWeight π.1) *
-        ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length)) *
-          (trBridgeLoss n ξ (trPath v π.1 π.1.length)).toENNReal := by
-    refine le_of_eq_of_le ?_ (ENNReal.tsum_comp_le_tsum_of_injective
-      (f := fun β : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockWeight β ≠ 0} =>
-        (⟨[β.1], singleton_mem_trPassage_zero β.2.1 β.2.2⟩ : trPassage 0)) ?_ _)
-    · refine tsum_congr fun β => ?_
-      simp only [term, List.length_singleton, trListWeight_singleton]
-      rw [trCount_cons_succ, trCount_nil, add_zero, trPath_cons_succ, trPath_nil]
-    · intro β β' h
-      simp only [Subtype.mk.injEq, List.cons.injEq, and_true] at h
-      exact Subtype.ext h
-  refine le_trans ?_ hA
+  refine le_trans ?_ (tsum_term_le_tsum_trPassage_zero v)
   rw [tsum_liveBlocks_eq (fun β => term n ξ v β) (fun β h => by simp [term, h]),
     tsum_blocks_eq_tsum_ofFn]
-  -- the sum over word lengths
   set f : ℕ → ℝ≥0∞ := fun m => ∑' w : Fin m → ℤ,
     (term n ξ v (List.ofFn w, 4) + term n ξ v (List.ofFn w, 5)) with hf
-  have hsplit : ∑' m, f m = f 0 + ∑' m, f (m + 1) := tsum_eq_zero_add' ENNReal.summable
-  rw [hsplit]
+  rw [tsum_eq_zero_add' ENNReal.summable]
   have h0 : ENNReal.ofReal (3 / 16 * (Real.exp (-(gammaStar : ℝ)) * trTheta)) ≤ f 0 := by
     refine le_trans (empty_bound hξ hv hb hgap)
       (le_trans (le_self_add (b := term n ξ v ([], 5))) ?_)

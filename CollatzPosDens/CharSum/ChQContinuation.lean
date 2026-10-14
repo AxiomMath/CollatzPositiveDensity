@@ -136,8 +136,7 @@ theorem chQ_eq_tsum_blockPath_of_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : �
                 ∑' γ, contTerm n ξ ε P (p + chBlockPoint a) γ := by
           rw [chQ_eq_mul_tsum_of_nonneg n ξ ε hp]
           congr 1
-          refine tsum_congr fun a ↦ ?_
-          rw [← ih (hp' a)]
+          exact tsum_congr fun a ↦ by rw [← ih (hp' a)]
       _ = ∑' a, ∑' γ, contTerm n ξ ε (P + 1) p (e (a, γ)) := by
           simp only [hFe, tsum_mul_left]
       _ = ∑' x, contTerm n ξ ε (P + 1) p (e x) := hS.tsum_prod.symm
@@ -157,6 +156,8 @@ theorem chQ_eq_tsum_blockPath (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (P : �
           (∏ k : Fin P,
             chInternalWeight n ξ ε (p + chBlockPath (List.ofFn fun k ↦ (β k).1) k) (β k)) *
           chQ n ξ ε (p + chBlockPath (List.ofFn fun k ↦ (β k).1) P) :=
-  chQ_eq_tsum_blockPath_of_nonneg n ξ ε P (by have := mem_bkPoints.mp hp; omega)
+  chQ_eq_tsum_blockPath_of_nonneg n ξ ε P <| by
+    have := mem_bkPoints.mp hp
+    omega
 
 end CollatzPosDens

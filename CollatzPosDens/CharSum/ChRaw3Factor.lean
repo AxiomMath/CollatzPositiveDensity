@@ -55,7 +55,8 @@ noncomputable def chRaw3Factor (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : �
 
 /-- The exponent of the raw-three factor: `κ_* z_* = 21/3125`. -/
 theorem chRaw3Factor_exponent : (kappaStar : ℝ) * zStar = 21 / 3125 := by
-  rw [zStar_cast, kappaStar_def]; norm_num
+  rw [zStar_cast, kappaStar_def]
+  norm_num
 
 /-- The raw-three factor of a white point is `e^{-κ_* z_*}`. -/
 theorem chRaw3Factor_of_isBkWhite {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p : ℤ × ℤ}
@@ -77,9 +78,7 @@ theorem chRaw3Factor_of_not_isBkWhite {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ}
 theorem chRaw3Factor_pos (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
     0 < chRaw3Factor n ξ ε p := by
   unfold chRaw3Factor
-  split_ifs
-  · exact Real.exp_pos _
-  · exact one_pos
+  split_ifs <;> positivity
 
 /-- The raw-three factor is nonnegative. -/
 theorem chRaw3Factor_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
@@ -91,7 +90,8 @@ theorem chRaw3Factor_le_one (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ 
     chRaw3Factor n ξ ε p ≤ 1 := by
   unfold chRaw3Factor
   split_ifs
-  · rw [chRaw3Factor_exponent, Real.exp_le_one_iff]; norm_num
+  · rw [chRaw3Factor_exponent, Real.exp_le_one_iff]
+    norm_num
   · exact le_rfl
 
 end CollatzPosDens

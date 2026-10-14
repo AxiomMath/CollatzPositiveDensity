@@ -56,11 +56,8 @@ theorem row_sub_row (Δ : BkTriangle) (l l' : ℤ) :
   ring
 
 /-- The row is strictly increasing in the height. -/
-theorem row_strictMono (Δ : BkTriangle) : StrictMono Δ.row := fun l l' h => by
-  have := row_sub_row Δ l' l
-  have : (0 : ℝ) < alpha * ((l' : ℝ) - l) :=
-    mul_pos alpha_pos (sub_pos.2 (Int.cast_lt.2 h))
-  linarith
+theorem row_strictMono (Δ : BkTriangle) : StrictMono Δ.row := fun l l' h =>
+  sub_pos.1 <| (row_sub_row Δ l' l).symm ▸ mul_pos alpha_pos (sub_pos.2 (Int.cast_lt.2 h))
 
 /-- `row_Δ(l) ≤ row_Δ(l')` if and only if `l ≤ l'`. -/
 @[simp]

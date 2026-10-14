@@ -32,7 +32,6 @@ linearly ordered field. -/
 @[collatz_pos_dens "lem_bk_eps_star_range"]
 theorem epsStar_mem_bkRange {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K] :
     0 < (epsStar : K) ∧ (epsStar : K) < 1 / 27 := by
-  rw [epsStar_cast]
-  constructor <;> norm_num
+  norm_num [epsStar_cast]
 
 end CollatzPosDens

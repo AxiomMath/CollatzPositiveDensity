@@ -18,38 +18,36 @@ public import CollatzPosDens.Mixing.MxSubdensity
 /-!
 # A pointwise cap on the gate subdensity
 
-For every integer `n ≥ 2^131072` and `y ∈ G_n`, the gate subdensity satisfies
-$$g_n(y) \le \tfrac{16}{3}\, n^{5633/2048}.$$
+For every integer `n ≥ 2^80000` and `y ∈ G_n`, the gate subdensity satisfies
+$$g_n(y) \le \tfrac{16}{3}\, n^{4097/2048}.$$
 
-The gate union `𝒰_n` is the disjoint union of the slice gates `Sl(n, k, l)`, `k < n`, `l < 2n`,
+The gate union `𝒰_n` is the disjoint union of the slice gates `Sl(n, k, l)`, `k < n`, `l < 4n`,
 so its submass at `y` is the sum of the slice submasses. A slice with empty head gate is empty.
 Otherwise the slice submass is the convolution `∑_x Hm_{n,k,l}(x) Tl_{n,k,l}(y - x)`; the head
 mass is pointwise at most `2^{-l}` and the tail law has total mass `∑_z μ_{n-k-1}(z) = 1`, so the
 slice submass is at most `2^{-l}`. Summing, `g_n(y) ≤ (2/3) ∑ 3^n 2^{-l}` over the indices with
-nonempty head gate, which is at most `(2/3) · 8 n^{5633/2048}` by
-`mxGateWeightSum_le_of_sixteen_le`.
+nonempty head gate, which is at most `(2/3) · 8 n^{4097/2048}` by the entropy weight bound.
 
 ## Main results
 
 * `CollatzPosDens.subMass_mxSliceGate_le_two_inv_pow`: `Sub^n_{Sl(n,k,l)}(y) ≤ 2^{-l}`.
-* `CollatzPosDens.subMass_mxSliceGate_eq_zero_of_not_nonempty`: a slice with empty head gate
-  has submass `0`.
+* `CollatzPosDens.subMass_mxSliceGate_eq_zero`: a slice with empty head gate has submass `0`.
 * `CollatzPosDens.subMass_mxGateUnion_le_sum`: `Sub^n_{𝒰_n}(y) ≤ ∑ 2^{-l}` over the indices
   with nonempty head gate.
 * `CollatzPosDens.mxSubdensity_le_of_sixteen_le`: the cap, for every `n ≥ 16`.
-* `CollatzPosDens.mxSubdensity_le_cap`: the cap `g_n(y) ≤ (16/3) n^{5633/2048}` for
-  `n ≥ 2^131072`.
+* `CollatzPosDens.mxSubdensity_le_cap`: the cap `g_n(y) ≤ (16/3) n^{4097/2048}` for
+  `n ≥ 2^80000`.
 
 ## Implementation notes
 
 The submasses are computed in `[0, ∞]` and transferred to `ℝ` at the end through `toReal`,
-after the submass of `𝒰_n` has been shown finite. The bound holds as soon as
-`mxGateWeightSum_le_of_sixteen_le` does, i.e. for every `n ≥ 16`; `mxSubdensity_le_cap` states it
-under the hypothesis `n ≥ 2^131072`.
+after the submass of `𝒰_n` has been shown finite. The bound holds as soon as the entropy weight
+bound does, i.e. for every `n ≥ 16`; the threshold `2^80000` of the source is the form in which
+the statement is used.
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -76,9 +74,8 @@ theorem subMass_mxSliceGate_le_two_inv_pow {n k l : ℕ} (hk : k < n) (y : Resid
     _ = (2⁻¹ : ℝ≥0∞) ^ l := by rw [sum_tailLaw_eq_one, mul_one]
 
 /-- A slice gate with empty head gate is empty, so its submass vanishes. -/
-theorem subMass_mxSliceGate_eq_zero_of_not_nonempty {n k l : ℕ}
-    (h : ¬ (mxHeadGate n k l).Nonempty) (y : ResidueGroup n) :
-    subMass n (mxSliceGate n k l) y = 0 := by
+theorem subMass_mxSliceGate_eq_zero {n k l : ℕ} (h : ¬ (mxHeadGate n k l).Nonempty)
+    (y : ResidueGroup n) : subMass n (mxSliceGate n k l) y = 0 := by
   have hS : mxSliceGate n k l = ∅ :=
     Set.eq_empty_iff_forall_notMem.2 fun w hw =>
       h ⟨_, take_mem_mxHeadGate_of_mem_mxSliceGate hw⟩
@@ -86,25 +83,25 @@ theorem subMass_mxSliceGate_eq_zero_of_not_nonempty {n k l : ℕ}
 
 open Classical in
 /-- The submass of the gate union is at most the sum of `2^{-l}` over the indices `(k, l)`,
-`k < n`, `l < 2n`, with nonempty head gate. -/
+`k < n`, `l < 4n`, with nonempty head gate. -/
 theorem subMass_mxGateUnion_le_sum (n : ℕ) (y : ResidueGroup n) :
     subMass n (mxGateUnion n) y ≤
-      ∑ p ∈ (Finset.range n ×ˢ Finset.range (2 * n)).filter
+      ∑ p ∈ (Finset.range n ×ˢ Finset.range (4 * n)).filter
         (fun p : ℕ × ℕ => (mxHeadGate n p.1 p.2).Nonempty), (2⁻¹ : ℝ≥0∞) ^ p.2 := by
-  set s := Finset.range n ×ˢ Finset.range (2 * n)
+  set s := Finset.range n ×ˢ Finset.range (4 * n)
   rw [mxGateUnion_eq_biUnion_product, subMass_biUnion_finset n s (pairwiseDisjoint_mxSliceGate n _),
     Finset.sum_filter]
   refine Finset.sum_le_sum fun p hp => ?_
   split_ifs with h
   · exact subMass_mxSliceGate_le_two_inv_pow (Finset.mem_range.1 (Finset.mem_product.1 hp).1) y
-  · exact (subMass_mxSliceGate_eq_zero_of_not_nonempty h y).le
+  · exact (subMass_mxSliceGate_eq_zero h y).le
 
 /-- The pointwise cap on the gate subdensity, for every `n ≥ 16`:
-`g_n(y) ≤ (16/3) n^{5633/2048}`. -/
+`g_n(y) ≤ (16/3) n^{4097/2048}`. -/
 theorem mxSubdensity_le_of_sixteen_le {n : ℕ} (hn : 16 ≤ n) (y : ResidueGroup n) :
-    mxSubdensity n y ≤ 16 / 3 * (n : ℝ) ^ ((5633 : ℝ) / 2048) := by
+    mxSubdensity n y ≤ 16 / 3 * (n : ℝ) ^ ((4097 : ℝ) / 2048) := by
   classical
-  set t := (Finset.range n ×ˢ Finset.range (2 * n)).filter
+  set t := (Finset.range n ×ˢ Finset.range (4 * n)).filter
     (fun p : ℕ × ℕ => (mxHeadGate n p.1 p.2).Nonempty)
   have hfin : ∑ p ∈ t, (2⁻¹ : ℝ≥0∞) ^ p.2 ≠ ∞ :=
     ENNReal.sum_ne_top.2 fun _ _ => ENNReal.pow_ne_top (by simp)
@@ -121,14 +118,14 @@ theorem mxSubdensity_le_of_sixteen_le {n : ℕ} (hn : 16 ≤ n) (y : ResidueGrou
       ≤ 2 / 3 * (3 ^ n * ∑ p ∈ t, (2⁻¹ : ℝ) ^ p.2) := by
         rw [mul_assoc]
         gcongr
-    _ ≤ 2 / 3 * (8 * (n : ℝ) ^ ((5633 : ℝ) / 2048)) := by gcongr
-    _ = 16 / 3 * (n : ℝ) ^ ((5633 : ℝ) / 2048) := by ring
+    _ ≤ 2 / 3 * (8 * (n : ℝ) ^ ((4097 : ℝ) / 2048)) := by gcongr
+    _ = 16 / 3 * (n : ℝ) ^ ((4097 : ℝ) / 2048) := by ring
 
-/-- **Pointwise cap of the subdensity.** For every integer `n ≥ 2^131072` and `y ∈ G_n`,
-`g_n(y) ≤ (16/3) n^{5633/2048}`. -/
+/-- **Pointwise cap of the subdensity.** For every integer `n ≥ 2^80000` and `y ∈ G_n`,
+`g_n(y) ≤ (16/3) n^{4097/2048}`. -/
 @[collatz_pos_dens "lem_mx_subdensity_cap"]
-theorem mxSubdensity_le_cap {n : ℕ} (hn : 2 ^ 131072 ≤ n) (y : ResidueGroup n) :
-    mxSubdensity n y ≤ 16 / 3 * (n : ℝ) ^ ((5633 : ℝ) / 2048) := by
+theorem mxSubdensity_le_cap {n : ℕ} (hn : 2 ^ 80000 ≤ n) (y : ResidueGroup n) :
+    mxSubdensity n y ≤ 16 / 3 * (n : ℝ) ^ ((4097 : ℝ) / 2048) := by
   have key : ∀ m, 4 ≤ m → 16 ≤ 2 ^ m := fun m hm => Nat.pow_le_pow_right (n := 2) Nat.two_pos hm
   exact mxSubdensity_le_of_sixteen_le ((key _ (by decide)).trans hn) y
 

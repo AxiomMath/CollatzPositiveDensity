@@ -15,24 +15,24 @@ public import CollatzPosDens.Mixing.MxGateDisjoint
 # Total mass of the head gates
 
 For every integer `n ≥ 1`,
-$$\sum_{k=0}^{n-1}\sum_{l=0}^{2n-1}\mathbf{p}(\mathrm{Hd}(n,k,l)) \le 1.$$
+$$\sum_{k=0}^{n-1}\sum_{l=0}^{4n-1}\mathbf{p}(\mathrm{Hd}(n,k,l)) \le 1.$$
 
 For `k < n`, the slice gate `Sl(n, k, l)` is the set of words of length `n` whose prefix of
 length `k + 1` lies in `Hd(n, k, l)`, so by the marginal identity `geomMass_setOf_take_mem` it
-has the same mass as the head gate. The slice gates are pairwise disjoint subsets of
-`ℤ_{≥1}^n`, whose mass is `1`.
+has the same mass as the head gate. The
+slice gates are pairwise disjoint subsets of `ℤ_{≥1}^n`, whose mass is `1`.
 
 ## Main results
 
 * `CollatzPosDens.mxGateMassSum_finset_le`: for any finite set `s` of indices `(k, l)` with
   `k < n`, `∑_{(k, l) ∈ s} 𝐩(Hd(n, k, l)) ≤ 1`.
-* `CollatzPosDens.mxGateMassSum_le_one`: `∑_{k<n} ∑_{l<2n} 𝐩(Hd(n, k, l)) ≤ 1`.
+* `CollatzPosDens.mxGateMassSum_le_one`: `∑_{k<n} ∑_{l<4n} 𝐩(Hd(n, k, l)) ≤ 1`.
 
 ## Implementation notes
 
-The hypothesis `n ≥ 1` is not needed: for `n = 0` the outer sum is empty. The bound is proved
-for an arbitrary finite set of indices `(k, l)` with `k < n`, of which the range `0 ≤ k < n`,
-`0 ≤ l < 2n` is one instance.
+The hypothesis `n ≥ 1` of the source is not needed: for `n = 0` the outer sum is empty. The
+bound is proved for an arbitrary finite set of indices `(k, l)` with `k < n`, of which the
+range `0 ≤ k < n`, `0 ≤ l < 4n` of the source is one instance.
 
 ## References
 
@@ -65,10 +65,10 @@ theorem mxGateMassSum_finset_le (n : ℕ) (s : Finset (ℕ × ℕ)) (hs : ∀ p 
     _ = 1 := geomMass_setOf_length_eq n
 
 /-- **Total mass of the head gates.** For every `n`,
-`∑_{k=0}^{n-1} ∑_{l=0}^{2n-1} 𝐩(Hd(n, k, l)) ≤ 1`. -/
+`∑_{k=0}^{n-1} ∑_{l=0}^{4n-1} 𝐩(Hd(n, k, l)) ≤ 1`. -/
 @[collatz_pos_dens "lem_mx_gate_mass_sum"]
 theorem mxGateMassSum_le_one (n : ℕ) :
-    ∑ k ∈ Finset.range n, ∑ l ∈ Finset.range (2 * n), geomMass (mxHeadGate n k l) ≤ 1 := by
+    ∑ k ∈ Finset.range n, ∑ l ∈ Finset.range (4 * n), geomMass (mxHeadGate n k l) ≤ 1 := by
   rw [← Finset.sum_product']
   exact mxGateMassSum_finset_le n _ fun p hp => Finset.mem_range.mp (Finset.mem_product.mp hp).1
 

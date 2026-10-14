@@ -51,13 +51,13 @@ theorem kappaStar_cast {K : Type*} [DivisionRing K] [CharZero K] :
 
 /-- The tilt ratio `κ_*` is positive. -/
 theorem kappaStar_pos : 0 < kappaStar := by
-  rw [kappaStar_def]; norm_num
+  norm_num [kappaStar_def]
 
 /-- The tilt ratio `κ_*` is nonnegative. -/
 theorem kappaStar_nonneg : 0 ≤ kappaStar := kappaStar_pos.le
 
 /-- The tilt ratio `κ_*` is less than `1`. -/
 theorem kappaStar_lt_one : kappaStar < 1 := by
-  rw [kappaStar_def]; norm_num
+  norm_num [kappaStar_def]
 
 end CollatzPosDens

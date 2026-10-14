@@ -36,10 +36,10 @@ Fix a level `n`, a unit `ξ ∈ G_n`, write `J = ⌊n/2⌋`, and colour points w
 let `1 ≤ r ≤ ⌊(5s + 16)/16⌋`, `1 ≤ O ≤ 4`. Then the exit point `e = p + (r, s + O)` satisfies
 `Q(e) ≤ e^{-z_* + w_*/2} max(m - r, 1)^{-A_*} Q_{m-1}`.
 
-Since `D_pt ≥ 344 > e`, `log m ≥ 1`, and `moConeRoom` gives `r + D₁ < m`. The bound
-`3 ε_* 9^r < 2^s` makes `e = (j(p) + r, l_Δ + O)` white (`isBkWhite_exit_of_mem_bkFamily`), and
-`chQ_le_exp_mul_rpow_mul_chQm_of_isBkWhite` at `e` with `m' = m - r ≥ D₁` in place of `m` gives
-`Q(e) ≤ e^{-z_* + w_*/2} m'^{-A_*} Q_{m'-1}`; finally `Q_{m'-1} ≤ Q_{m-1}` by `chQm_mono`.
+Since `D_pt ≥ 344 > e`, `log m ≥ 1`, and the cone-room lemma gives `r + D₁ < m`. The bound
+`3 ε_* 9^r < 2^s` makes `e = (j(p) + r, l_Δ + O)` white, and the white-case bound at `e` with
+`m' = m - r ≥ D₁` in place of `m` gives `Q(e) ≤ e^{-z_* + w_*/2} m'^{-A_*} Q_{m'-1}`; finally
+`Q_{m'-1} ≤ Q_{m-1}` by monotonicity.
 
 ## Main results
 
@@ -54,7 +54,7 @@ the natural number `m - 1`; likewise the integer `r ≥ 1` is a natural number, 
 
 ## References
 
-* [Mazur, *Collatz positive density*], §8.5.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -76,30 +76,30 @@ theorem chQ_coneEndpoint_le {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit
     chQ n ξ (epsStar : ℝ) (p + ((r : ℤ), (s : ℤ) + O)) ≤
       exp (-(zStar : ℝ) + (wStar : ℝ) / 2) * max ((m : ℝ) - r) 1 ^ (-(Aexp : ℝ)) *
         chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) := by
-  have hDpt : (Dpt : ℝ) = 2 * D1 + 344 := by rw [Dpt_def]; push_cast; ring
+  have hDpt : (Dpt : ℝ) = 2 * D1 + 344 := by
+    rw [Dpt_def]
+    push_cast
+    ring
   have hD1 : (2 : ℝ) < D1 := by exact_mod_cast two_lt_D1
   have hlog : 1 ≤ Real.log ((m : ℤ) : ℝ) := by
     rw [Int.cast_natCast, Real.le_log_iff_exp_le (by linarith)]
-    have := Real.exp_one_lt_three
-    linarith
-  have hroom := moConeRoom (m := (m : ℤ)) (by rw [Int.cast_natCast]; exact hm) hlog
-    (s := s) (by rw [Int.cast_natCast]; exact hsm) (r := (r : ℤ)) (by
+    linarith [Real.exp_one_lt_three]
+  have hroom := moCone_room (m := (m : ℤ)) (by rwa [Int.cast_natCast]) hlog
+    (s := s) (by rwa [Int.cast_natCast]) (r := (r : ℤ)) (by
       rw [Int.le_floor]
-      have : r * 16 ≤ 5 * s + 16 := by omega
-      have : ((r * 16 : ℕ) : ℝ) ≤ ((5 * s + 16 : ℕ) : ℝ) := by exact_mod_cast this
+      have : ((r * 16 : ℕ) : ℝ) ≤ ((5 * s + 16 : ℕ) : ℝ) := by exact_mod_cast (by omega)
       push_cast at this ⊢
       linarith)
   rw [Int.cast_natCast, Int.cast_natCast] at hroom
-  have hrm : r < m := by
-    have : (r : ℝ) < m := by linarith
-    exact_mod_cast this
+  have hrm : r < m := by exact_mod_cast (show (r : ℝ) < m by linarith)
   have hm' : ((m - r : ℕ) : ℝ) = (m : ℝ) - r := by rw [Nat.cast_sub hrm.le]
   have hmax : max ((m : ℝ) - r) 1 = ((m - r : ℕ) : ℝ) := by
-    rw [hm']; exact max_eq_left (by linarith)
+    rw [hm']
+    exact max_eq_left (by linarith)
   have he : p + ((r : ℤ), (s : ℤ) + O) = (bkJ p + r, Δ.l + O) := by
     obtain ⟨j, l⟩ := p
     simp only [bkJ, bkL] at hs ⊢
-    ext <;> (simp; try omega)
+    rw [Prod.mk_add_mk, ← hs, add_assoc]
   have hroom' : 3 * (epsStar : ℝ) * 9 ^ r < 2 ^ s := by
     refine lt_of_le_of_lt ?_ (three_mul_epsStar_mul_nine_pow_lt_two_pow (K := ℝ) s)
     have h0 : (0 : ℝ) < epsStar := epsStar_mem_bkRange.1
@@ -115,6 +115,6 @@ theorem chQ_coneEndpoint_le {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit
   refine hcase.trans ?_
   have hA : (0 : ℝ) ≤ (Aexp : ℝ) := by rw [Aexp_cast]; norm_num
   gcongr
-  · exact chQm_mono n ξ _ hA (by omega)
+  exact chQm_mono n ξ _ hA (by omega)
 
 end CollatzPosDens

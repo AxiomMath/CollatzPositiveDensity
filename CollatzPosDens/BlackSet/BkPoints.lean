@@ -80,13 +80,14 @@ theorem add_mem_bkPoints_iff {p q : ℤ × ℤ} : p + q ∈ bkPoints ↔ 1 ≤ b
 
 /-- `ℕ × ℤ` parametrizes `𝒫` via `(m, l) ↦ (m + 1, l)`. -/
 def bkPointsEquiv : ℕ × ℤ ≃ bkPoints where
-  toFun x := ⟨((x.1 : ℤ) + 1, x.2), by rw [mem_bkPoints_mk]; omega⟩
+  toFun x := ⟨((x.1 : ℤ) + 1, x.2), mem_bkPoints_mk.2 (by omega)⟩
   invFun p := ((p.1.1 - 1).toNat, p.1.2)
   left_inv x := by simp
   right_inv := by
     rintro ⟨⟨j, l⟩, hj⟩
     rw [mem_bkPoints_mk] at hj
-    ext <;> simp; omega
+    ext <;> simp only [Int.pred_toNat]
+    omega
 
 /-- `ℕ × ℤ` parametrizes the pairs `(j, l) : ℕ × ℤ` with `1 ≤ j` via `(m, l) ↦ (m + 1, l)`. -/
 def natPointsEquiv : ℕ × ℤ ≃ {p : ℕ × ℤ // 1 ≤ p.1} where
@@ -95,7 +96,8 @@ def natPointsEquiv : ℕ × ℤ ≃ {p : ℕ × ℤ // 1 ≤ p.1} where
   left_inv x := by simp
   right_inv p := by
     obtain ⟨⟨j, l⟩, hj⟩ := p
-    ext <;> simp only; omega
+    ext <;> simp only
+    omega
 
 /-- The first coordinate of a sum of points is the sum of their first coordinates. -/
 theorem bkJ_list_sum (L : List (ℤ × ℤ)) : bkJ L.sum = (L.map bkJ).sum :=
@@ -117,11 +119,13 @@ theorem add_mem_bkPoints {p q : ℤ × ℤ} (hp : p ∈ bkPoints) (hq : q ∈ bk
 
 /-- The squared distance is nonnegative. -/
 theorem bkDistSq_nonneg (p q : ℤ × ℤ) : 0 ≤ bkDistSq p q := by
-  unfold bkDistSq; positivity
+  unfold bkDistSq
+  positivity
 
 /-- The squared distance is symmetric. -/
 theorem bkDistSq_comm (p q : ℤ × ℤ) : bkDistSq p q = bkDistSq q p := by
-  unfold bkDistSq; ring
+  unfold bkDistSq
+  ring
 
 /-- The squared distance from a point to itself is zero. -/
 @[simp]

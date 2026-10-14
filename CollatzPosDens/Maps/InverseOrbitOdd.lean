@@ -48,9 +48,8 @@ theorem Admissible.exists_inverseOrbit_eq_pos_odd {R : ℤ} {w : Word}
     obtain ⟨m, hm, hmpos, hmodd⟩ := ih (Nat.le_of_succ_le hi)
     obtain ⟨n, hn⟩ := admissible_iff_exists_int.mp hw (i + 1) hi
     refine ⟨n, hn, ?_⟩
-    have hlt : i < w.length := hi
-    rw [inverseOrbit_succ w R hlt, hm, invStep] at hn
-    set a : ℕ := (w[i] : ℕ) with ha
+    rw [inverseOrbit_succ w R hi, hm, invStep] at hn
+    set a : ℕ := (w[i] : ℕ)
     have ha1 : 1 ≤ a := w[i].pos
     have h3 : (3 * n : ℤ) = 2 ^ a * m - 1 := by
       have : ((3 * n : ℤ) : ℚ) = ((2 ^ a * m - 1 : ℤ) : ℚ) := by
@@ -58,17 +57,10 @@ theorem Admissible.exists_inverseOrbit_eq_pos_odd {R : ℤ} {w : Word}
         rw [← hn]
         ring
       exact_mod_cast this
-    have heven : Even ((2 : ℤ) ^ a * m) :=
-      (Int.even_pow.mpr ⟨even_two, by omega⟩).mul_right m
-    have hodd3 : Odd (3 * n) := by
-      rw [h3]
-      exact heven.sub_odd odd_one
+    have hodd3 : Odd (3 * n) :=
+      h3 ▸ ((Int.even_pow.mpr ⟨even_two, by omega⟩).mul_right m).sub_odd odd_one
     refine ⟨?_, (Int.odd_mul.mp hodd3).2⟩
-    have h2 : (2 : ℤ) ≤ 2 ^ a * m := by
-      have : (2 : ℤ) ≤ 2 ^ a := by
-        calc (2 : ℤ) = 2 ^ 1 := by norm_num
-          _ ≤ 2 ^ a := pow_le_pow_right₀ (by norm_num) ha1
-      nlinarith
-    omega
+    have : (2 : ℤ) ≤ 2 ^ a := le_self_pow₀ (by norm_num) (by omega)
+    nlinarith
 
 end CollatzPosDens

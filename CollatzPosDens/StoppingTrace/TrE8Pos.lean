@@ -52,11 +52,13 @@ theorem E8_kappaStar_mul_gammaStar :
 
 /-- `E₈(γ_*)` is positive. -/
 theorem E8_gammaStar_pos : 0 < E8 (gammaStar : ℝ) := by
-  rw [E8_gammaStar]; norm_num
+  rw [E8_gammaStar]
+  norm_num
 
 /-- `E₈(κ_* γ_*)` is positive. -/
 theorem E8_kappaStar_mul_gammaStar_pos : 0 < E8 ((kappaStar : ℝ) * gammaStar) := by
-  rw [E8_kappaStar_mul_gammaStar]; norm_num
+  rw [E8_kappaStar_mul_gammaStar]
+  norm_num
 
 /-- The eighth-order defect is positive at both trace tilts: `min (E₈(γ_*), E₈(κ_* γ_*)) > 0`. -/
 @[collatz_pos_dens "lem_tr_E8_pos"]

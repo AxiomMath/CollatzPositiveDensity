@@ -18,7 +18,7 @@ public import CollatzPosDens.FirstCrossing.ScalesGrowth
 
 The loss of the full first-crossing family at scale `n` is bounded by
 `2^{140} b_n^{-6} + 2^{-(K_n+1)}`. Both terms decay at least at the deficit rate
-`ς = 𝗀^{-9/8}`: for every `n`,
+`ς = 𝗀^{-3/2}`: for every `n`,
 $$2^{140} b_n^{-6} + 2^{-(K_n+1)} \le (2^{121} + 2^{-16})\,\varsigma^n.$$
 The first term uses `b_n ≥ 9 𝗀^n` and `𝗀^{-6} ≤ ς`, together with `9^6 > 2^{19}`;
 the second is the decay of the cap term.
@@ -31,7 +31,7 @@ the second is the decay of the cap term.
 ## Implementation notes
 
 The negative powers are integer powers `zpow` of real numbers. The comparison `𝗀^{-6} ≤ ς`
-is made as `(100/101)^6 ≤ (100/101)^{9/8}`, using the explicit form of `ς`.
+is made as `(100/101)^6 ≤ (100/101)^{3/2}`, using the explicit form of `ς`.
 
 ## References
 
@@ -42,7 +42,7 @@ is made as `(100/101)^6 ≤ (100/101)^{9/8}`, using the explicit form of `ς`.
 
 namespace CollatzPosDens
 
-/-- `(100/101)^6 ≤ ς`, i.e. `𝗀^{-6} ≤ 𝗀^{-9/8}`. -/
+/-- `(100/101)^6 ≤ ς`, i.e. `𝗀^{-6} ≤ 𝗀^{-3/2}`. -/
 theorem full_loss_rate_le_aux : (100 / 101 : ℝ) ^ 6 ≤ deficitRate := by
   rw [deficitRate_eq, ← Real.rpow_natCast]
   exact Real.rpow_le_rpow_of_exponent_ge (by norm_num) (by norm_num) (by norm_num)

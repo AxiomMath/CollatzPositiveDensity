@@ -16,8 +16,8 @@ public import CollatzPosDens.Recipe.Varsigma
 The overshoot caps `K_j = 16 + ⌊j/32⌋` grow slowly enough that the cap term `2^{-(K_j+1)}`
 decays at least as fast as the deficit rate: for every `j`,
 $$2^{-(K_j+1)} \le 2^{-16}\,\varsigma^j,$$
-where `ς = 𝗀^{-9/8}` and `𝗀 = 101/100`. The key numerical input is `ς^{32} = (100/101)^{36} ≥ 1/2`,
-i.e. the exact comparison `101^{36} < 2 · 100^{36}`.
+where `ς = 𝗀^{-3/2}` and `𝗀 = 101/100`. The key numerical input is `ς^{32} = (100/101)^{48} ≥ 1/2`,
+i.e. the exact comparison `101^{48} < 2 · 100^{48}`.
 
 ## Main results
 
@@ -34,9 +34,9 @@ altogether.
 
 namespace CollatzPosDens
 
-/-- `1/2 ≤ ς ^ 32`, i.e. `101 ^ 36 ≤ 2 · 100 ^ 36`. -/
+/-- `1/2 ≤ ς ^ 32`, i.e. `101 ^ 48 ≤ 2 · 100 ^ 48`. -/
 theorem two_zpow_neg_cap_succ_le_aux : (1 / 2 : ℝ) ≤ deficitRate ^ 32 := by
-  rw [show 32 = 8 * 4 from rfl, pow_mul, deficitRate_pow_eight]; norm_num
+  rw [show 32 = 2 * 16 from rfl, pow_mul, deficitRate_pow_two]; norm_num
 
 /-- **Decay of the cap term.** For every `j`, `2^{-(K_j+1)} ≤ 2^{-16} ς^j`. -/
 @[collatz_pos_dens "lem_fc_cap_rate"]

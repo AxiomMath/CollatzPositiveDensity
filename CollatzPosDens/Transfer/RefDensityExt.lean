@@ -40,8 +40,7 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_ref_density_ext"]
 theorem refLaw_mul_eq_ofReal_refDensity (q : ℕ) (y : ResidueGroup q) :
     2 / 3 * 3 ^ q * refLaw q y = ENNReal.ofReal (refDensity q y) := by
-  have hfin : refLaw q y ≠ ∞ := refLaw_ne_top q y
-  rw [refDensity, ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal hfin,
+  rw [refDensity, ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal (refLaw_ne_top q y),
     ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_div_of_pos (by norm_num),
     ENNReal.ofReal_pow (by norm_num)]
   norm_num

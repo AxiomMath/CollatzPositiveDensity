@@ -73,8 +73,7 @@ theorem tsum_mul_le_of_le_exp_discount {X : Type*} {μ F g : X → ℝ} {V : Set
         mul_le_mul_of_nonneg_left (hμle x) (mul_nonneg hC hc)
       nlinarith
     · rw [Set.indicator_of_notMem hx, mul_zero, add_zero]
-      calc μ x * F x ≤ μ x * (C * exp (g x)) := mul_le_mul_of_nonneg_left (hle x h0) (hμ x)
-        _ = C * (μ x * exp (g x)) := by ring
+      exact (mul_le_mul_of_nonneg_left (hle x h0) (hμ x)).trans_eq (by ring)
   have hsumle := (hμF.add (hind.mul_left (C * c))).tsum_le_tsum key (hsum.mul_left C)
   rw [hμF.tsum_add (hind.mul_left (C * c)), tsum_mul_left, tsum_mul_left] at hsumle
   rw [tsum_subtype]

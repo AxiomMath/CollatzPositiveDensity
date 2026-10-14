@@ -67,10 +67,7 @@ theorem sub_gt_of_mem_bkAnchors_of_disjoint {T : Set BkTriangle}
   have hX' : (1 : ℝ) ≤ X := by exact_mod_cast hX
   have hs0 : 0 < s := by linarith
   have h2 : 0 < Real.log 2 := Real.log_pos one_lt_two
-  have h2u : Real.log 2 < 347 / 500 := by
-    have := Real.log_two_lt_d9
-    norm_num at this ⊢
-    linarith
+  have h2u : Real.log 2 < 347 / 500 := Real.log_two_lt_d9.trans (by norm_num)
   have hsl : 500 / 347 * s ≤ s / Real.log 2 := by
     rw [le_div_iff₀ h2]
     nlinarith
@@ -91,7 +88,6 @@ theorem sub_gt_of_mem_bkAnchors_of_disjoint {T : Set BkTriangle}
   have hrl_tip : (Δ₀.l : ℝ) + 2 * X ≤ rl := by
     push_cast [hrl]
     linarith
-  -- The corner height of a qualifying triangle is at least `rl`.
   have key : ∀ Θ : BkTriangle, s ≤ Θ.s → (Δ₀.l : ℝ) ≤ Θ.tip → rl ≤ Θ.l := by
     intro Θ hsΘ hlo
     have hdiv : s / Real.log 2 ≤ Θ.s / Real.log 2 := div_le_div_of_nonneg_right hsΘ h2.le
@@ -106,10 +102,9 @@ theorem sub_gt_of_mem_bkAnchors_of_disjoint {T : Set BkTriangle}
     have : (0 : ℝ) ≤ (rl : ℝ) - Γ.tip := by linarith
     nlinarith
   have hrow : Δ.row rl < Γ.j := by
-    by_contra h
-    rw [not_lt] at h
+    by_contra! h
     have hmemΔ : (Γ.j, rl) ∈ Δ := Δ.mem_of_le_row (key Δ hsΔ hl₀Δ) hlt.le h
-    exact hlt.ne (by have := hT Δ hΔ Γ hΓ _ hmemΔ hmemΓ; subst this; rfl)
+    exact hlt.ne (congrArg BkTriangle.j (hT Δ hΔ Γ hΓ _ hmemΔ hmemΓ))
   rw [row_def] at hrow
   have htΔ : Δ.tip ≤ (Δ₀.l : ℝ) + 2 * X := by linarith
   have hgap : 36 / 25 * s < (rl : ℝ) - Δ.tip := by

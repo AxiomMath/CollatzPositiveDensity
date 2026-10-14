@@ -67,8 +67,7 @@ theorem subMass_eq_tsum (n : ℕ) (V : Set Word) (y : ResidueGroup n) :
   rw [subMass_def, geomMass_eq_tsum_indicator, tsum_subtype V (fun w : Word =>
     if dyadicRed n ⟨off w, off_mem_dyadicRationals w⟩ = y then (2⁻¹ : ℝ≥0∞) ^ w.valSum else 0)]
   refine tsum_congr fun w => ?_
-  by_cases hV : w ∈ V <;> by_cases h : dyadicRed n ⟨off w, off_mem_dyadicRationals w⟩ = y <;>
-    simp [Set.indicator, h, hV]
+  by_cases hV : w ∈ V <;> simp [Set.indicator, hV]
 
 /-- The submass is monotone in the set of words. -/
 theorem subMass_mono (n : ℕ) {U V : Set Word} (h : U ⊆ V) (y : ResidueGroup n) :

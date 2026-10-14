@@ -296,8 +296,8 @@ private lemma pair_ennreal (hξ : IsResidueUnit ξ) (hy : y ∈ bkPoints) {m : �
   have hq := pow_le_exp_neg_trInnerReward (n := n) (ξ := ξ) y v
   have hw4 := chBlockWeight_ofFn v 4
   have hw5 := chBlockWeight_ofFn v 5
-  set c := List.ofFn v with hc
-  set W := ∏ i, varpiIn (v i) with hW
+  set c := List.ofFn v
+  set W := ∏ i, varpiIn (v i)
   have hW0 : 0 ≤ W := Finset.prod_nonneg fun i _ => varpiIn_nonneg _
   have hd : (dStar : ℝ) < 1 := by exact_mod_cast dStar_lt_one
   have hμ := trMu_nonneg
@@ -387,11 +387,10 @@ theorem trTheta_le_trBridgeLoss (hξ : IsResidueUnit ξ) (hy : y ∈ bkPoints)
     rw [← ENNReal.tsum_mul_left, ← ENNReal.tsum_add, ← ENNReal.tsum_add]
     exact ENNReal.tsum_le_tsum fun v => pair_ennreal hξ hy v
   rw [trBridgeLoss_eq_coe_trBridgeLossReal hξ hy, EReal.coe_le_coe_iff, trBridgeLossReal]
-  have hm := trBridgeMass_ne_top n ξ y
   have hg := trBridgeGain_ne_top hξ hy
   have h := ENNReal.toReal_mono (ENNReal.add_ne_top.2 ⟨ENNReal.ofReal_ne_top, hg⟩) A
-  rw [ENNReal.toReal_add (ENNReal.mul_ne_top ENNReal.ofReal_ne_top hm) ENNReal.ofReal_ne_top,
-    ENNReal.toReal_add ENNReal.ofReal_ne_top hg, ENNReal.toReal_mul,
+  rw [ENNReal.toReal_add (ENNReal.mul_ne_top ENNReal.ofReal_ne_top (trBridgeMass_ne_top n ξ y))
+      ENNReal.ofReal_ne_top, ENNReal.toReal_add ENNReal.ofReal_ne_top hg, ENNReal.toReal_mul,
     ENNReal.toReal_ofReal (by linarith), ENNReal.toReal_ofReal trTheta_nonneg] at h
   linarith
 

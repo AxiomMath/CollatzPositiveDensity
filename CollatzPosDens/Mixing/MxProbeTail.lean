@@ -16,7 +16,7 @@ public import CollatzPosDens.Mixing.MxRootVsLog
 /-!
 # Tail bound for the valuation sum of a prefix
 
-Let `n ≥ 2^131072` and `t ≤ n`. Among the words `w ∈ ℤ_{≥1}^n`, those whose
+Let `n ≥ 2^80000` and `t ≤ n`. Among the words `w ∈ ℤ_{≥1}^n`, those whose
 prefix `w_{≤t}` has valuation sum deviating from `2t` by at least `½ n^{2049/4096}` have
 geometric mass `𝐩({w : |A(w_{≤t}) - 2t| ≥ ½ n^{2049/4096}}) ≤ 2 n^{-10}`.
 
@@ -48,17 +48,17 @@ open Real
 
 namespace CollatzPosDens
 
-/-- The exponent estimate behind the tail bound: for `n ≥ 2^131072`, `1 ≤ t ≤ n` and
+/-- The exponent estimate behind the tail bound: for `n ≥ 2^80000`, `1 ≤ t ≤ n` and
 `v = ½ n^{2049/4096}`, `10 log n ≤ min (v²/(32t)) (v/8)`. -/
 private lemma geomMass_abs_valSum_take_sub_ge_le_exponent {n t : ℕ}
-    (hn : (2 : ℝ) ^ 131072 ≤ n) (ht : 1 ≤ t) (htn : t ≤ n) :
+    (hn : (2 : ℝ) ^ 80000 ≤ n) (ht : 1 ≤ t) (htn : t ≤ n) :
     10 * Real.log n ≤ min (((1 / 2 : ℝ) * (n : ℝ) ^ ((2049 : ℝ) / 4096)) ^ 2 / (32 * t))
       ((1 / 2 : ℝ) * (n : ℝ) ^ ((2049 : ℝ) / 4096) / 8) := by
   have hn0 : (0 : ℝ) < n := lt_of_lt_of_le (by positivity) hn
   have hn1 : (1 : ℝ) ≤ n := le_trans (one_le_pow₀ (by norm_num)) hn
   have ht0 : (0 : ℝ) < t := by exact_mod_cast ht
   have htn' : (t : ℝ) ≤ n := by exact_mod_cast htn
-  have hroot := mul_log_lt_rpow_of_two_pow_131072_le hn
+  have hroot := mul_log_lt_rpow_of_two_pow_80000_le hn
   set y := (n : ℝ) ^ ((2049 : ℝ) / 4096) with hy
   set z := (n : ℝ) ^ ((1 : ℝ) / 2048) with hz
   have hsq : y ^ 2 = n * z := by
@@ -74,10 +74,10 @@ private lemma geomMass_abs_valSum_take_sub_ge_le_exponent {n t : ℕ}
     nlinarith
   · nlinarith
 
-/-- **Tail bound for the valuation sum of a prefix.** For `n ≥ 2^131072` and `t ≤ n`,
+/-- **Tail bound for the valuation sum of a prefix.** For `n ≥ 2^80000` and `t ≤ n`,
 `𝐩({w ∈ ℤ_{≥1}^n : |A(w_{≤t}) - 2t| ≥ ½ n^{2049/4096}}) ≤ 2 n^{-10}`. -/
 @[collatz_pos_dens "lem_mx_probe_tail"]
-theorem geomMass_abs_valSum_take_sub_ge_le {n t : ℕ} (hn : (2 : ℝ) ^ 131072 ≤ n)
+theorem geomMass_abs_valSum_take_sub_ge_le {n t : ℕ} (hn : (2 : ℝ) ^ 80000 ≤ n)
     (htn : t ≤ n) :
     geomMass {w : Word | w.length = n ∧
         (1 / 2 : ℝ) * (n : ℝ) ^ ((2049 : ℝ) / 4096) ≤

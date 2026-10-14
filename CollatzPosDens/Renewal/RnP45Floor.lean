@@ -98,8 +98,8 @@ private lemma inner_eq (s : ℕ) (O c : ℤ) (d : ℕ) (h : c - O = d) :
     push_cast
     rw [mul_assoc]
     congr 1
-    rw [show s = (s - d) + d by omega, pow_add, Nat.add_sub_cancel]
-    rw [mul_comm ((1 / 2 : ℝ) ^ (s - d)), ← mul_assoc, ← mul_pow]
+    rw [show s = (s - d) + d by omega, pow_add, Nat.add_sub_cancel,
+      mul_comm ((1 / 2 : ℝ) ^ (s - d)), ← mul_assoc, ← mul_pow]
     norm_num
   · simp only [Nat.cast_zero, zero_mul]
     exact sum_eq_zero fun r _ ↦ rawMass_of_neg _ (by omega)
@@ -123,7 +123,6 @@ private lemma p45_eq (s : ℕ) : p45 s = (p45Num s : ℝ) / 16 * (1 / 2) ^ s := 
   push_cast
   ring
 
-set_option maxRecDepth 100000 in
 private lemma p45Num_ge : ∀ s < 256, 3 * 2 ^ s ≤ p45Num s := by
   decide +kernel
 
@@ -134,7 +133,9 @@ theorem three_div_sixteen_le_p45 (s : ℕ) : 3 / 16 ≤ p45 s := by
   · have h : ((3 * 2 ^ s : ℕ) : ℝ) ≤ p45Num s := by exact_mod_cast p45Num_ge s hs
     rw [p45_eq]
     push_cast at h
-    have h2 : (2 : ℝ) ^ s * (1 / 2) ^ s = 1 := by rw [← mul_pow]; norm_num
+    have h2 : (2 : ℝ) ^ s * (1 / 2) ^ s = 1 := by
+      rw [← mul_pow]
+      norm_num
     have hp : (0 : ℝ) ≤ (1 / 2) ^ s := by positivity
     nlinarith
   · have h := p45_ge_of_le hs

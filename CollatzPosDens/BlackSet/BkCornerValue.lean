@@ -56,10 +56,8 @@ theorem abs_bkTheta_bkCanonTriangle_corner (hξ : IsResidueUnit ξ) (hε : 0 < �
     (hp : p ∈ bkPoints) (hb : BkBlack n ξ ε p) :
     |bkTheta n ξ (bkCanonTriangle n ξ ε p hp).corner| =
       ε * Real.exp (-(bkCanonTriangle n ξ ε p hp).s) := by
-  have hc := bkBlack_bkCanonTriangle_corner hp hb
-  have hcp : (bkCanonTriangle n ξ ε p hp).corner ∈ bkPoints :=
-    (bkCanonTriangle n ξ ε p hp).one_le_j
-  have hstrip := one_third_le_three_zpow_mul_abs_bkTheta hξ hcp hc.bkJ_le
+  have hstrip := one_third_le_three_zpow_mul_abs_bkTheta hξ
+    (bkCanonTriangle n ξ ε p hp).one_le_j (bkBlack_bkCanonTriangle_corner hp hb).bkJ_le
   have hθ : 0 < |bkTheta n ξ (bkCanonTriangle n ξ ε p hp).corner| := by
     refine (abs_nonneg _).lt_of_ne fun h => ?_
     rw [← h, mul_zero] at hstrip

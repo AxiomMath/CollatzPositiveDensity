@@ -91,8 +91,8 @@ private lemma sum_range_choose_mul_sq_le (n M : ℕ) :
       ≤ ∑ i ∈ range ((n + 1) + M), (n.choose i : ℝ) * (2 * (i : ℝ) - n) ^ 2 :=
         sum_le_sum_of_subset_of_nonneg (range_mono (by omega)) fun _ _ _ ↦ by positivity
     _ = (n : ℝ) * 2 ^ n := by
-        rw [sum_range_add, sum_choose_mul_sq]
-        rw [sum_eq_zero fun x _ ↦ by rw [Nat.choose_eq_zero_of_lt (by omega)]; simp, add_zero]
+        rw [sum_range_add, sum_choose_mul_sq,
+          sum_eq_zero fun x _ ↦ by rw [Nat.choose_eq_zero_of_lt (by omega)]; simp, add_zero]
 
 /-- The odd-step partial sums are bounded by full blocks:
 `∑_{i < N} binom(n, 2i + m) ≤ ∑_{j < 2N} binom(n, m + j)`. -/
@@ -169,7 +169,7 @@ private lemma inner_ge {s : ℕ} (hs : 256 ≤ s) {t : ℤ} (ht1 : (s : ℤ) - 4
   have hsplit := hsum.summable.sum_add_tsum_nat_add (f - 1)
   rw [hsum.tsum_eq] at hsplit
   -- the tail
-  have hs0 : (0 : ℝ) < s := by exact_mod_cast (show 0 < s by omega)
+  have hs0 : (0 : ℝ) < s := Nat.cast_pos.mpr (by omega)
   have hn : (n : ℝ) + 1 ≤ s := by exact_mod_cast hns
   have hm : (s : ℝ) / 5 ≤ 2 * ((2 * f - 1 : ℕ) : ℝ) - n := by
     have h1 : ((5 * s + 1 : ℕ) : ℝ) ≤ ((16 * f : ℕ) : ℝ) := by exact_mod_cast hf16

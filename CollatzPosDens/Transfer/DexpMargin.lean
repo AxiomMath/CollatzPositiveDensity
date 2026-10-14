@@ -34,10 +34,8 @@ open Real
 theorem Dexp_margin {m : ℝ} (hm : (Dexp : ℝ) ≤ m) :
     234 * (Aexp : ℝ) < (wStar : ℝ) * log m := by
   have hlog : (33495 : ℝ) * log 2 ≤ log m := by
-    have h := log_le_log (Dexp_cast_pos (R := ℝ)) hm
-    rwa [Dexp_cast, log_pow, Nat.cast_ofNat] at h
+    simpa [Dexp_cast, log_pow] using log_le_log (Dexp_cast_pos (R := ℝ)) hm
   rw [Aexp_cast, wStar_cast]
-  have h2 := log_two_gt_sharp
-  nlinarith
+  nlinarith [log_two_gt_sharp]
 
 end CollatzPosDens

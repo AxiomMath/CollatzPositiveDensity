@@ -65,9 +65,9 @@ theorem mem_dyadicRationals {x : ℚ} :
   change (∃ (a s : ℤ) (_ : s ∈ Submonoid.powers (2 : ℤ)), x = (a : ℚ) * (s : ℚ)⁻¹) ↔ _
   constructor
   · rintro ⟨a, _, ⟨e, rfl⟩, rfl⟩
-    exact ⟨a, e, by push_cast; rw [div_eq_mul_inv]⟩
+    exact ⟨a, e, by simp [div_eq_mul_inv]⟩
   · rintro ⟨n, e, rfl⟩
-    exact ⟨n, 2 ^ e, ⟨e, rfl⟩, by push_cast; rw [div_eq_mul_inv]⟩
+    exact ⟨n, 2 ^ e, ⟨e, rfl⟩, by simp [div_eq_mul_inv]⟩
 
 /-- `n / 2^e` is a dyadic rational. -/
 theorem intCast_div_two_pow_mem (n : ℤ) (e : ℕ) : (n / 2 ^ e : ℚ) ∈ dyadicRationals :=
@@ -83,8 +83,7 @@ theorem isUnit_two_residueGroup (k : ℕ) : IsUnit (2 : ResidueGroup k) := by
 
 /-- In `G_k`, `2^A (2⁻¹)^A = 1`. -/
 theorem two_pow_mul_inv_two_pow (k A : ℕ) : (2 : ResidueGroup k) ^ A * 2⁻¹ ^ A = 1 := by
-  obtain ⟨u, hu⟩ := isUnit_two_residueGroup k
-  rw [← mul_pow, ← hu, ZMod.mul_inv_of_unit _ u.isUnit, one_pow]
+  rw [← mul_pow, ZMod.mul_inv_of_unit _ (isUnit_two_residueGroup k), one_pow]
 
 /-- The reduction `x ↦ [x]_k` of dyadic rationals modulo `3^k`: the unique ring homomorphism
 `ℤ[1/2] → G_k` extending the reduction `ℤ → G_k`. -/
@@ -106,9 +105,7 @@ theorem eq_dyadicRed {k : ℕ} (f : dyadicRationals →+* ResidueGroup k) : f = 
 @[simp]
 theorem dyadicRed_intCast (k : ℕ) (n : ℤ) :
     dyadicRed k ⟨(n : ℚ), by simp⟩ = (n : ResidueGroup k) := by
-  have : (⟨(n : ℚ), by simp⟩ : dyadicRationals) = n :=
-    Subtype.ext (by simp)
-  rw [this, map_intCast]
+  rw [show (⟨(n : ℚ), by simp⟩ : dyadicRationals) = n from Subtype.ext (by simp), map_intCast]
 
 /-- The explicit formula `[n / 2^e]_k = n · (2⁻¹)^e`. -/
 theorem dyadicRed_div_two_pow (k : ℕ) (n : ℤ) (e : ℕ) :
@@ -117,12 +114,8 @@ theorem dyadicRed_div_two_pow (k : ℕ) (n : ℤ) (e : ℕ) :
   have hx : x * 2 ^ e = n := Subtype.ext (by
     have h : ((2 : dyadicRationals) : ℚ) = 2 := rfl
     simp [x, h])
-  have h2 : (2 : ResidueGroup k) * 2⁻¹ = 1 := by
-    obtain ⟨u, hu⟩ := isUnit_two_residueGroup k
-    rw [← hu]
-    exact ZMod.mul_inv_of_unit _ u.isUnit
   have h := congrArg (dyadicRed k) hx
   rw [map_mul, map_pow, map_ofNat, map_intCast] at h
-  rw [← h, mul_assoc, ← mul_pow, h2, one_pow, mul_one]
+  rw [← h, mul_assoc, two_pow_mul_inv_two_pow, mul_one]
 
 end CollatzPosDens

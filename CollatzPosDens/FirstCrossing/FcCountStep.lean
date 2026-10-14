@@ -42,8 +42,6 @@ is dropped. The sum `∑_{t=0}^{s-1}` over integers is `∑ t ∈ Finset.Ico 0 s
 
 namespace CollatzPosDens
 
-open CollatzPosDens
-
 /-- A surviving word of length `i + 1 > ℓ_b` is `p (a)` with `p` surviving at length `i`, and its
 sum lies below the barrier. -/
 private theorem append_mem_fcSurvivorSet_succ_iff {b i : ℕ} (hi : lb b ≤ i) (p : Word) (a : ℕ+)
@@ -138,23 +136,22 @@ theorem fcSurvivorCount_succ {b i : ℕ} (hi : lb b ≤ i) (s : ℤ) :
       if s < barrier b (rb b) (i + 1) then ∑ t ∈ Finset.Ico 0 s, fcSurvivorCount b i t
       else 0 := by
   split_ifs with hs
-  swap
+  · rw [fcSurvivorCount_def, Set.ncard_eq_toFinset_card _ (fcSurvivorSet_finite b (i + 1) s)]
+    have hmaps : ∀ x ∈ (fcSurvivorSet_finite b (i + 1) s).toFinset,
+        (Word.valSum x.dropLast : ℤ) ∈ Finset.Ico 0 s := by
+      intro x hx
+      rw [Set.Finite.mem_toFinset] at hx
+      obtain ⟨a, ha⟩ := fcSurvivorCount_step_decomp hx.1
+      rw [ha, append_mem_fcSurvivorSet_succ_iff hi] at hx
+      have h1 := hx.1.2.1
+      have h2 := a.pos
+      simp only [Finset.mem_Ico]
+      omega
+    rw [Finset.card_eq_sum_card_fiberwise hmaps]
+    refine Finset.sum_congr rfl fun t ht => ?_
+    rw [fcSurvivorCount_def, Set.ncard_eq_toFinset_card _ (fcSurvivorSet_finite b i t)]
+    exact card_filter_valSum_dropLast_eq hi hs (Finset.mem_Ico.1 ht)
   · exact fcSurvivorCount_step_of_barrier_le (by omega) (by omega)
-  rw [fcSurvivorCount_def, Set.ncard_eq_toFinset_card _ (fcSurvivorSet_finite b (i + 1) s)]
-  have hmaps : ∀ x ∈ (fcSurvivorSet_finite b (i + 1) s).toFinset,
-      (Word.valSum x.dropLast : ℤ) ∈ Finset.Ico 0 s := by
-    intro x hx
-    rw [Set.Finite.mem_toFinset] at hx
-    obtain ⟨a, ha⟩ := fcSurvivorCount_step_decomp hx.1
-    rw [ha, append_mem_fcSurvivorSet_succ_iff hi] at hx
-    have h1 := hx.1.2.1
-    have h2 := a.pos
-    simp only [Finset.mem_Ico]
-    omega
-  rw [Finset.card_eq_sum_card_fiberwise hmaps]
-  refine Finset.sum_congr rfl fun t ht => ?_
-  rw [fcSurvivorCount_def, Set.ncard_eq_toFinset_card _ (fcSurvivorSet_finite b i t)]
-  exact card_filter_valSum_dropLast_eq hi hs (Finset.mem_Ico.1 ht)
 
 /-- **Recursion for surviving counts.** For `i > ℓ_b` and every integer `s`,
 `c_{b,i}(s) = ∑_{t=0}^{s-1} c_{b,i-1}(t)` if `s < H_{b,r_b}(i)`, and `c_{b,i}(s) = 0` otherwise. -/

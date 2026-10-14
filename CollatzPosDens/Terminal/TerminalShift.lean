@@ -85,9 +85,9 @@ theorem lt_of_lt_terminalShift {n u : ℕ} {X R : ℝ} (hu : u < terminalShift n
 theorem terminalShift_le_iff {n u : ℕ} {X R : ℝ} (hR : 0 < R) :
     terminalShift n X R ≤ u ↔ X ≤ 2 ^ u * lowerScale (scale n) R := by
   refine ⟨fun h => (le_two_pow_terminalShift_mul n X hR).trans ?_, fun h => Nat.sInf_le h⟩
-  have hL := lowerScale_pos (scale n) hR
+  have := lowerScale_pos (scale n) hR
   gcongr
-  · norm_num
+  norm_num
 
 /-- The terminal shift vanishes when `X ≤ L_{b_n}(R)`. -/
 theorem terminalShift_eq_zero_of_le {n : ℕ} {X R : ℝ} (h : X ≤ lowerScale (scale n) R) :

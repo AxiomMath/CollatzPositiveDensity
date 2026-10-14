@@ -21,9 +21,9 @@ public import Mathlib.Data.List.GetD
 /-!
 # Computable mirrors for the startup product of central masses
 
-Write `b_j = scale j`, `K_j = cap j`, `𝐩 = geomMass`, `𝒞 = centralFamily` and `e = eb`. For each
-`j < 444` this file defines a computable natural number `N_j = fcStartupProduct.startupNum j b_j`
-with
+This file supplies the computable ingredients of the numerical certificate for the startup
+product of central masses. For each `j < 444` it defines a natural number
+`N_j = fcStartupProduct.startupNum j b_j` with
 $$N_j\,2^{-64} \le \mathbf{p}(\mathcal{C}(b_j,K_j)),$$
 and the product `fcStartupProduct.prodGo n j b_j` of `n` consecutive such numbers, computed along
 the scale recursion `b_{j+1} = b_j + e(b_j)`.
@@ -63,9 +63,12 @@ The binomial tails are summed exactly for `j < 140`, while for `140 ≤ j ≤ 44
 `∑_{t≤k}C(n,t)` is bounded by the Chernoff estimate `(p+q)^n / (p^k q^{n-k})` at
 `p = k`, `q = n - k`.
 
+The declarations live in the namespace `fcStartupProduct`, named after the certificate they
+serve.
+
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §15.6.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -234,6 +237,10 @@ private theorem tsum_fcSurvivorCount {b : ℕ} (hl : 1 ≤ lb b) (k : ℕ) :
 
 /-! ### Exact rational lower bounds in `ℝ≥0∞` -/
 
+/-- `2^m · 2^{-m} = 1` in `ℝ≥0∞`. -/
+theorem two_pow_mul_inv_pow (m : ℕ) : (2 : ℝ≥0∞) ^ m * 2⁻¹ ^ m = 1 := by
+  rw [← mul_pow, ENNReal.mul_inv_cancel (by simp) (by simp), one_pow]
+
 /-- A finite sum of dyadic fractions is at least its truncation to `64` binary digits. -/
 private theorem dyadic_sum_ge (s : Finset ℕ) (f e : ℕ → ℕ) (E : ℕ) (hE : ∀ d ∈ s, e d ≤ E) :
     (((2 ^ 64 * ∑ d ∈ s, f d * 2 ^ (E - e d)) / 2 ^ E : ℕ) : ℝ≥0∞) * 2⁻¹ ^ 64 ≤
@@ -257,9 +264,7 @@ private theorem dyadic_sum_ge (s : Finset ℕ) (f e : ℕ → ℕ) (E : ℕ) (hE
   rw [ENNReal.le_div_iff_mul_le (Or.inl h2E) (Or.inl h2E')]
   calc (q : ℝ≥0∞) * 2⁻¹ ^ 64 * 2 ^ E = ((q : ℝ≥0∞) * 2 ^ E) * 2⁻¹ ^ 64 := by ring
     _ ≤ (2 ^ 64 * (M : ℝ≥0∞)) * 2⁻¹ ^ 64 := mul_le_mul_left hq' _
-    _ = M := by
-      rw [mul_comm (2 ^ 64 : ℝ≥0∞), mul_assoc, ← mul_pow,
-        ENNReal.mul_inv_cancel (by simp) (by simp), one_pow, mul_one]
+    _ = M := by rw [mul_comm (2 ^ 64 : ℝ≥0∞), mul_assoc, two_pow_mul_inv_pow, mul_one]
 
 /-! ### Lower bound for the small scales -/
 
@@ -417,7 +422,7 @@ private theorem choose_sum_mul_le (n k p q : ℕ) (hpq : p ≤ q) (hk : k ≤ n)
   refine le_trans (Finset.sum_le_sum fun t ht => ?_)
     (Finset.sum_le_sum_of_subset (Finset.range_subset_range.2 (by omega)))
   rw [Finset.mem_range] at ht
-  have e1 : p ^ k = p ^ t * p ^ (k - t) := by rw [← pow_add]; congr 1; omega
+  have e1 : p ^ k = p ^ t * p ^ (k - t) := (pow_mul_pow_sub p (by omega)).symm
   have e2 : q ^ (n - t) = q ^ (k - t) * q ^ (n - k) := by rw [← pow_add]; congr 1; omega
   have h3 : p ^ (k - t) ≤ q ^ (k - t) := Nat.pow_le_pow_left hpq _
   rw [e1, e2]
@@ -455,8 +460,7 @@ private theorem tailUB_spec (exact : Bool) (c n k : ℕ) :
           rw [add_mul, add_mul, one_mul, mul_assoc _ (2 ^ n)]; omega
   · have h1 := Nat.lt_div_mul_add (a := c * 2 ^ 64 * bpGo n k 0 1 0) (b := 2 ^ n) (by positivity)
     have h2 := bpGo_eq n k 0 0
-    rw [Nat.choose_zero_right, zero_add] at h2
-    simp only [zero_add] at h2
+    simp only [Nat.choose_zero_right, zero_add] at h2
     rw [← h2, add_mul, one_mul]
     omega
 
@@ -466,10 +470,6 @@ def largeNum (exact : Bool) (b K : ℕ) : ℕ :=
   2 ^ 64 - (tailUB exact 2 (2 * (b - cWd b) + 83 * cWd b / 200 - 1) (b - cWd b) +
     tailUB exact 1 (2 * (b + cWd b) - (83 * cWd b / 200 + 1))
       (b + cWd b - (83 * cWd b / 200 + 1) + 1) + 2 ^ (63 - K))
-
-/-- `2^m · 2^{-m} = 1` in `ℝ≥0∞`. -/
-theorem two_pow_mul_inv_pow (m : ℕ) : (2 : ℝ≥0∞) ^ m * 2⁻¹ ^ m = 1 := by
-  rw [← mul_pow, ENNReal.mul_inv_cancel (by simp) (by simp), one_pow]
 
 private theorem tail_le {c n S A : ℕ} (h : c * 2 ^ 64 * S ≤ A * 2 ^ n) :
     (c : ℝ≥0∞) * 2⁻¹ ^ n * S ≤ A * 2⁻¹ ^ 64 := by
@@ -544,8 +544,12 @@ theorem startupNum_le {j : ℕ} (hj : j < 444) :
   unfold startupNum
   split_ifs with h
   · apply smallNum_le
-    · have := nine_le_scale j; rw [lb_eq]; omega
-    · have := scale_monotone (show j ≤ 41 by omega); rw [scale_41] at this; omega
+    · have := nine_le_scale j
+      rw [lb_eq]
+      omega
+    · have := scale_monotone (show j ≤ 41 by omega)
+      rw [scale_41] at this
+      omega
   · apply largeNum_le
     exact two_hundred_fifty_six_le_scale (by omega)
 

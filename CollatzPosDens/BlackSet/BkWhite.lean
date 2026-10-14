@@ -52,8 +52,8 @@ theorem isBkWhite_iff {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p : ℤ × ℤ
 
 /-- Whiteness for `n, ξ, ε` is a decidable predicate on points. -/
 noncomputable instance (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) :
-    DecidablePred (IsBkWhite n ξ ε) := fun _ => by
-  unfold IsBkWhite; infer_instance
+    DecidablePred (IsBkWhite n ξ ε) := fun _ =>
+  inferInstanceAs (Decidable (_ ∧ _))
 
 /-- A white point has first coordinate at most `⌊n/2⌋`. -/
 theorem IsBkWhite.bkJ_le {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p : ℤ × ℤ}

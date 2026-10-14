@@ -62,7 +62,7 @@ theorem barrier_power_bounds (b s : ℕ) (u : ℤ) :
         4 ^ b * 2 ^ ceilLog3 j * 2 ^ (u - rb b) := by
       rw [barrier_of_le u h, Nat.add_sub_cancel_left, add_sub_assoc, zpow_add₀ h2,
         zpow_add₀ h2, h4', zpow_natCast]
-    have he : ((b + j : ℕ) : ℤ) - b = j := by push_cast; ring
+    have he : ((b + j : ℕ) : ℤ) - b = j := by omega
     rw [hH, he, zpow_natCast]
     have h3 : (0 : ℝ) < 3 ^ j := by positivity
     constructor <;> nlinarith [mul_pos h4 hK]
@@ -74,7 +74,7 @@ theorem barrier_power_bounds (b s : ℕ) (u : ℤ) :
         4 ^ (s + j) * (2 ^ ceilLog3 j)⁻¹ * 2 ^ (u - rb (s + j)) := by
       rw [barrier_of_ge u h, Nat.add_sub_cancel_left, add_sub_assoc, sub_eq_add_neg,
         zpow_add₀ h2, zpow_add₀ h2, h4', zpow_neg, zpow_natCast]
-    have he : ((s : ℕ) : ℤ) - ((s + j : ℕ) : ℤ) = -(j : ℤ) := by push_cast; ring
+    have he : ((s : ℕ) : ℤ) - ((s + j : ℕ) : ℤ) = -(j : ℤ) := by omega
     rw [hH, he, zpow_neg, zpow_natCast]
     have h3 : (0 : ℝ) < 3 ^ j := by positivity
     have hB : (0 : ℝ) < 2 ^ ceilLog3 j := by positivity

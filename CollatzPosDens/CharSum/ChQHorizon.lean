@@ -49,8 +49,7 @@ theorem chQ_eq_chQFinite_of_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {K
   rw [chQ_def]
   rcases le_or_gt (n / 2) K with h | h
   · obtain ⟨D, rfl⟩ := Nat.exists_eq_add_of_le h
-    have hJ : ((n / 2 : ℕ) : ℤ) ≤ bkJ p + (n / 2 : ℕ) := by omega
-    exact (chQFinite_add_of_le n ξ ε hJ D).symm
+    exact (chQFinite_add_of_le n ξ ε (by omega) D).symm
   · obtain ⟨D, hD⟩ := Nat.exists_eq_add_of_le h.le
     rw [hD]
     exact chQFinite_add_of_le n ξ ε hK D

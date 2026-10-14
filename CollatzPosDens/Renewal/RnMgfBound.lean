@@ -44,24 +44,16 @@ theorem mgfNu45_le_exp {t : ℝ} (ht₀ : 0 ≤ t) (ht₁ : t ≤ 1 / 1024) :
   have hu : exp t * exp (-t) = 1 := by rw [← exp_add, add_neg_cancel, exp_zero]
   have hut : -t + 1 ≤ exp (-t) := add_one_le_exp _
   have hE : 13 * t / 4 + 1 ≤ exp (13 * t / 4) := add_one_le_exp _
-  have hpos : 0 < exp t := exp_pos t
   -- `16 e^{-t} - 11 ≥ 5 - 16t > 0`, hence `11 e^t < 16`.
-  have hlt : 11 * exp t < 16 := by nlinarith
+  have hlt : 11 * exp t < 16 := by nlinarith [exp_pos t]
   rw [mgfNu45_eq_div hlt]
   refine ENNReal.ofReal_le_ofReal ?_
   rw [div_le_iff₀ (by linarith)]
   -- Reduce to `5 ≤ e^{13t/4} (16 e^{-t} - 11)` after dividing by `e^t`.
   have key : 5 ≤ exp (13 * t / 4) * (16 * exp (-t) - 11) := by
-    have h1 : 5 ≤ (13 * t / 4 + 1) * (5 - 16 * t) := by nlinarith
-    have h2 : (13 * t / 4 + 1) * (5 - 16 * t) ≤ exp (13 * t / 4) * (5 - 16 * t) :=
-      mul_le_mul_of_nonneg_right hE (by linarith)
-    have h3 : exp (13 * t / 4) * (5 - 16 * t) ≤ exp (13 * t / 4) * (16 * exp (-t) - 11) :=
-      mul_le_mul_of_nonneg_left (by linarith) (exp_pos _).le
-    linarith
-  calc 5 * exp t = exp t * 5 := mul_comm _ _
-    _ ≤ exp t * (exp (13 * t / 4) * (16 * exp (-t) - 11)) :=
-        mul_le_mul_of_nonneg_left key hpos.le
-    _ = exp (13 * t / 4) * (16 - 11 * exp t) := by
-        linear_combination (16 * exp (13 * t / 4)) * hu
+    nlinarith [mul_le_mul_of_nonneg_right hE (show (0 : ℝ) ≤ 5 - 16 * t by linarith),
+      mul_le_mul_of_nonneg_left (show 5 - 16 * t ≤ 16 * exp (-t) - 11 by linarith)
+        (exp_pos (13 * t / 4)).le]
+  nlinarith [mul_le_mul_of_nonneg_left key (exp_pos t).le]
 
 end CollatzPosDens

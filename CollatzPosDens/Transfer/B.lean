@@ -49,22 +49,26 @@ noncomputable def Bstar : ℕ := betaStar (schedule rStar)
 
 /-- The defining formula of `B_*`. -/
 theorem Bstar_def : Bstar = betaStar (schedule rStar) := by
-  delta Bstar; rfl
+  delta Bstar
+  rfl
 
 /-- `B_*` is positive. -/
 theorem Bstar_pos : 0 < Bstar := by
-  rw [Bstar_def]; exact betaStar_pos _
+  rw [Bstar_def]
+  exact betaStar_pos _
 
 /-- `1 ≤ B_*`. -/
 theorem one_le_Bstar : 1 ≤ Bstar := Bstar_pos
 
 /-- `K_* (p_{r_*} + 1) ≤ B_*`. -/
 theorem Kstar_mul_le_Bstar : Kstar * (schedule rStar + 1) ≤ Bstar := by
-  rw [Bstar_def]; exact Kstar_mul_le_betaStar _
+  rw [Bstar_def]
+  exact Kstar_mul_le_betaStar _
 
 /-- `B_*` dominates every scale `β_*(q)` with `q ≤ p_{r_*}`. -/
 theorem betaStar_le_Bstar {q : ℕ} (hq : q ≤ schedule rStar) : betaStar q ≤ Bstar := by
-  rw [Bstar_def]; exact betaStar_monotone hq
+  rw [Bstar_def]
+  exact betaStar_monotone hq
 
 /-- `B_*` dominates the scale `β_*(p_i)` of every schedule position with `i ≤ r_*`. -/
 theorem betaStar_schedule_le_Bstar {i : ℕ} (hi : i ≤ rStar) :

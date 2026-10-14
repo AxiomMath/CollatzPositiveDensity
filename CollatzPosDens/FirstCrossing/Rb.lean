@@ -49,7 +49,8 @@ theorem rb_def (b : ℕ) : rb b = 2 * (wb b : ℤ) - ceilLog3 (wb b) - 2 * eb b 
 /-- The defining relation `r_b + B(w_b) + 2 e_b = 2 w_b`. -/
 theorem rb_add_ceilLog3_add_eb (b : ℕ) :
     rb b + ceilLog3 (wb b) + 2 * eb b = 2 * (wb b : ℤ) := by
-  rw [rb_def]; ring
+  rw [rb_def]
+  ring
 
 /-- `r_0 = -2`. -/
 @[simp]

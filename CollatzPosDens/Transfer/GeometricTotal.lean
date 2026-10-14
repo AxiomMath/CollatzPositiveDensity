@@ -89,15 +89,10 @@ theorem geomMass_setOf_length_succ_and (H : ℕ) (P : Word → Prop) :
 @[collatz_pos_dens "lem_geometric_total"]
 theorem geomMass_setOf_length_eq (t : ℕ) : geomMass {w : Word | w.length = t} = 1 := by
   induction t with
-  | zero =>
-    simp
+  | zero => simp
   | succ t ih =>
-    rw [geomMass_def, ← (Word.consLengthEquiv t).tsum_eq]
-    simp only [Word.consLengthEquiv, Equiv.coe_fn_mk, Word.massWeight, Word.valSum_cons,
-      pow_add]
-    rw [ENNReal.tsum_prod (f := fun (a : ℕ+) (w : {w : Word | w.length = t}) =>
-      (2⁻¹ : ℝ≥0∞) ^ (a : ℕ) * 2⁻¹ ^ (w : Word).valSum)]
-    simp_rw [ENNReal.tsum_mul_left]
+    rw [geomMass_def, Word.tsum_setOf_length_succ]
+    simp only [Word.massWeight, Word.valSum_cons, pow_add, ENNReal.tsum_mul_left]
     rw [← geomMass_def, ih]
     simp only [mul_one, tsum_two_inv_pow_pnat]
 

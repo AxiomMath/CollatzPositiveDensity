@@ -65,13 +65,12 @@ theorem upperScale_eq (b : ℕ) (R : ℝ) :
 
 /-- `U_b(R) = U_b(1) · R`. -/
 theorem upperScale_eq_mul (b : ℕ) (R : ℝ) : upperScale b R = upperScale b 1 * R := by
-  rw [upperScale_def, upperScale_def, lowerScale_eq_mul b R]; ring
+  rw [upperScale_def, upperScale_def, lowerScale_eq_mul b R]
+  ring
 
 /-- The upper scale is positive for a positive argument. -/
-theorem upperScale_pos (b : ℕ) {R : ℝ} (hR : 0 < R) : 0 < upperScale b R := by
-  rw [upperScale_def]
-  have := lowerScale_pos b hR
-  positivity
+theorem upperScale_pos (b : ℕ) {R : ℝ} (hR : 0 < R) : 0 < upperScale b R :=
+  mul_pos (zpow_pos two_pos _) (lowerScale_pos b hR)
 
 /-- The upper scale is monotone in `R`. -/
 theorem upperScale_mono (b : ℕ) : Monotone (upperScale b) := fun _ _ h => by

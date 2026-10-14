@@ -30,11 +30,7 @@ public import CollatzPosDens.Terminal.ShiftCount
 /-!
 # Removing the length condition costs little
 
-Write `Θ°_{n,X}(M) = CollatzPosDens.markedMassUnfiltered n X M` and
-`Θ_{n,X}(M) = CollatzPosDens.markedMass n X M` for the marked masses without and with the length
-condition, `b_j = CollatzPosDens.scale j`, `F = CollatzPosDens.errorPrefactor` and
-`ϱ = CollatzPosDens.errorDecayRatio`. Let `M ≥ 16^{b_0}` be an odd integer and `n ≥ 9200000`.
-Then
+Let `M ≥ 16^{b_0}` be odd and `n ≥ 6000000`. Then
 $$0 \le \Theta^{\circ}_{n,X}(M) - \Theta_{n,X}(M) \le F\,n^{9/2}\,\varrho^n.$$
 
 The difference is the sum, over `h ∈ 𝓗_n(M)` and over the first crossings
@@ -59,14 +55,14 @@ the bracket decay gives `Δ'_u < (28/1000)(C+1) ς^n`. Finally `𝖦 ς = ϱ` an
 ## Implementation notes
 
 The lower bound holds for every `n`, `X` and `M`, and is stated so. The upper bound is stated
-under weaker hypotheses than the source's: `n ≥ 10000` (all that the pairing estimate and the
-shift count need) instead of `n ≥ 9200000`, and every real `X` instead of an admissible one,
+under weaker hypotheses than [mazur2026]'s: `n ≥ 10000` (all that the pairing estimate and the
+shift count need) instead of `n ≥ 6000000`, and every real `X` instead of an admissible one,
 since the length-loss bound holds for every shift. The seed `M` is an integer, cast to `ℚ` as
 in `CollatzPosDens.markedMass`, and `n^{9/2}` is the real power `(n : ℝ) ^ (9/2 : ℝ)`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §18.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -198,7 +194,7 @@ private theorem removedMass_lt {n : ℕ} (hn : 444 ≤ n) (v : ℕ) :
     gcongr
     norm_num
   have hbr := bracket_decay_lt hn le_rfl le_rfl hD0 hD
-  have hk : 0 ≤ mixingConst * ((level n : ℕ) : ℝ) ^ (-(9 / 8) : ℝ) :=
+  have hk : 0 ≤ mixingConst * ((level n : ℕ) : ℝ) ^ (-(3 / 2) : ℝ) :=
     mul_nonneg mixingConst_pos.le (Real.rpow_nonneg (Nat.cast_nonneg _) _)
   linarith
 

@@ -47,8 +47,6 @@ theorem mgfNu45_eq_div {t : ℝ} (ht : 11 * exp t < 16) :
 /-- For real `t` with `11 e^t < 16`, the real value of `M₄₅(t)` is `5 e^t / (16 - 11 e^t)`. -/
 theorem mgfNu45_eq_div_toReal {t : ℝ} (ht : 11 * exp t < 16) :
     (mgfNu45 t).toReal = 5 * exp t / (16 - 11 * exp t) := by
-  rw [mgfNu45_eq_div ht, ENNReal.toReal_ofReal]
-  have : (0 : ℝ) < 16 - 11 * exp t := by linarith
-  positivity
+  rw [mgfNu45_eq_div ht, ENNReal.toReal_ofReal (div_nonneg (by positivity) (by linarith))]
 
 end CollatzPosDens

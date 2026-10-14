@@ -62,9 +62,7 @@ theorem fcMinOvershoot_def (b d : ℕ) :
 
 /-- For `b ≥ 1` the factor `2^{3b} - 1` is at least `1`. -/
 theorem fcMinOvershoot_one_le_factor {b : ℕ} (hb : 1 ≤ b) : (1 : ℝ) ≤ 2 ^ (3 * b) - 1 := by
-  have : (2 : ℝ) ≤ 2 ^ (3 * b) := by
-    calc (2 : ℝ) = 2 ^ 1 := (pow_one 2).symm
-      _ ≤ 2 ^ (3 * b) := pow_le_pow_right₀ (by norm_num) (by omega)
+  have : (2 : ℝ) ≤ 2 ^ (3 * b) := le_self_pow₀ (by norm_num) (by omega)
   linarith
 
 /-- For `b ≥ 1` some `k` satisfies the defining inequality of `μ_b(d)`. -/
@@ -74,13 +72,10 @@ theorem fcMinOvershoot_exists {b : ℕ} (hb : 1 ≤ b) (d : ℕ) :
   obtain ⟨N, hN⟩ := pow_unbounded_of_one_lt (16 * 3 ^ d * 2 ^ (3 * b) : ℝ) one_lt_two
   set H := barrier b (rb b) d
   refine ⟨N + (-H).toNat, ?_⟩
-  have hexp : (N : ℤ) ≤ H + ((N + (-H).toNat : ℕ) : ℤ) := by
-    push_cast; omega
   have h1 : (2 : ℝ) ^ N ≤ (2 : ℝ) ^ (H + ((N + (-H).toNat : ℕ) : ℤ)) := by
     rw [← zpow_natCast]
-    exact zpow_le_zpow_right₀ (by norm_num) hexp
-  have hpos : (0 : ℝ) < (2 : ℝ) ^ (H + ((N + (-H).toNat : ℕ) : ℤ)) :=
-    zpow_pos (by norm_num) _
+    exact zpow_le_zpow_right₀ (by norm_num) (by push_cast; omega)
+  have hpos : (0 : ℝ) < (2 : ℝ) ^ (H + ((N + (-H).toNat : ℕ) : ℤ)) := by positivity
   have hf := fcMinOvershoot_one_le_factor hb
   nlinarith
 

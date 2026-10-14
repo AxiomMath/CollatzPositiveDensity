@@ -31,8 +31,6 @@ namespace CollatzPosDens
 /-- `π > 6283 / 2000`. -/
 @[collatz_pos_dens "lem_ch_pi_lower"]
 theorem pi_gt_6283_div_2000 : (6283 / 2000 : ℝ) < Real.pi := by
-  have := Real.pi_gt_d4
-  norm_num at this ⊢
-  linarith
+  linarith [Real.pi_gt_d4]
 
 end CollatzPosDens

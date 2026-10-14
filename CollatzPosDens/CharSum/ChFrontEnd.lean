@@ -94,19 +94,8 @@ private theorem sum_take_ofFn_eq_sum_Iio {J : ℕ} (b : Fin J → ℤ) (i : Fin 
         rcases Fin.eq_zero_or_eq_succ l with rfl | ⟨l, rfl⟩ <;> simp [Fin.succ_pos]
       rw [h, sum_insert (by simp), sum_image (Fin.succ_injective _).injOn]
 
-/-- For `ε ≥ ε_*`, the pair factors along a tuple `b` are bounded by its penalty. -/
-private theorem prod_chPairFactor_le_chPenalty_ofFn {n J : ℕ} {ξ : ResidueGroup n} {ε : ℝ}
-    (hε : (epsStar : ℝ) ≤ ε) (b : Fin J → ℤ) :
-    ∏ i : Fin J, chPairFactor n ξ (i + 1) (∑ l ∈ Iio i, b l) (b i) ≤
-      chPenalty n ξ ε (List.ofFn b) := by
-  refine le_of_eq_of_le ?_ (prod_chPairFactor_le_chPenalty hε (List.ofFn b))
-  rw [← Fin.prod_congr' _ (List.length_ofFn).symm]
-  refine prod_congr rfl fun i _ ↦ ?_
-  simp [sum_take_ofFn_eq_sum_Iio]
-
-/-- `∑_b ∏_i ϖ(b_i) G(b)` is summable for a function `G` with values in `[0, 1]`. -/
-theorem summable_prod_varpi_mul {J : ℕ} (G : List ℤ → ℝ) (hG0 : ∀ b, 0 ≤ G b)
-    (hG1 : ∀ b, G b ≤ 1) :
+private theorem summable_prod_varpi_mul {J : ℕ} (G : List ℤ → ℝ)
+    (hG0 : ∀ b, 0 ≤ G b) (hG1 : ∀ b, G b ≤ 1) :
     Summable fun b : Fin J → ℤ ↦ (∏ i, varpi (b i)) * G (List.ofFn b) :=
   (hasSum_prod_varpi J).summable.of_nonneg_of_le
     (fun _ ↦ mul_nonneg (prod_nonneg fun _ _ ↦ varpi_nonneg _) (hG0 _))
@@ -129,8 +118,8 @@ private theorem tsum_varpi_mul_eq_tsum_chBlockWeight_mul (J : ℕ) (G : List ℤ
     fun b ↦ (hasSum_prod_chBlockWeight_chRaw_eq le_rfl b).mul_right _
   have hF : Summable F := by
     rw [summable_prod_of_nonneg hF0]
-    exact ⟨fun b ↦ (hb b).summable,
-      by simpa only [(hb _).tsum_eq] using summable_prod_varpi_mul G hG0 hG1⟩
+    exact ⟨fun b ↦ (hb b).summable, by
+      simpa only [(hb _).tsum_eq] using summable_prod_varpi_mul G hG0 hG1⟩
   have hc : ∀ c : Fin J → {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}, HasSum (fun b ↦ F (b, c))
       ((∏ k, chBlockWeight (c k)) * G (chRaw J (List.ofFn fun k ↦ (c k).1))) := by
     intro c
@@ -191,6 +180,26 @@ private theorem chWhiteFactor_zero_mul_chPenalty_chRaw (n : ℕ) (ξ : ResidueGr
     rw [chQFiniteTerm, prod_eq_zero (mem_univ k) hk]
     simp
 
+private theorem prod_chPairFactor_le_chPenalty_ofFn {n : ℕ} (ξ : ResidueGroup n) {ε : ℝ}
+    (hε : (epsStar : ℝ) ≤ ε) (b : Fin (n / 2) → ℤ) :
+    ∏ i : Fin (n / 2), chPairFactor n ξ (i + 1) (∑ l ∈ Iio i, b l) (b i) ≤
+      chPenalty n ξ ε (List.ofFn b) := by
+  refine le_of_eq_of_le ?_ (prod_chPairFactor_le_chPenalty hε (List.ofFn b))
+  rw [← Fin.prod_congr' _ (List.length_ofFn).symm]
+  refine prod_congr rfl fun i _ ↦ ?_
+  simp [sum_take_ofFn_eq_sum_Iio]
+
+/-- The series `∑_β ∏_k bw(βᵏ) Pen(raw_J(β))`, `J = ⌊n/2⌋`, times `w((0, 0))`, is
+`Q^{(J)}((0, 0))`. -/
+theorem chWhiteFactor_zero_mul_tsum_eq_chQFinite (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) :
+    chWhiteFactor n ξ ε 0 *
+      ∑' β : Fin (n / 2) → {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)},
+        (∏ k, chBlockWeight (β k)) *
+          chPenalty n ξ ε (chRaw (n / 2) (List.ofFn fun k ↦ (β k).1)) =
+      chQFinite n ξ ε (n / 2) 0 := by
+  rw [← tsum_mul_left, chQFinite_eq_tsum]
+  exact tsum_congr fun β ↦ chWhiteFactor_zero_mul_chPenalty_chRaw n ξ ε β
+
 /-- **The front end.** For `ξ ∈ G_n` and `ε ≥ ε_*`, `|μ̂_n(ξ)| ≤ ∑_{h ∈ 𝒫} η(h) Q(h)`. -/
 @[collatz_pos_dens "lem_ch_front_end"]
 theorem norm_refLawDft_le_tsum_holdLaw_mul_chQ (n : ℕ) (ξ : ResidueGroup n) {ε : ℝ}
@@ -200,28 +209,26 @@ theorem norm_refLawDft_le_tsum_holdLaw_mul_chQ (n : ℕ) (ξ : ResidueGroup n) {
   simp only [zero_add, add_comm 1] at hS1
   refine (norm_refLawDft_le_tsum_chPairFactor n ξ).trans <|
     (Summable.tsum_le_tsum (fun b ↦ mul_le_mul_of_nonneg_left
-      (prod_chPairFactor_le_chPenalty_ofFn hε b) (prod_nonneg fun i _ ↦ varpi_nonneg _)) hS1
-      (summable_prod_varpi_mul _ (fun _ ↦ (chPenalty_pos _ _ _ _).le)
+      (prod_chPairFactor_le_chPenalty_ofFn ξ hε b) (prod_nonneg fun i _ ↦ varpi_nonneg _)) hS1
+      (summable_prod_varpi_mul _ (fun b ↦ (chPenalty_pos _ _ _ _).le)
         (chPenalty_le_one _ _ _))).trans ?_
   rw [tsum_varpi_mul_eq_tsum_chBlockWeight_mul _ _ (fun b ↦ (chPenalty_pos _ _ _ _).le)
     (chPenalty_le_one _ _ _)]
-  -- the series is `Q^{(J)}((0, 0)) / w((0, 0))`
   have hw0 := chWhiteFactor_pos n ξ ε 0
-  have hsum : chWhiteFactor n ξ ε 0 *
-      ∑' β : Fin (n / 2) → {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)},
-        (∏ k, chBlockWeight (β k)) *
-          chPenalty n ξ ε (chRaw (n / 2) (List.ofFn fun k ↦ (β k).1)) =
-      chQFinite n ξ ε (n / 2) 0 := by
-    rw [← tsum_mul_left, chQFinite_eq_tsum]
-    exact tsum_congr fun β ↦ chWhiteFactor_zero_mul_chPenalty_chRaw n ξ ε β
+  have hsum := chWhiteFactor_zero_mul_tsum_eq_chQFinite n ξ ε
   have hj : ∀ p : bkPoints, 1 ≤ bkJ p.1 := fun p ↦ mem_bkPoints.mp p.2
   generalize hJ : n / 2 = J at hsum hj
   cases J with
   | zero =>
     rw [chQFinite_zero] at hsum
-    rw [(mul_eq_left₀ hw0.ne').mp hsum, ← tsum_holdLaw_bkPoints]
+    have h1 : ∑' β : Fin 0 → {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)},
+        (∏ k, chBlockWeight (β k)) *
+          chPenalty n ξ ε (chRaw 0 (List.ofFn fun k ↦ (β k).1)) = 1 :=
+      (mul_eq_left₀ hw0.ne').mp hsum
+    rw [h1, ← tsum_holdLaw_bkPoints]
     refine le_of_eq (tsum_congr fun p ↦ ?_)
-    rw [chQ_eq_one_of_lt_bkJ n ξ ε (by have := hj p; omega), mul_one]
+    have := hj p
+    rw [chQ_eq_one_of_lt_bkJ n ξ ε (by omega), mul_one]
   | succ K =>
     rw [chQFinite_succ, mul_right_inj' hw0.ne'] at hsum
     have hb := chQ_le_mul_tsum_hasSum_blocks n ξ ε 0

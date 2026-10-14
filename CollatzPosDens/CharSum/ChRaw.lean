@@ -67,7 +67,10 @@ theorem chRaw_length_concat (β : List (List α × α)) :
     (β.flatMap fun b => b.1 ++ [b.2]).length = (β.map fun b => b.1.length).sum + β.length := by
   induction β with
   | nil => simp
-  | cons b β ih => simp [List.flatMap_cons, ih]; omega
+  | cons b β ih =>
+    simp only [List.flatMap_cons, List.append_assoc, List.cons_append, List.nil_append,
+      List.length_append, List.length_cons, ih, List.map_cons, List.sum_cons]
+    omega
 
 /-- If `J ≤ |c¹| + ⋯ + |cᴺ| + N`, the raw word `raw_J(β¹, …, βᴺ)` has length `J`. -/
 theorem length_chRaw {J : ℕ} {β : List (List α × α)}

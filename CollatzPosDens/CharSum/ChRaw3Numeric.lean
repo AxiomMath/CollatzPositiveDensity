@@ -44,7 +44,6 @@ theorem ch_raw3_numeric :
 theorem ch_raw3_numeric_real :
     1 - (chV0 : ℝ) ^ 2 / 2 + (chV0 : ℝ) ^ 4 / 24 <
       1 - 21 / 3125 + 1 / 2 * (21 / 3125) ^ 2 - 1 / 6 * (21 / 3125 : ℝ) ^ 3 := by
-  rw [chV0_def]
-  norm_num
+  norm_num [chV0_def]
 
 end CollatzPosDens

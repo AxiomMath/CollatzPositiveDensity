@@ -70,7 +70,9 @@ theorem bkThetaResidue_def (n : ℕ) (ξ : ResidueGroup n) (p : ℤ × ℤ) :
 /-- On `𝒫`, `bkThetaDyadic (j, l)` is the rational number `3^{2(j-1)} · 2^{1-l}`. -/
 theorem coe_bkThetaDyadic {p : ℤ × ℤ} (hp : p ∈ bkPoints) :
     (bkThetaDyadic p : ℚ) = (3 : ℚ) ^ (2 * (bkJ p - 1)) * (2 : ℚ) ^ (1 - bkL p) := by
-  have h : (0 : ℤ) ≤ 2 * (bkJ p - 1) := by simp only [mem_bkPoints] at hp; omega
+  have h : (0 : ℤ) ≤ 2 * (bkJ p - 1) := by
+    simp only [mem_bkPoints] at hp
+    omega
   rw [bkThetaDyadic, Subalgebra.coe_mul, Subalgebra.coe_pow, ← zpow_natCast,
     Int.toNat_of_nonneg h]
   congr 1

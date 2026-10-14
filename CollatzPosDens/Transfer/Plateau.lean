@@ -58,7 +58,7 @@ private theorem plateau_step (y : ℕ) (hy : 1025 ≤ y) :
 
 /-- The envelope `1025 a_*^i` stays below `2^{H_*}` for `i ≤ r_*`. -/
 private theorem plateau_envelope_lt {i : ℕ} (hi : i ≤ rStar) : 1025 * aK ^ i < 2 ^ Hstar := by
-  refine lt_of_le_of_lt (Nat.mul_le_mul_left 1025 (Nat.pow_le_pow_right aK_pos hi)) ?_
+  refine (Nat.mul_le_mul_left 1025 (Nat.pow_le_pow_right aK_pos hi)).trans_lt ?_
   have h := envelope_lt_two_pow_Hstar
   generalize hn : 580 = n at h
   rw [rStar_def, hn]
@@ -75,8 +75,7 @@ theorem schedule_succ_le_envelope {i : ℕ} (hi : i ≤ rStar) :
       betaStar_of_bitLength_le
         (bitLength_le_iff.2 (ih.trans_lt (plateau_envelope_lt (Nat.le_of_succ_le hi))))
     have hy : 1025 ≤ schedule i + 1 := by
-      have := pInit_le_schedule i
-      rw [pInit_def] at this
+      have := pInit_def ▸ pInit_le_schedule i
       omega
     have hrec : schedule (i + 1) + 1 =
         (schedule i + 1) + (4 * Kstar * (schedule i + 1) + 34) / 35 + 8294 := by

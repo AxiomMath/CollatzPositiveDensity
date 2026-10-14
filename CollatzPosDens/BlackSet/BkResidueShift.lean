@@ -43,12 +43,10 @@ theorem bkThetaDyadic_shift {a q : ℤ × ℤ} (ha : a ∈ bkPoints) (hq : q ∈
   rw [coe_bkThetaDyadic hq, coe_bkThetaDyadic ha]
   push_cast
   rw [← zpow_natCast, ← zpow_natCast, Int.toNat_of_nonneg (by omega),
-    Int.toNat_of_nonneg (by omega)]
-  have h9 : (9 : ℚ) = 3 ^ (2 : ℤ) := by norm_num
-  rw [h9, ← zpow_mul]
-  have h3 : (2 * (bkJ q - 1)) = 2 * (bkJ q - bkJ a) + 2 * (bkJ a - 1) := by ring
-  have h2 : 1 - bkL q = (bkL a - bkL q) + (1 - bkL a) := by ring
-  rw [h3, h2, zpow_add₀ (by norm_num), zpow_add₀ (by norm_num)]
+    Int.toNat_of_nonneg (by omega), show (9 : ℚ) = 3 ^ (2 : ℤ) by norm_num, ← zpow_mul,
+    show 2 * (bkJ q - 1) = 2 * (bkJ q - bkJ a) + 2 * (bkJ a - 1) by ring,
+    show 1 - bkL q = (bkL a - bkL q) + (1 - bkL a) by ring,
+    zpow_add₀ (by norm_num), zpow_add₀ (by norm_num)]
   ring
 
 /-- **Residue shift.** For `a, q ∈ 𝒫` with `j(a) ≤ j(q)` and `l(q) ≤ l(a)`, and

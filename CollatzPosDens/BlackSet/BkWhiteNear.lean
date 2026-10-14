@@ -45,7 +45,7 @@ theorem isBkWhite_of_bkDist_le_one {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {�
     (hj : bkJ e ≤ ((n / 2 : ℕ) : ℤ)) (hd : bkDist e w ≤ 1) :
     IsBkWhite n ξ ε e := by
   obtain ⟨p, hp, hb, rfl⟩ := hΔ
-  have hnb := not_bkBlack_of_bkDist_le_one hξ hε₀ hε hp hb he heΔ hw hd
-  exact (isBkWhite_iff_not_bkBlack hj).2 hnb
+  exact (isBkWhite_iff_not_bkBlack hj).2
+    (not_bkBlack_of_bkDist_le_one hξ hε₀ hε hp hb he heΔ hw hd)
 
 end CollatzPosDens

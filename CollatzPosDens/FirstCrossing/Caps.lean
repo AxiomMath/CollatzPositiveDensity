@@ -57,7 +57,7 @@ theorem cap_def (j : ℕ) : cap j = 16 + j / 32 := rfl
 theorem sixteen_le_cap (j : ℕ) : 16 ≤ cap j := Nat.le_add_right _ _
 
 /-- Every cap is positive. -/
-theorem cap_pos (j : ℕ) : 0 < cap j := by unfold cap; omega
+theorem cap_pos (j : ℕ) : 0 < cap j := Nat.lt_of_lt_of_le (by decide) (sixteen_le_cap j)
 
 /-- The caps are monotone in the scale. -/
 theorem cap_mono : Monotone cap := fun _ _ h => Nat.add_le_add_left (Nat.div_le_div_right h) _
@@ -71,12 +71,13 @@ theorem cap_of_lt {j : ℕ} (hj : j < 32) : cap j = 16 := by
 
 /-- The cap increases by exactly one every thirty-two scales. -/
 theorem cap_add_thirtyTwo (j : ℕ) : cap (j + 32) = cap j + 1 := by
-  simp only [cap, Nat.add_div_right j (by omega : 0 < 32)]
+  unfold cap
   omega
 
 /-- With denominators cleared, `16 + j / 32 ≤ K_j + 1` in exact division:
 `32 * 16 + j ≤ 32 * (K_j + 1)`. -/
 theorem add_le_thirtyTwo_mul_cap_add_one (j : ℕ) : 32 * 16 + j ≤ 32 * (cap j + 1) := by
-  unfold cap; omega
+  unfold cap
+  omega
 
 end CollatzPosDens

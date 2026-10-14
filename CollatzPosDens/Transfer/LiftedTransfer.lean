@@ -64,33 +64,20 @@ theorem liftedTransfer_apply (w : Word) {k Q : ℕ} (h : w.length + k ≤ Q)
 /-- The lifted transfer operator is additive. -/
 theorem liftedTransfer_add (w : Word) {k Q : ℕ} (h : w.length + k ≤ Q)
     (f g : ResidueGroup k → ℝ) :
-    liftedTransfer w h (f + g) = liftedTransfer w h f + liftedTransfer w h g := by
-  ext y
-  simp only [liftedTransfer_apply, Pi.add_apply]
-  rw [show (f + g) ∘ residueReduction (Nat.le_sub_of_add_le' h) =
-      f ∘ residueReduction (Nat.le_sub_of_add_le' h) +
-        g ∘ residueReduction (Nat.le_sub_of_add_le' h) from rfl, transfer_add]
-  rfl
+    liftedTransfer w h (f + g) = liftedTransfer w h f + liftedTransfer w h g :=
+  funext fun _ => congrFun (transfer_add w _ _) _
 
 /-- The lifted transfer operator commutes with scalar multiplication. -/
 theorem liftedTransfer_smul (w : Word) {k Q : ℕ} (h : w.length + k ≤ Q) (c : ℝ)
     (g : ResidueGroup k → ℝ) :
-    liftedTransfer w h (c • g) = c • liftedTransfer w h g := by
-  ext y
-  simp only [liftedTransfer_apply, Pi.smul_apply]
-  rw [show (c • g) ∘ residueReduction (Nat.le_sub_of_add_le' h) =
-      c • (g ∘ residueReduction (Nat.le_sub_of_add_le' h)) from rfl, transfer_smul]
-  rfl
+    liftedTransfer w h (c • g) = c • liftedTransfer w h g :=
+  funext fun _ => congrFun (transfer_smul w c _) _
 
 /-- The lifted transfer of the zero function is zero. -/
 @[simp]
 theorem liftedTransfer_zero (w : Word) {k Q : ℕ} (h : w.length + k ≤ Q) :
-    liftedTransfer w h (0 : ResidueGroup k → ℝ) = 0 := by
-  ext y
-  simp only [liftedTransfer_apply, Pi.zero_apply]
-  rw [show (0 : ResidueGroup k → ℝ) ∘ residueReduction (Nat.le_sub_of_add_le' h) = 0 from rfl,
-    transfer_zero]
-  rfl
+    liftedTransfer w h (0 : ResidueGroup k → ℝ) = 0 :=
+  funext fun _ => congrFun (transfer_zero w) _
 
 /-- The total mass of `𝒯_{w,Q} g` is `ω(w)` times the mass of the pullback of `g` to
 `G_{Q-d}`: `∑_y (𝒯_{w,Q} g)(y) = ω(w) ∑_{z ∈ G_{Q-d}} g(π_{Q-d,k} z)`. -/
@@ -104,7 +91,7 @@ theorem sum_liftedTransfer (w : Word) {k Q : ℕ} (h : w.length + k ≤ Q)
       ⟨residueReduction hQ.ge, fun y => ?_, fun y => ?_⟩ <;>
       simp
   simp only [liftedTransfer_apply]
-  rw [Function.Bijective.sum_comp hbij (transfer w _), sum_transfer]
+  rw [hbij.sum_comp (transfer w _), sum_transfer]
   rfl
 
 /-- The lifted transfer of a nonnegative function is nonnegative. -/

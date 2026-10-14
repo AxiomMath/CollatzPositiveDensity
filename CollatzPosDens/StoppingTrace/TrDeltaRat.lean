@@ -62,7 +62,9 @@ private theorem choose_succ_eq_div (m j : ℕ) :
 theorem oddChooseAux_eq (m n : ℕ) : ∀ j acc,
     oddChooseAux m n j (m.choose j) acc = acc + ∑ i ∈ range n, m.choose (j + 2 * i + 1) := by
   induction n with
-  | zero => intro j acc; simp [oddChooseAux]
+  | zero =>
+    intro j acc
+    simp [oddChooseAux]
   | succ n ih =>
     intro j acc
     rw [oddChooseAux, choose_succ_eq_div, choose_succ_eq_div, ih, sum_range_succ']
@@ -94,7 +96,9 @@ theorem sum_Icc_rawMass_eq_rowMassQ (t : ℤ) (K : ℕ) :
   simp only [zero_add]
   clear h
   induction K with
-  | zero => simp [rawMass_zero]; split_ifs <;> simp
+  | zero =>
+    simp [rawMass_zero]
+    split_ifs <;> simp
   | succ K ih =>
     rw [sum_Icc_succ_top (by omega), ih, Nat.add_sub_cancel, rawMass_succ_eq_div,
       sum_range_succ]

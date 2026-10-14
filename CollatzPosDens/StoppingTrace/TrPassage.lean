@@ -79,7 +79,7 @@ lemma ne_nil_of_mem_trPassage {s : ℕ} {π : List (List ℤ × ℤ)} (h : π �
 /-- A passage list has positive length. -/
 lemma length_pos_of_mem_trPassage {s : ℕ} {π : List (List ℤ × ℤ)} (h : π ∈ trPassage s) :
     0 < π.length :=
-  List.length_pos_iff.mpr h.2.2.1
+  List.length_pos_iff.mpr (ne_nil_of_mem_trPassage h)
 
 /-- For `π ∈ Π_s`, the block path satisfies `l(Bp_i(π)) ≤ s` for every `i < k`. -/
 lemma chBlockPath_snd_le_of_mem_trPassage {s : ℕ} {π : List (List ℤ × ℤ)}
@@ -101,10 +101,9 @@ lemma trPassage_nil_notMem (s : ℕ) : [] ∉ trPassage s :=
 lemma trPassage_eq_of_prefix {s : ℕ} {π γ : List (List ℤ × ℤ)} (hπ : π ∈ trPassage s)
     (hπγ : π ++ γ ∈ trPassage s) : γ = [] := by
   by_contra hγ
-  have hlt : π.length < (π ++ γ).length := by
-    simp [List.length_pos_iff.mpr hγ]
-  have h1 := chBlockPath_snd_le_of_mem_trPassage hπγ hlt
+  have h1 := chBlockPath_snd_le_of_mem_trPassage hπγ
+    (by simp [List.length_pos_iff.mpr hγ] : π.length < (π ++ γ).length)
   rw [chBlockPath_append_of_le _ _ le_rfl] at h1
-  exact absurd (lt_chBlockPath_snd_of_mem_trPassage hπ) (not_lt.mpr h1)
+  exact (lt_chBlockPath_snd_of_mem_trPassage hπ).not_ge h1
 
 end CollatzPosDens

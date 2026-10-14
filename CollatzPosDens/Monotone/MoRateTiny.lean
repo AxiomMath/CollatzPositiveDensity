@@ -39,15 +39,15 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_mo_rate_tiny"]
 theorem moRate_tiny {A : ℝ} (hA : 0 ≤ A) {m : ℕ} (hm : 32 ≤ Real.log m) :
     8 * moRate A m * (m / Real.log m ^ 2 + 1) ≤ 36 * A / Real.log m := by
+  have hm0 : (0 : ℝ) < m := by
+    rcases Nat.eq_zero_or_pos m with rfl | h0
+    · norm_num at hm
+    · exact_mod_cast h0
   set U := Real.log m with hU
   have hU0 : 0 < U := by linarith
-  have hm0 : (0 : ℝ) < m := by
-    rcases Nat.eq_zero_or_pos m with h0 | h0
-    · norm_num [hU, h0] at hm
-    · exact_mod_cast h0
-  have hexp : Real.exp U = m := Real.exp_log hm0
   have h4 : U ^ 4 / 24 ≤ (m : ℝ) := by
-    simpa [hexp, Nat.factorial] using Real.pow_div_factorial_le_exp U hU0.le 4
+    simpa [Nat.factorial, hU, Real.exp_log hm0] using Real.pow_div_factorial_le_exp U hU0.le 4
+  -- first term
   have h1 : 8 * moRate A m * (m / U ^ 2) ≤ 33 * A / U := by
     have : 8 * moRate A m * (m / U ^ 2) = 32 * A * (1 + U) / U ^ 2 := by
       rw [moRate_def, ← hU]
@@ -55,6 +55,7 @@ theorem moRate_tiny {A : ℝ} (hA : 0 ≤ A) {m : ℕ} (hm : 32 ≤ Real.log m) 
       ring
     rw [this, div_le_div_iff₀ (by positivity) hU0]
     nlinarith [mul_nonneg (mul_nonneg hA hU0.le) (sub_nonneg.2 hm)]
+  -- second term
   have h2 : 8 * moRate A m ≤ 3 * A / U := by
     rw [moRate_def, ← hU, mul_div_assoc', div_le_div_iff₀ hm0 hU0]
     have hU3 : 256 * (1 + U) ≤ U ^ 3 := by nlinarith

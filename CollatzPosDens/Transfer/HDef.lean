@@ -62,18 +62,17 @@ theorem windowLength_eq_div (q : ℕ) :
   have h : ((4 * b : ℕ) : ℝ) = 4 * (b : ℝ) := by push_cast; rfl
   apply le_antisymm
   · rw [Nat.ceil_le, div_le_iff₀ (by norm_num), ← h]
-    have key : 4 * b ≤ (4 * b + 34) / 35 * 35 := by omega
-    exact_mod_cast key
+    exact_mod_cast (by omega : 4 * b ≤ (4 * b + 34) / 35 * 35)
   · rcases Nat.eq_zero_or_pos ((4 * b + 34) / 35) with h0 | h0
-    · rw [h0]; exact Nat.zero_le _
-    · have hm : (4 * b + 34) / 35 = ((4 * b + 34) / 35 - 1) + 1 := by omega
-      rw [hm, Nat.add_one_le_iff, Nat.lt_ceil, lt_div_iff₀ (by norm_num), ← h]
-      have key : ((4 * b + 34) / 35 - 1) * 35 < 4 * b := by omega
-      exact_mod_cast key
+    · simp [h0]
+    · rw [show (4 * b + 34) / 35 = (4 * b + 34) / 35 - 1 + 1 by omega, Nat.add_one_le_iff,
+        Nat.lt_ceil, lt_div_iff₀ (by norm_num), ← h]
+      exact_mod_cast (by omega : ((4 * b + 34) / 35 - 1) * 35 < 4 * b)
 
 /-- The window length satisfies `8192 ≤ h_*(q)`. -/
 theorem le_windowLength (q : ℕ) : 8192 ≤ windowLength q := by
-  rw [windowLength_eq_div]; omega
+  rw [windowLength_eq_div]
+  omega
 
 /-- The window length `h_*(q)` is positive. -/
 theorem windowLength_pos (q : ℕ) : 0 < windowLength q :=
@@ -81,12 +80,14 @@ theorem windowLength_pos (q : ℕ) : 0 < windowLength q :=
 
 /-- The window length satisfies `4 β_*(q) + 35 · 8192 ≤ 35 h_*(q)`. -/
 theorem windowLength_mul_ge (q : ℕ) : 4 * betaStar q + 35 * 8192 ≤ 35 * windowLength q := by
-  rw [windowLength_eq_div]; omega
+  rw [windowLength_eq_div]
+  omega
 
 /-- The window length satisfies `35 h_*(q) ≤ 4 β_*(q) + 34 + 35 · 8192`. -/
 theorem windowLength_mul_le (q : ℕ) :
     35 * windowLength q ≤ 4 * betaStar q + 34 + 35 * 8192 := by
-  rw [windowLength_eq_div]; omega
+  rw [windowLength_eq_div]
+  omega
 
 /-- The window length `h_*` is monotone. -/
 theorem windowLength_monotone : Monotone windowLength := by

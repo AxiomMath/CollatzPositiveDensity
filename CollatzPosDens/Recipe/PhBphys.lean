@@ -12,10 +12,10 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Base
 /-!
 # The physical exponent `B_ph`
 
-The physical exponent is the real number
+The physical exponent of the recipe is the real number
 $$B_{\mathrm{ph}} := 23 + \log_2 F,$$
-where `F = 3 (C + 1)` is the error prefactor `CollatzPosDens.errorPrefactor` and `C` is the
-mixing constant `CollatzPosDens.mixingConst`.
+where `F = 3 (C + 1)` is the error prefactor. It enters the generation threshold `N_*` and the
+terminal threshold `N_t` through ceilings.
 
 ## Main definitions
 
@@ -25,8 +25,11 @@ mixing constant `CollatzPosDens.mixingConst`.
 
 * `CollatzPosDens.physicalExponent_def`: the defining formula of `B_ph`.
 * `CollatzPosDens.physicalExponent_eq`: `B_ph = 23 + log₂ 3 + log₂ (C + 1)`.
-* `CollatzPosDens.physicalExponent_gt`: `23 < B_ph`.
-* `CollatzPosDens.physicalExponent_pos`: `0 < B_ph`.
+* `CollatzPosDens.physicalExponent_gt`: `23 < B_ph`, hence `physicalExponent_pos`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -49,10 +52,8 @@ theorem physicalExponent_eq :
 
 /-- `23 < B_ph`, since `1 < F`. -/
 theorem physicalExponent_gt : 23 < physicalExponent := by
-  rw [physicalExponent_def]
-  have : 0 < Real.logb 2 errorPrefactor :=
-    Real.logb_pos (by norm_num) (by linarith [lt_errorPrefactor])
-  linarith
+  linarith [Real.logb_pos (b := 2) (x := errorPrefactor) (by norm_num)
+    (by linarith [lt_errorPrefactor]), physicalExponent_def]
 
 /-- The physical exponent is positive. -/
 theorem physicalExponent_pos : 0 < physicalExponent := by

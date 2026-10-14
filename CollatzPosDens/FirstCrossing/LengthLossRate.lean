@@ -18,7 +18,7 @@ Write `b_n = scale n`, `ς = deficitRate` and `𝗀 = growthRatio`. The bound `2
 decays at the rate `ς`:
 $$2^{114} b_n^{-6} \le 2^{95} \varsigma^n \qquad (n \in \mathbb{N}).$$
 By the geometric growth of the scales, `b_n ≥ 9 𝗀^n`, so `b_n^{-6} ≤ 9^{-6} (𝗀^{-6})^n`.
-Since `ς^8 = 𝗀^{-9} ≥ 𝗀^{-48} = (𝗀^{-6})^8`, we have `𝗀^{-6} ≤ ς`, and `2^{114} 9^{-6} ≤ 2^{95}`
+Since `ς^2 = 𝗀^{-3} ≥ 𝗀^{-12} = (𝗀^{-6})^2`, we have `𝗀^{-6} ≤ ς`, and `2^{114} 9^{-6} ≤ 2^{95}`
 because `9^6 = 531441 > 2^{19}`.
 
 ## Main results
@@ -30,11 +30,11 @@ because `9^6 = 531441 > 2^{19}`.
 
 namespace CollatzPosDens
 
-/-- `𝗀^{-6} ≤ ς`, compared through eighth powers: `ς^8 = 𝗀^{-9} ≥ 𝗀^{-48}`. -/
+/-- `𝗀^{-6} ≤ ς`, compared through squares: `ς^2 = 𝗀^{-3} ≥ 𝗀^{-12}`. -/
 private theorem growthRatio_inv_pow_six_le_deficitRate :
     ((growthRatio : ℝ)⁻¹) ^ 6 ≤ deficitRate := by
-  refine le_of_pow_le_pow_left₀ (n := 8) (by norm_num) deficitRate_nonneg ?_
-  rw [deficitRate_pow_eight, growthRatio_cast]
+  refine le_of_pow_le_pow_left₀ (n := 2) (by norm_num) deficitRate_nonneg ?_
+  rw [deficitRate_pow_two, growthRatio_cast]
   norm_num
 
 /-- For every `n ∈ ℕ`, `2^{114} b_n^{-6} ≤ 2^{95} ς^n`, where `b_n = scale n` and

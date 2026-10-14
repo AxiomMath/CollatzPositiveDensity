@@ -66,8 +66,8 @@ theorem schedule_succ_eq_scheduleStep_iterate {i : ℕ} (hi : i ≤ rStar) :
   | zero => rfl
   | succ i ih =>
     rw [Function.iterate_succ_apply', ← ih (by omega), schedule_succ, recipeMap_eq,
-      windowLength_eq_div, betaStar_schedule (by omega : i ≤ rStar), scheduleStep, Kstar_eq]
-    rw [← mul_assoc]
+      windowLength_eq_div, betaStar_schedule (by omega : i ≤ rStar), scheduleStep, Kstar_eq,
+      ← mul_assoc]
     generalize (4 * 9863028149 * (schedule i + 1) + 34) / 35 = c
     omega
 

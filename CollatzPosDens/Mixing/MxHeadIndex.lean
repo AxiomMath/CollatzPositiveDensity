@@ -12,13 +12,13 @@ public import CollatzPosDens.Mixing.MxWindowHighBound
 /-!
 # The index of a nonempty head gate is bounded
 
-Let `n ≥ 2^131072` and `k, l ∈ ℕ`. If the head gate `mxHeadGate n k l` is nonempty, then
-`20 k ≤ 17 n`. Indeed, the window condition of the head gate gives `k + 1 ≤ mxWindowHigh n`, and
-`mxWindowHigh n < (13/16) n` by `mxWindowHigh_bound`; hence `20 k < (65/4) n ≤ 17 n`.
+Let `n ≥ 2^80000` and `k, l ∈ ℕ`. If the head gate `Hd(n, k, l)` is nonempty, then
+`20 k ≤ 17 n`. Indeed, the window condition of the head gate gives `k + 1 ≤ q^+_n`, and the
+upper window end satisfies `q^+_n < (13/16) n`; hence `20 k < (65/4) n ≤ 17 n`.
 
 ## Main results
 
-* `CollatzPosDens.mxHeadGate_index_le`: if `n ≥ 2^131072` and `mxHeadGate n k l ≠ ∅` then
+* `CollatzPosDens.mxHeadGate_index_le`: if `n ≥ 2^80000` and `Hd(n, k, l) ≠ ∅` then
   `20 k ≤ 17 n`.
 
 ## References
@@ -30,13 +30,12 @@ Let `n ≥ 2^131072` and `k, l ∈ ℕ`. If the head gate `mxHeadGate n k l` is 
 
 namespace CollatzPosDens
 
-/-- If `n ≥ 2^131072` and the head gate `mxHeadGate n k l` is nonempty, then `20 k ≤ 17 n`. -/
+/-- If `n ≥ 2^80000` and the head gate `Hd(n, k, l)` is nonempty, then `20 k ≤ 17 n`. -/
 @[collatz_pos_dens "lem_mx_head_index"]
-theorem mxHeadGate_index_le {n k l : ℕ} (hn : 2 ^ 131072 ≤ n)
+theorem mxHeadGate_index_le {n k l : ℕ} (hn : 2 ^ 80000 ≤ n)
     (hne : mxHeadGate n k l ≠ ∅) : 20 * k ≤ 17 * n := by
   obtain ⟨h, -, ⟨-, hk⟩, -⟩ := Set.nonempty_iff_ne_empty.mpr hne
   have hq := mxWindowHigh_bound n hn
-  have : (20 : ℤ) * k ≤ 17 * n := by omega
-  exact_mod_cast this
+  exact_mod_cast (by omega : (20 : ℤ) * k ≤ 17 * n)
 
 end CollatzPosDens

@@ -46,38 +46,25 @@ theorem tsum_geometric_mul_exp_le (θ : ℝ) (hθ : |θ| ≤ 1 / 4) :
     ∑' n : ℕ, (2 : ℝ)⁻¹ ^ (n + 1) * exp (θ * (((n + 1 : ℕ) : ℝ) - 2)) ≤
       exp (8 * θ ^ 2) := by
   set e := exp θ with he_def
-  have he : 0 < e := exp_pos θ
   have hs : |e - 1| ≤ 2 * |θ| := abs_exp_sub_one_le (by linarith)
-  have hθ2 : θ ^ 2 ≤ 1 / 16 := by
-    have := sq_abs θ
-    nlinarith [abs_nonneg θ]
+  have hθ2 : θ ^ 2 ≤ 1 / 16 := by nlinarith [sq_abs θ, abs_nonneg θ]
   have hsq : (e - 1) ^ 2 ≤ 4 * θ ^ 2 := by
-    have := sq_abs (e - 1)
-    have := sq_abs θ
-    nlinarith [abs_nonneg (e - 1), abs_nonneg θ]
+    nlinarith [sq_abs (e - 1), sq_abs θ, abs_nonneg (e - 1), abs_nonneg θ]
   have hlt : e < 2 := by nlinarith [sq_nonneg (e - 1)]
   have hterm : ∀ n : ℕ, (2 : ℝ)⁻¹ ^ (n + 1) * exp (θ * (((n + 1 : ℕ) : ℝ) - 2)) =
       exp (-θ) / 2 * (e / 2) ^ n := by
     intro n
-    have : θ * (((n + 1 : ℕ) : ℝ) - 2) = n * θ + -θ := by push_cast; ring
-    rw [this, exp_add, exp_nat_mul, ← he_def, div_pow, pow_succ, inv_pow]
+    rw [show θ * (((n + 1 : ℕ) : ℝ) - 2) = n * θ + -θ by push_cast; ring, exp_add,
+      exp_nat_mul, ← he_def, div_pow, pow_succ, inv_pow]
     field_simp
   simp_rw [hterm]
   rw [tsum_mul_left, tsum_geometric_of_lt_one (by positivity) (by linarith)]
-  have key : 1 ≤ exp (8 * θ ^ 2) * (e * (2 - e)) := by
-    have h1 : 1 + 2 * (e - 1) ^ 2 ≤ exp (8 * θ ^ 2) := by
-      have := add_one_le_exp (2 * (e - 1) ^ 2)
-      have := exp_le_exp.2 (show 2 * (e - 1) ^ 2 ≤ 8 * θ ^ 2 by linarith)
-      linarith
-    have h2 : e * (2 - e) = 1 - (e - 1) ^ 2 := by ring
-    rw [h2]
-    nlinarith [sq_nonneg (e - 1)]
-  have hne : exp (-θ) * e = 1 := by rw [he_def, ← exp_add]; simp
-  have h2e : 0 < 2 - e := by linarith
-  have : exp (-θ) / 2 * (1 - e / 2)⁻¹ = exp (-θ) / (2 - e) := by
-    field_simp
-  rw [this, div_le_iff₀ h2e]
-  have hpos : 0 < exp (-θ) := exp_pos _
-  nlinarith [exp_pos (8 * θ ^ 2)]
+  have key : 1 ≤ exp (8 * θ ^ 2) * (1 - (e - 1) ^ 2) := by
+    nlinarith [add_one_le_exp (2 * (e - 1) ^ 2),
+      exp_le_exp.2 (show 2 * (e - 1) ^ 2 ≤ 8 * θ ^ 2 by linarith), sq_nonneg (e - 1)]
+  have hne : exp (-θ) * e = 1 := by simp [he_def, ← exp_add]
+  rw [show exp (-θ) / 2 * (1 - e / 2)⁻¹ = exp (-θ) / (2 - e) by field_simp,
+    div_le_iff₀ (by linarith)]
+  nlinarith [exp_pos (8 * θ ^ 2), exp_pos (-θ)]
 
 end CollatzPosDens

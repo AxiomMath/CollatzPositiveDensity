@@ -42,14 +42,9 @@ theorem isPrefixFree_firstCrossing (b : ℕ) (u : ℤ) (K : ℕ) :
     InformationTheory.IsPrefixFree (firstCrossing b u K) := by
   intro w hw w' hw' hpre
   by_contra hne
-  have hlen : w.length < w'.length :=
-    lt_of_le_of_ne hpre.length_le fun h => hne (hpre.eq_of_length h)
-  have htake : w'.take w.length = w := by
-    obtain ⟨t, rfl⟩ := hpre
-    simp
   have h1 := valSum_take_lt_of_mem_firstCrossing hw' (lb_lt_length_of_mem_firstCrossing hw).le
-    hlen
-  rw [htake] at h1
+    (hpre.length_le.lt_of_ne fun h => hne (hpre.eq_of_length h))
+  rw [← List.prefix_iff_eq_take.mp hpre] at h1
   exact (barrier_le_valSum_of_mem_firstCrossing hw).not_gt h1
 
 end CollatzPosDens

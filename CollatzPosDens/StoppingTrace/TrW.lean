@@ -52,17 +52,10 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_tr_W"]
 theorem trMu_le_trW {k : ℕ} (hk : 1 ≤ k) :
     trMu ≤ 3 / 16 * trDelta k + 1 / 8 * trDelta (k - 1) := by
-  rcases le_or_gt k 255 with h | h
+  obtain h | rfl | h : k ≤ 255 ∨ k = 256 ∨ 257 ≤ k := by omega
   · exact trW_rows hk h
-  rcases eq_or_lt_of_le (Nat.succ_le_of_lt h) with h' | h'
-  · subst h'
-    have := trDelta_ge_of_le (le_refl 256)
-    have := trMu_lt_mixed
-    simp only [Nat.succ_sub_one]
-    linarith
-  · have h1 := trDelta_ge_of_le (s := k) (by omega)
-    have h2 := trDelta_ge_of_le (s := k - 1) (by omega)
-    have := trMu_lt_far
-    linarith
+  · linarith [trDelta_ge_of_le (le_refl 256), trMu_lt_mixed]
+  · linarith [trDelta_ge_of_le (s := k) (by omega), trDelta_ge_of_le (s := k - 1) (by omega),
+      trMu_lt_far]
 
 end CollatzPosDens

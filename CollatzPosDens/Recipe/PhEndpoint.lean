@@ -14,19 +14,19 @@ public import CollatzPosDens.Recipe.PhDeltaEnclosure
 /-!
 # The real endpoint `16 + N_* δ`
 
-The real endpoint of the recipe satisfies `16 + N_* δ < 140213 + 9/16`, where `N_*` is the
+The real endpoint of the recipe satisfies `16 + N_* δ < 87639 + 9/16`, where `N_*` is the
 generation threshold and `δ = log₂ (101/100)` is the logarithmic growth rate.
 
-Since `N_* = 9766262` and `δ < 0.014355292977070041432`, exact rational arithmetic gives
-`16 + N_* δ < 16 + 9766262 · 0.014355292977070041432 = 140213.5523008260… < 140213.5625`,
-that is, `16 + N_* δ < 140213 + 9/16`, with a margin exceeding `1/100`.
+Since `N_* = 6103914` and `δ < 0.014355292977070041432`, exact rational arithmetic gives
+`16 + N_* δ < 16 + 6103914 · 0.014355292977070041432 = 87639.4737768395… < 87639.5625`,
+that is, `16 + N_* δ < 87639 + 9/16`, with a margin exceeding `1/100`.
 
 ## Main results
 
 * `CollatzPosDens.sixteen_add_generationThreshold_mul_logGrowthRate_lt`:
-  `16 + N_* δ < 140213 + 9/16`.
-* `CollatzPosDens.sixteen_add_generationThreshold_mul_logGrowthRate_lt_140214`:
-  the weaker consequence `16 + N_* δ < 140214`.
+  `16 + N_* δ < 87639 + 9/16`.
+* `CollatzPosDens.sixteen_add_generationThreshold_mul_logGrowthRate_lt_87640`:
+  the weaker consequence `16 + N_* δ < 87640`.
 
 ## References
 
@@ -37,18 +37,18 @@ that is, `16 + N_* δ < 140213 + 9/16`, with a margin exceeding `1/100`.
 
 namespace CollatzPosDens
 
-/-- **The real endpoint.** `16 + N_* δ < 140213 + 9/16`. -/
+/-- **The real endpoint.** `16 + N_* δ < 87639 + 9/16`. -/
 @[collatz_pos_dens "lem_ph_endpoint"]
 theorem sixteen_add_generationThreshold_mul_logGrowthRate_lt :
-    16 + (generationThreshold : ℝ) * logGrowthRate < 140213 + 9 / 16 := by
+    16 + (generationThreshold : ℝ) * logGrowthRate < 87639 + 9 / 16 := by
   obtain ⟨-, h⟩ := logGrowthRate_mem_Ioo
   rw [generationThreshold_eq]
   push_cast
   linarith
 
-/-- The weaker form of the real endpoint bound: `16 + N_* δ < 140214`. -/
-theorem sixteen_add_generationThreshold_mul_logGrowthRate_lt_140214 :
-    16 + (generationThreshold : ℝ) * logGrowthRate < 140214 := by
+/-- The weaker form of the real endpoint bound: `16 + N_* δ < 87640`. -/
+theorem sixteen_add_generationThreshold_mul_logGrowthRate_lt_87640 :
+    16 + (generationThreshold : ℝ) * logGrowthRate < 87640 := by
   linarith [sixteen_add_generationThreshold_mul_logGrowthRate_lt]
 
 end CollatzPosDens

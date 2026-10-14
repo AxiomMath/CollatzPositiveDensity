@@ -40,11 +40,11 @@ theorem Kstar_eq : Kstar = 9863028149 := rfl
 
 /-- The scale multiplier is positive. -/
 theorem Kstar_pos : 0 < Kstar := by
-  rw [Kstar_eq]; decide
+  decide
 
 /-- The value of the scale multiplier cast into any additive monoid with one. -/
 @[simp, norm_cast]
 theorem Kstar_cast {R : Type*} [AddMonoidWithOne R] : (Kstar : R) = 9863028149 := by
-  rw [Kstar_eq]; exact Nat.cast_ofNat
+  rw [Kstar_eq, Nat.cast_ofNat]
 
 end CollatzPosDens

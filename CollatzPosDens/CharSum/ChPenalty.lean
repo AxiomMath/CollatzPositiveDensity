@@ -27,7 +27,7 @@ empty products being `1`.
 
 ## Main results
 
-* `CollatzPosDens.chPenalty_def`: `Pen(b)` is the product displayed above.
+* `CollatzPosDens.chPenalty_def`: `Pen(b)` as an explicit product over `0`-based indices.
 * `CollatzPosDens.chPenaltyFrom_nil`, `CollatzPosDens.chPenaltyFrom_cons`,
   `CollatzPosDens.chPenalty_nil`, `CollatzPosDens.chPenalty_cons`: the recursion on the
   first letter.
@@ -39,13 +39,13 @@ empty products being `1`.
 ## Implementation notes
 
 The parameters `n`, `ξ` and `ε`, suppressed in [mazur2026], are explicit. Words are `List ℤ`,
-indexed from `0`, so the letter `b_i` is `b.getD (i - 1) 0`. To state the behaviour under
-concatenation the penalty is defined as the case `j = s = 0` of a penalty shifted by a starting
-index `j` and a starting height `s`.
+indexed from `0`, so [mazur2026]'s letter `b_i` is `b.getD (i - 1) 0`. To state the behaviour
+under concatenation the penalty is defined as the case `j = s = 0` of a penalty shifted by a
+starting index `j` and a starting height `s`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §7.2.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -68,8 +68,9 @@ noncomputable def chPenaltyFrom (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s 
 noncomputable def chPenalty (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b : List ℤ) : ℝ :=
   chPenaltyFrom n ξ ε 0 0 b
 
-/-- `Pen(b)` is the product over the letters `b_i ∈ {4,5}` of `w` and over the letters `b_i = 3`
-of `w₃`, written with `0`-based indices. -/
+/-- `Pen(b)` as an explicit product over `0`-based indices `i`: the letter `b.getD i 0`
+contributes `w(i + 1, b₁ + ⋯ + b_{i+1})` if it lies in `{4,5}` and `w₃(i + 1, b₁ + ⋯ + b_{i+1})`
+if it equals `3`. -/
 theorem chPenalty_def (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b : List ℤ) :
     chPenalty n ξ ε b =
       (∏ i ∈ (Finset.range b.length).filter (fun i => b.getD i 0 ∈ ({4, 5} : Finset ℤ)),
@@ -106,7 +107,8 @@ theorem chPenaltyFrom_cons (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s a : �
     · refine Finset.prod_congr rfl fun i _ => ?_
       simp only [List.getD_cons_succ, List.take_succ_cons, List.sum_cons]
       congr 3
-      · push_cast; ring
+      · push_cast
+        ring
       · ring
   rw [chPenaltyFrom, chPenaltyFrom, key (· ∈ ({4, 5} : Finset ℤ)), key (· = 3)]
   ring
@@ -133,7 +135,8 @@ theorem chPenaltyFrom_append (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : �
   | nil => simp
   | cons a b ih =>
     have hj : j + 1 + (b.length : ℤ) = j + ((a :: b).length : ℕ) := by
-      simp only [List.length_cons]; push_cast; ring
+      push_cast [List.length_cons]
+      ring
     have hs : s + a + b.sum = s + (a :: b).sum := by simp [add_assoc]
     rw [List.cons_append, chPenaltyFrom_cons, chPenaltyFrom_cons, ih, hj, hs]
     ring
@@ -153,19 +156,12 @@ theorem chPenaltyFrom_pos (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : ℤ)
 
 /-- The shifted penalty is at most `1`. -/
 theorem chPenaltyFrom_le_one (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : ℤ) (b : List ℤ) :
-    chPenaltyFrom n ξ ε j s b ≤ 1 := by
-  have h₁ := Finset.prod_le_one₀ (s := (Finset.range b.length).filter
-      (fun i => b.getD i 0 ∈ ({4, 5} : Finset ℤ)))
-    (f := fun i => chWhiteFactor n ξ ε (j + (i + 1 : ℕ), s + (b.take (i + 1)).sum))
-    (fun _ _ => chWhiteFactor_nonneg _ _ _ _) fun _ _ => chWhiteFactor_le_one _ _ _ _
-  have h₂ := Finset.prod_le_one₀ (s := (Finset.range b.length).filter (fun i => b.getD i 0 = 3))
-    (f := fun i => chRaw3Factor n ξ ε (j + (i + 1 : ℕ), s + (b.take (i + 1)).sum))
-    (fun _ _ => chRaw3Factor_nonneg _ _ _ _) fun _ _ => chRaw3Factor_le_one _ _ _ _
-  have h₃ := Finset.prod_nonneg (s := (Finset.range b.length).filter (fun i => b.getD i 0 = 3))
-    (f := fun i => chRaw3Factor n ξ ε (j + (i + 1 : ℕ), s + (b.take (i + 1)).sum))
-    fun _ _ => chRaw3Factor_nonneg _ _ _ _
-  rw [chPenaltyFrom]
-  nlinarith
+    chPenaltyFrom n ξ ε j s b ≤ 1 :=
+  (mul_le_of_le_one_right (Finset.prod_nonneg fun _ _ => chWhiteFactor_nonneg _ _ _ _)
+      (Finset.prod_le_one₀ (fun _ _ => chRaw3Factor_nonneg _ _ _ _)
+        fun _ _ => chRaw3Factor_le_one _ _ _ _)).trans
+    (Finset.prod_le_one₀ (fun _ _ => chWhiteFactor_nonneg _ _ _ _)
+      fun _ _ => chWhiteFactor_le_one _ _ _ _)
 
 /-- The penalty is positive. -/
 theorem chPenalty_pos (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b : List ℤ) :

@@ -53,6 +53,14 @@ Lean list. Points of the block path live in `ℤ × ℤ`, so `i_s(π)` is cast t
 
 namespace CollatzPosDens
 
+/-- The raw word of a list of blocks of nonzero weight has nonnegative tail sums. -/
+theorem sum_drop_flatMap_nonneg {π : List (List ℤ × ℤ)} (h : ∀ b ∈ π, chBlockWeight b ≠ 0)
+    (n : ℕ) : 0 ≤ ((π.flatMap fun b => b.1 ++ [b.2]).drop n).sum :=
+  List.sum_nonneg fun x hx ↦ by
+    obtain ⟨b, hb, hxb⟩ := List.mem_flatMap.mp (List.mem_of_mem_drop hx)
+    have := two_le_of_mem_append_of_chBlockWeight_ne_zero (h b hb) hxb
+    omega
+
 /-- A raw-three witness `π = ((c¹, e¹), …, (cᵏ, eᵏ)) ∈ 𝒜₃(s)` crosses level `s` at a
 nonclosing letter `3` of its last block: there is `1 ≤ i ≤ |cᵏ|` with `cᵏᵢ = 3` and
 `(i_s(π), σ_{i_s(π)}(π)) = Bp_{k-1}(π) + (i, cᵏ₁ + ⋯ + cᵏᵢ)`. -/
@@ -63,9 +71,8 @@ theorem trRawThreeWitness_lastBlock {s : ℕ} {π : List (List ℤ × ℤ)}
     ∃ i, 1 ≤ i ∧ i ≤ c.length ∧ c[i - 1]? = some 3 ∧
       (((trFirstRaw s π : ℕ) : ℤ), trRawSum π (trFirstRaw s π)) =
         chBlockPath π (π.length - 1) + ((i : ℤ), (c.take i).sum) := by
-  have h3 : (π.flatMap fun b => b.1 ++ [b.2])[trFirstRaw s π - 1]? = some 3 := by
-    obtain ⟨hlt, h3⟩ := trRawThreeWitness_getElem_flatMap hπ
-    exact List.getElem?_eq_some_iff.mpr ⟨hlt, h3⟩
+  have h3 : (π.flatMap fun b => b.1 ++ [b.2])[trFirstRaw s π - 1]? = some 3 :=
+    List.getElem?_eq_some_iff.mpr (trRawThreeWitness_getElem_flatMap hπ)
   have hone := trRawThreeWitness_one_le_trFirstRaw hπ
   have hs := trRawThreeWitness_lt_trRawSum hπ
   have hP := trRawThreeWitness_mem_trPassage hπ
@@ -90,26 +97,24 @@ theorem trRawThreeWitness_lastBlock {s : ℕ} {π : List (List ℤ × ℤ)}
   by_cases hIL : I ≤ z₀.length
   · exfalso
     rw [List.take_append_of_le_length hIL] at hs
-    have hnn : 0 ≤ (z₀.drop I).sum := by
-      refine List.sum_nonneg fun x hx ↦ ?_
-      obtain ⟨b, hb, hxb⟩ := List.mem_flatMap.mp (List.mem_of_mem_drop hx)
-      have := two_le_of_mem_append_of_chBlockWeight_ne_zero (hlive b (by simp [hb])) hxb
-      omega
+    have hnn : 0 ≤ (z₀.drop I).sum :=
+      sum_drop_flatMap_nonneg (fun b hb ↦ hlive b (by simp [hb])) I
     have hsplit := congrArg List.sum (List.take_append_drop I z₀)
     rw [List.sum_append] at hsplit
     omega
   · push Not at hIL
-    have hpos : z₀.length ≤ I - 1 := by omega
-    rw [List.getElem?_append_right hpos] at h3
+    rw [List.getElem?_append_right (by omega)] at h3
     by_cases hc : I - 1 - z₀.length < c.length
     · rw [List.getElem?_append_left hc] at h3
       refine ⟨I - z₀.length, by omega, by omega, ?_, ?_⟩
       · rwa [show I - z₀.length - 1 = I - 1 - z₀.length by omega]
-      · have hI' : I = z₀.length + (I - z₀.length) := by omega
-        rw [hI', List.take_append, List.take_of_length_le (by omega), List.sum_append,
-          Nat.add_sub_cancel_left, List.take_append_of_le_length (by omega)]
+      · rw [show I = z₀.length + (I - z₀.length) by omega, List.take_append,
+          List.take_of_length_le (by omega), List.sum_append, Nat.add_sub_cancel_left,
+          List.take_append_of_le_length (by omega)]
         ext
-        · simp only [Prod.fst_add, hfst]; push_cast; omega
+        · simp only [Prod.fst_add, hfst]
+          push_cast
+          omega
         · simp only [Prod.snd_add, hz₀, sum_flatMap_eq_chBlockPath_snd]
     · exfalso
       push Not at hc

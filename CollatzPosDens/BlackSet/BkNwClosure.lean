@@ -45,13 +45,7 @@ theorem mem_of_mem_of_nw {Δ : BkTriangle} {q q' : ℤ × ℤ} (hq : q ∈ Δ)
     (hj₁ : Δ.j ≤ bkJ q') (hj₂ : bkJ q' ≤ bkJ q) (hl₁ : bkL q ≤ bkL q') (hl₂ : bkL q' ≤ Δ.l) :
     q' ∈ Δ := by
   refine ⟨hj₁, hl₂, le_trans ?_ hq.2.2⟩
-  have h9 : 0 ≤ Real.log 9 := Real.log_nonneg (by norm_num)
-  have h2 : 0 ≤ Real.log 2 := Real.log_nonneg (by norm_num)
-  have hj : ((bkJ q' - Δ.j : ℤ) : ℝ) ≤ ((bkJ q - Δ.j : ℤ) : ℝ) := by
-    exact_mod_cast sub_le_sub_right hj₂ _
-  have hl : ((Δ.l - bkL q' : ℤ) : ℝ) ≤ ((Δ.l - bkL q : ℤ) : ℝ) := by
-    exact_mod_cast sub_le_sub_left hl₁ _
-  exact add_le_add (mul_le_mul_of_nonneg_right hj h9) (mul_le_mul_of_nonneg_right hl h2)
+  gcongr
 
 end BkTriangle
 

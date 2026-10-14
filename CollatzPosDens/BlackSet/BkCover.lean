@@ -45,11 +45,8 @@ A point `p ∈ 𝒫` is black iff `p ∈ Δ` for some triangle `Δ ∈ 𝔗_{n,�
 @[collatz_pos_dens "lem_bk_cover"]
 theorem bkBlack_iff_exists_mem_bkFamily {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p : ℤ × ℤ}
     (hξ : IsResidueUnit ξ) (hε₀ : 0 < ε) (hε : ε < 1 / 27) (hp : p ∈ bkPoints) :
-    BkBlack n ξ ε p ↔ ∃ Δ ∈ bkFamily n ξ ε, p ∈ Δ := by
-  constructor
-  · intro hb
-    exact ⟨_, bkCanonTriangle_mem_bkFamily hp hb, mem_bkCanonTriangle_self hξ hε₀ hε hp hb⟩
-  · rintro ⟨_, ⟨p', hp', hb', rfl⟩, hmem⟩
-    exact bkBlack_of_mem_bkCanonTriangle hξ hε₀ hε hp' hb' hmem
+    BkBlack n ξ ε p ↔ ∃ Δ ∈ bkFamily n ξ ε, p ∈ Δ :=
+  ⟨fun hb => ⟨_, bkCanonTriangle_mem_bkFamily hp hb, mem_bkCanonTriangle_self hξ hε₀ hε hp hb⟩,
+    fun ⟨_, ⟨_, hp', hb', rfl⟩, hmem⟩ => bkBlack_of_mem_bkCanonTriangle hξ hε₀ hε hp' hb' hmem⟩
 
 end CollatzPosDens

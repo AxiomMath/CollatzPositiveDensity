@@ -99,7 +99,7 @@ private lemma greenClosed_eq_sum_fpRawGreenWords (n : ℕ) (m : ℤ) :
     rw [this, ← rawMass, rawMass_zero]
     simp
   | succ n =>
-    rw [show ((n + 1 : ℕ) : ℤ) = (n : ℤ) + 1 by push_cast; ring, greenClosed_succ, rawMass,
+    rw [Nat.cast_succ, greenClosed_succ, rawMass,
       rawMass, mul_sum, mul_sum,
       ← sum_pair (f := fun a : ℤ => ∑ c ∈ rawWords n (m - a), varpi a * ∏ i, varpi (c i))
       (show (4 : ℤ) ≠ 5 by decide), sum_sigma']

@@ -73,9 +73,7 @@ theorem scale_add_hundred_lt_mul_growthRatio_pow {j : ℕ} (hj : 444 ≤ j) :
       omega
     have he : ((eb (scale j) : ℕ) : ℝ) ≤ ((scale j : ℝ) + 99) / 100 := by
       rw [eb_of_le hb]
-      have := Nat.cast_div_le (α := ℝ) (m := scale j + 99) (n := 100)
-      push_cast at this
-      exact this
+      exact_mod_cast Nat.cast_div_le (α := ℝ) (m := scale j + 99) (n := 100)
     rw [scale_succ, Nat.cast_add, pow_succ, growthRatio_cast]
     rw [growthRatio_cast] at ih
     nlinarith
@@ -87,7 +85,6 @@ theorem scale_lt_mul_growthRatio_pow (j : ℕ) :
   rcases le_or_gt j 444 with hj | hj
   · rw [growthRatio_cast_pow, mul_div_assoc', lt_div_iff₀ (by positivity), mul_comm]
     exact_mod_cast scale_mul_pow_lt_of_le hj
-  · have := scale_add_hundred_lt_mul_growthRatio_pow hj.le
-    linarith
+  · linarith [scale_add_hundred_lt_mul_growthRatio_pow hj.le]
 
 end CollatzPosDens

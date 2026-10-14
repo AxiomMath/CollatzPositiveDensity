@@ -45,20 +45,18 @@ theorem bijOn_add_three_pow_mul_residueReduction_fiber {m n : ℕ} (h : m ≤ n)
   refine ⟨fun t _ => ?_, fun s hs t ht hst => ?_, fun y' hy' => ?_⟩
   · change residueReduction h (y + _) = _
     rw [map_add, residueReduction_natCast, Nat.cast_mul, ZMod.natCast_self, zero_mul, add_zero]
-  · have hlt : ∀ u : ℕ, u < 3 ^ (n - m) → 3 ^ m * u < 3 ^ n := fun u hu => by
-      rw [hpow]; exact Nat.mul_lt_mul_of_pos_left hu (by positivity)
+  · have hlt : ∀ u : ℕ, u < 3 ^ (n - m) → 3 ^ m * u < 3 ^ n := fun u hu =>
+      hpow ▸ Nat.mul_lt_mul_of_pos_left hu (by positivity)
     have := congrArg ZMod.val (add_left_cancel hst)
     rw [ZMod.val_natCast_of_lt (hlt s hs), ZMod.val_natCast_of_lt (hlt t ht)] at this
     exact Nat.eq_of_mul_eq_mul_left (by positivity) this
-  · have h0 : residueReduction h (y' - y) = 0 := by
-      rw [map_sub, sub_eq_zero]; exact hy'
-    have hdvd : 3 ^ m ∣ (y' - y).val := (residueReduction_eq_zero_iff h _).1 h0
-    obtain ⟨t, ht⟩ := hdvd
+  · obtain ⟨t, ht⟩ :=
+      (residueReduction_eq_zero_iff h (y' - y)).1 (by rwa [map_sub, sub_eq_zero])
     refine ⟨t, ?_, ?_⟩
     · have := val_lt_three_pow (y' - y)
       rw [ht, hpow] at this
       exact Set.mem_Iio.2 (Nat.lt_of_mul_lt_mul_left this)
-    · simp only
+    · dsimp only
       rw [← ht, ZMod.natCast_zmod_val, add_sub_cancel]
 
 end CollatzPosDens

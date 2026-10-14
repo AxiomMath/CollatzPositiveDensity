@@ -67,22 +67,21 @@ theorem chQm_le_chQm_pred_of_Dstar_le {n : ℕ} {ξ : ResidueGroup n} (hξ : IsR
   have hm1 : 1 ≤ m := by exact_mod_cast hD1'
   have hA : (0 : ℝ) ≤ (Aexp : ℝ) := by exact_mod_cast Aexp_pos.le
   obtain ⟨hε₀, hε⟩ := epsStar_mem_bkRange (K := ℝ)
-  have hQ : 0 ≤ chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) := chQm_nonneg _ _ _ _ _
   refine chQm_le_chQm_pred n ξ _ hA hm1 fun p hp hpm => ?_
   have hjJ : bkJ p ≤ ((n / 2 : ℕ) : ℤ) := by omega
   by_cases hw : IsBkWhite n ξ (epsStar : ℝ) p
-  · have h := chQ_le_exp_mul_rpow_mul_chQm_of_isBkWhite n ξ (epsStar : ℝ)
-      (m := m) (by exact_mod_cast hD1) hp hw hpm
-    refine h.trans ?_
+  · -- `p` white: the first case, with `e^{-z_* + w_*/2} ≤ 1`
+    refine (chQ_le_exp_mul_rpow_mul_chQm_of_isBkWhite n ξ (epsStar : ℝ)
+      (m := m) (by exact_mod_cast hD1) hp hw hpm).trans ?_
     have hexp : Real.exp (-(zStar : ℝ) + (wStar : ℝ) / 2) ≤ 1 := by
-      rw [Real.exp_le_one_iff, zStar_cast, wStar_cast]; norm_num
-    have hz : 0 ≤ (m : ℝ) ^ (-(Aexp : ℝ)) * chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) :=
-      mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) hQ
+      rw [Real.exp_le_one_iff, zStar_cast, wStar_cast]
+      norm_num
     rw [mul_assoc]
-    exact mul_le_of_le_one_left hz hexp
-  · have hb : BkBlack n ξ (epsStar : ℝ) p :=
+    exact mul_le_of_le_one_left
+      (mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) (chQm_nonneg _ _ _ _ _)) hexp
+  · -- `p` not white, hence black, hence in a triangle of the canonical family
+    obtain ⟨Δ, hΔ, hpΔ⟩ := (bkBlack_iff_exists_mem_bkFamily hξ hε₀ hε hp).1
       ⟨hjJ, not_lt.1 fun h => hw ⟨hjJ, h⟩⟩
-    obtain ⟨Δ, hΔ, hpΔ⟩ := (bkBlack_iff_exists_mem_bkFamily hξ hε₀ hε hp).1 hb
     rcases le_or_gt ((Δ.l - bkL p : ℤ) : ℝ) ((m : ℝ) / Real.log m ^ 2) with hgap | hgap
     · exact chQ_le_rpow_mul_chQm_of_mem_bkFamily hξ (by exact_mod_cast hDpt)
         (by exact_mod_cast hDexp) hpm hΔ hpΔ hgap

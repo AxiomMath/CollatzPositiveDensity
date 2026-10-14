@@ -71,8 +71,8 @@ private lemma indicator_wordW (n : ℕ) (l : ℤ) (c : Fin (n + 1) → ℤ) :
   by_cases hc : c ∈ holdWords (n + 1) l
   · obtain ⟨hi, hlast, hs⟩ := mem_holdWords_succ.1 hc
     rw [Set.indicator_of_mem hc, Set.indicator_of_mem
-      (show c ∈ {c : Fin (n + 1) → ℤ | ∑ i, c i = l} from holdWords_sum_eq hc)]
-    rw [wordW, Fin.prod_univ_castSucc]
+      (show c ∈ {c : Fin (n + 1) → ℤ | ∑ i, c i = l} from holdWords_sum_eq hc),
+      wordW, Fin.prod_univ_castSucc]
     congr 1
     · exact Finset.prod_congr rfl fun i _ ↦ varpiIn_of_notMem (hi i).2
     · exact varpiLast_of_mem hlast
@@ -84,14 +84,15 @@ private lemma indicator_wordW (n : ℕ) (l : ℤ) (c : Fin (n + 1) → ℤ) :
       obtain ⟨hpre, hl⟩ := mul_ne_zero_iff.mp hne
       rw [Finset.prod_ne_zero_iff] at hpre
       have hlast : c (Fin.last n) ∈ ({4, 5} : Set ℤ) := by
-        by_contra h; exact hl (varpiLast_of_notMem h)
+        by_contra h
+        exact hl (varpiLast_of_notMem h)
       refine mem_holdWords_succ.2 ⟨fun i ↦ ?_, hlast, ?_⟩
-      · have hne := hpre i (Finset.mem_univ _)
-        have hn : c i.castSucc ∉ ({4, 5} : Set ℤ) := fun h ↦ hne (varpiIn_of_mem h)
+      · have hci := hpre i (Finset.mem_univ _)
+        have hn : c i.castSucc ∉ ({4, 5} : Set ℤ) := fun h ↦ hci (varpiIn_of_mem h)
         refine ⟨?_, hn⟩
         by_contra h
-        exact hne (by rw [varpiIn_of_notMem hn, varpi_of_le_one (by omega)])
-      · rw [← Fin.sum_univ_castSucc]; exact hs
+        exact hci (by rw [varpiIn_of_notMem hn, varpi_of_le_one (by omega)])
+      · rwa [← Fin.sum_univ_castSucc]
     · exact Set.indicator_of_notMem (show c ∉ {c : Fin (n + 1) → ℤ | ∑ i, c i = l} from hs) _
 
 private lemma holdLaw_succ_eq (n : ℕ) (l : ℤ) :

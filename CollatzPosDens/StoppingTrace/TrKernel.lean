@@ -98,13 +98,10 @@ lemma exp_neg_gammaStar_mul_trCount_le_one (v : ℤ × ℤ) (u : List (List ℤ 
 lemma trKernel_succ_le (k : ℕ) (v : ℤ × ℤ) :
     trKernel n ξ (k + 1) v ≤
       ∑' u : trEntryWords n ξ (epsStar : ℝ) v,
-        ENNReal.ofReal (trListWeight u.1) * trKernel n ξ k (trPath v u.1 u.1.length) := by
-  rw [trKernel_succ]
-  refine ENNReal.tsum_le_tsum fun u ↦ ?_
-  calc _ ≤ ENNReal.ofReal (trListWeight u.1) * 1 * trKernel n ξ k (trPath v u.1 u.1.length) := by
-        gcongr
-        exact ENNReal.ofReal_le_one.2 (exp_neg_gammaStar_mul_trCount_le_one v u.1 _)
-    _ = _ := by rw [mul_one]
+        ENNReal.ofReal (trListWeight u.1) * trKernel n ξ k (trPath v u.1 u.1.length) :=
+  ENNReal.tsum_le_tsum fun u ↦ mul_le_mul_left
+    (mul_le_of_le_one_right'
+      (ENNReal.ofReal_le_one.2 (exp_neg_gammaStar_mul_trCount_le_one v u.1 _))) _
 
 /-- If `m_k ≤ f` at the endpoints `x_{|u|}(v, u)` of the entry lists `u ∈ 𝓔(v)`, then
 `m_{k+1}(v)` is at most the same weighted sum with `m_k` replaced by `f`. -/
@@ -115,8 +112,7 @@ lemma trKernel_succ_le_of_le (k : ℕ) (v : ℤ × ℤ) (f : ℤ × ℤ → ℝ�
       ∑' u : trEntryWords n ξ (epsStar : ℝ) v,
         ENNReal.ofReal (trListWeight u.1) *
           ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u.1 u.1.length)) *
-            f (trPath v u.1 u.1.length) := by
-  rw [trKernel_succ]
-  exact ENNReal.tsum_le_tsum fun u ↦ by gcongr; exact hf u.1 u.2
+            f (trPath v u.1 u.1.length) :=
+  ENNReal.tsum_le_tsum fun u ↦ mul_le_mul_right (hf u.1 u.2) _
 
 end CollatzPosDens

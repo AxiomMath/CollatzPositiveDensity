@@ -48,18 +48,15 @@ open scoped ENNReal
 @[collatz_pos_dens "lem_tr_loss_nonneg"]
 theorem trBridgeLoss_nonneg (n : ℕ) (ξ : ResidueGroup n) (y : ℤ × ℤ) :
     0 ≤ trBridgeLoss n ξ y := by
-  have hm := trBridgeMass_le_one n ξ y
-  have hm' := trBridgeMass_ne_top n ξ y
   have hd : (dStar : ℝ) < 1 := by exact_mod_cast dStar_lt_one
-  have hg : (0 : EReal) ≤ (trBridgeGain n ξ y : EReal) := EReal.coe_ennreal_nonneg _
   have h1 : (0 : EReal) ≤
       ((1 - (dStar : ℝ) : ℝ) : EReal) * (1 - (trBridgeMass n ξ y : EReal)) := by
-    rw [← EReal.coe_ennreal_toReal hm', ← EReal.coe_one, ← EReal.coe_sub, ← EReal.coe_mul,
-      EReal.coe_nonneg]
+    rw [← EReal.coe_ennreal_toReal (trBridgeMass_ne_top n ξ y), ← EReal.coe_one, ← EReal.coe_sub,
+      ← EReal.coe_mul, EReal.coe_nonneg]
     have : (trBridgeMass n ξ y).toReal ≤ 1 := ENNReal.toReal_le_of_le_ofReal zero_le_one
-      (by simpa using hm)
+      (by simpa using trBridgeMass_le_one n ξ y)
     exact mul_nonneg (by linarith) (by linarith)
   rw [trBridgeLoss_def]
-  exact add_nonneg h1 hg
+  exact add_nonneg h1 (EReal.coe_ennreal_nonneg _)
 
 end CollatzPosDens

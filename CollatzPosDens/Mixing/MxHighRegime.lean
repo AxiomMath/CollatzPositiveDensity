@@ -28,19 +28,19 @@ public import Mathlib.Analysis.Real.Sqrt
 /-!
 # Oscillation of the reference law in the high regime
 
-Let `n ≥ 2 ^ 131072` and `m ≤ n` with `9 n ≤ 10 m`. Then the reference law `μ_n` has small
+Let `n ≥ 2 ^ 80000` and `m ≤ n` with `9 n ≤ 10 m`. Then the reference law `μ_n` has small
 oscillation at scale `m`:
-$$\mathrm{Osc}_{m,n}(\mu_n) \le \bigl(3 C_* 20^{A_*} + 2\bigr) n^{-9/8},
+$$\mathrm{Osc}_{m,n}(\mu_n) \le \bigl(3 C_* 20^{A_*} + 2\bigr) n^{-3/2},
 \qquad A_* = \tfrac{10241}{4096}.$$
 
-By the covering deficit, `∑_y |μ_n(y) - Sub^n_{𝒰_n}(y)| ≤ n^{-9/8}`, so the perturbation bound
-gives `Osc_{m,n}(μ_n) ≤ Osc_{m,n}(Sub^n_{𝒰_n}) + 2 n^{-9/8}`. The slice gates `Sl(n, k, l)`
+By the covering deficit, `∑_y |μ_n(y) - Sub^n_{𝒰_n}(y)| ≤ n^{-3/2}`, so the perturbation bound
+gives `Osc_{m,n}(μ_n) ≤ Osc_{m,n}(Sub^n_{𝒰_n}) + 2 n^{-3/2}`. The slice gates `Sl(n, k, l)`
 are pairwise disjoint, so `Sub^n_{𝒰_n}` is the sum of the slice submasses and, by
 subadditivity, its oscillation is at most the sum of theirs. Each slice contributes at most
 `δ √(x_{k,l} a_{k,l})` with `δ = C_* 20^{A_*} n^{-A_*}`, `x_{k,l} = 3^n 2^{-l}` and
 `a_{k,l} = 𝐩(Hd(n, k, l))`; only pairs with nonempty head gate contribute. The Cauchy–Schwarz
-inequality, the entropy-weight bound `∑ x_{k,l} ≤ 8 n^{5633/2048}` and the mass bound
-`∑ a_{k,l} ≤ 1` give `Osc_{m,n}(Sub^n_{𝒰_n}) ≤ √8 δ n^{5633/4096} ≤ 3 C_* 20^{A_*} n^{-9/8}`.
+inequality, the entropy-weight bound `∑ x_{k,l} ≤ 8 n^{4097/2048}` and the mass bound
+`∑ a_{k,l} ≤ 1` give `Osc_{m,n}(Sub^n_{𝒰_n}) ≤ √8 δ n^{4097/4096} ≤ 3 C_* 20^{A_*} n^{-3/2}`.
 
 ## Main results
 
@@ -64,13 +64,13 @@ namespace CollatzPosDens
 
 open Finset
 
-/-- The oscillation of the gate-union submass, for `n ≥ 2 ^ 131072` and `9 n ≤ 10 m`. -/
-private theorem oscillation_subMass_mxGateUnion_le {n m : ℕ} (hn : 2 ^ 131072 ≤ n)
+/-- The oscillation of the gate-union submass, for `n ≥ 2 ^ 80000` and `9 n ≤ 10 m`. -/
+private theorem oscillation_subMass_mxGateUnion_le {n m : ℕ} (hn : 2 ^ 80000 ≤ n)
     (hmn : m ≤ n) (h9 : 9 * n ≤ 10 * m) :
     oscillation hmn (fun y => (subMass n (mxGateUnion n) y).toReal) ≤
-      3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+      3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
   classical
-  set s : Finset (ℕ × ℕ) := range n ×ˢ range (2 * n) with hs
+  set s : Finset (ℕ × ℕ) := range n ×ˢ range (4 * n) with hs
   set I : Finset (ℕ × ℕ) := s.filter (fun p => (mxHeadGate n p.1 p.2).Nonempty) with hI
   set δ : ℝ := Cstar * 20 ^ (10241 / 4096 : ℝ) / (n : ℝ) ^ (10241 / 4096 : ℝ) with hδ
   set x : ℕ × ℕ → ℝ := fun p => (3 : ℝ) ^ n * (2⁻¹ : ℝ) ^ p.2 with hx
@@ -103,7 +103,7 @@ private theorem oscillation_subMass_mxGateUnion_le {n m : ℕ} (hn : 2 ^ 131072 
       Real.sqrt (∑ p ∈ I, x p) * Real.sqrt (∑ p ∈ I, a p) := by
     simp_rw [Real.sqrt_mul (hx0 _)]
     exact Real.sum_sqrt_mul_sqrt_le I hx0 ha0
-  have hxsum : ∑ p ∈ I, x p ≤ 8 * (n : ℝ) ^ ((5633 : ℝ) / 2048) := by
+  have hxsum : ∑ p ∈ I, x p ≤ 8 * (n : ℝ) ^ ((4097 : ℝ) / 2048) := by
     refine le_of_eq_of_le (sum_congr rfl fun p _ => ?_) (mxGateWeightSum_le hn)
     simp only [hx, zpow_neg, zpow_natCast, inv_pow]
   have hasum : ∑ p ∈ I, a p ≤ 1 := by
@@ -120,28 +120,28 @@ private theorem oscillation_subMass_mxGateUnion_le {n m : ℕ} (hn : 2 ^ 131072 
   have hsqrt8 : Real.sqrt 8 ≤ 3 := by
     rw [Real.sqrt_le_left (by norm_num)]
     norm_num
-  have hfinal : δ * (Real.sqrt (8 * (n : ℝ) ^ ((5633 : ℝ) / 2048)) * Real.sqrt 1) ≤
-      3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+  have hfinal : δ * (Real.sqrt (8 * (n : ℝ) ^ ((4097 : ℝ) / 2048)) * Real.sqrt 1) ≤
+      3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
     rw [Real.sqrt_one, mul_one, Real.sqrt_mul (by norm_num),
       Real.sqrt_eq_rpow ((n : ℝ) ^ _), ← Real.rpow_mul hnpos.le, hδ]
-    have hpow : (n : ℝ) ^ ((5633 : ℝ) / 2048 * (1 / 2)) / (n : ℝ) ^ (10241 / 4096 : ℝ) =
-        (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+    have hpow : (n : ℝ) ^ ((4097 : ℝ) / 2048 * (1 / 2)) / (n : ℝ) ^ (10241 / 4096 : ℝ) =
+        (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
       rw [← Real.rpow_sub hnpos]
       norm_num
     have hC : 0 ≤ Cstar * 20 ^ (10241 / 4096 : ℝ) := by
       have := Cstar_pos
       positivity
-    have hN : 0 ≤ (n : ℝ) ^ (-(9 / 8 : ℝ)) := by positivity
+    have hN : 0 ≤ (n : ℝ) ^ (-(3 / 2 : ℝ)) := by positivity
     calc Cstar * 20 ^ (10241 / 4096 : ℝ) / (n : ℝ) ^ (10241 / 4096 : ℝ) *
-          (Real.sqrt 8 * (n : ℝ) ^ ((5633 : ℝ) / 2048 * (1 / 2)))
+          (Real.sqrt 8 * (n : ℝ) ^ ((4097 : ℝ) / 2048 * (1 / 2)))
         = Real.sqrt 8 * (Cstar * 20 ^ (10241 / 4096 : ℝ)) *
-            ((n : ℝ) ^ ((5633 : ℝ) / 2048 * (1 / 2)) / (n : ℝ) ^ (10241 / 4096 : ℝ)) := by
+            ((n : ℝ) ^ ((4097 : ℝ) / 2048 * (1 / 2)) / (n : ℝ) ^ (10241 / 4096 : ℝ)) := by
           ring
-      _ = Real.sqrt 8 * (Cstar * 20 ^ (10241 / 4096 : ℝ)) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+      _ = Real.sqrt 8 * (Cstar * 20 ^ (10241 / 4096 : ℝ)) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
           rw [hpow]
-      _ ≤ 3 * (Cstar * 20 ^ (10241 / 4096 : ℝ)) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+      _ ≤ 3 * (Cstar * 20 ^ (10241 / 4096 : ℝ)) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
           gcongr
-      _ = 3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by ring
+      _ = 3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by ring
   rw [hsum]
   calc oscillation hmn (∑ p ∈ s, fun y => (subMass n (mxSliceGate n p.1 p.2) y).toReal)
       ≤ ∑ p ∈ s, oscillation hmn (fun y => (subMass n (mxSliceGate n p.1 p.2) y).toReal) :=
@@ -151,26 +151,26 @@ private theorem oscillation_subMass_mxGateUnion_le {n m : ℕ} (hn : 2 ^ 131072 
     _ = δ * ∑ p ∈ I, Real.sqrt (x p * a p) := by rw [hrestr, mul_sum]
     _ ≤ δ * (Real.sqrt (∑ p ∈ I, x p) * Real.sqrt (∑ p ∈ I, a p)) :=
         mul_le_mul_of_nonneg_left hCS hδ0
-    _ ≤ δ * (Real.sqrt (8 * (n : ℝ) ^ ((5633 : ℝ) / 2048)) * Real.sqrt 1) := by
+    _ ≤ δ * (Real.sqrt (8 * (n : ℝ) ^ ((4097 : ℝ) / 2048)) * Real.sqrt 1) := by
         gcongr
     _ ≤ _ := hfinal
 
-/-- **Oscillation in the high regime.** Let `n ≥ 2 ^ 131072` and `m ≤ n` with `9 n ≤ 10 m`.
-Then `Osc_{m,n}(μ_n) ≤ (3 C_* 20^{10241/4096} + 2) n^{-9/8}`. -/
+/-- **Oscillation in the high regime.** Let `n ≥ 2 ^ 80000` and `m ≤ n` with `9 n ≤ 10 m`.
+Then `Osc_{m,n}(μ_n) ≤ (3 C_* 20^{10241/4096} + 2) n^{-3/2}`. -/
 @[collatz_pos_dens "lem_mx_high_regime"]
-theorem oscillation_refLaw_le_of_nine_mul_le {n m : ℕ} (hn : 2 ^ 131072 ≤ n) (hmn : m ≤ n)
+theorem oscillation_refLaw_le_of_nine_mul_le {n m : ℕ} (hn : 2 ^ 80000 ≤ n) (hmn : m ≤ n)
     (h9 : 9 * n ≤ 10 * m) :
     oscillation hmn (fun y => (refLaw n y).toReal) ≤
-      (3 * Cstar * 20 ^ (10241 / 4096 : ℝ) + 2) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+      (3 * Cstar * 20 ^ (10241 / 4096 : ℝ) + 2) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
   have hoscU := oscillation_subMass_mxGateUnion_le hn hmn h9
   have hdefect := sum_abs_refLaw_sub_subMass_mxGateUnion_le n hn
   calc oscillation hmn (fun y => (refLaw n y).toReal)
       ≤ oscillation hmn (fun y => (subMass n (mxGateUnion n) y).toReal) +
           2 * ∑ y, |(refLaw n y).toReal - (subMass n (mxGateUnion n) y).toReal| :=
         oscillation_le_add_two_mul_sum_abs_sub hmn _ _
-    _ ≤ 3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(9 / 8 : ℝ)) +
-          2 * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+    _ ≤ 3 * Cstar * 20 ^ (10241 / 4096 : ℝ) * (n : ℝ) ^ (-(3 / 2 : ℝ)) +
+          2 * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
         gcongr
-    _ = (3 * Cstar * 20 ^ (10241 / 4096 : ℝ) + 2) * (n : ℝ) ^ (-(9 / 8 : ℝ)) := by ring
+    _ = (3 * Cstar * 20 ^ (10241 / 4096 : ℝ) + 2) * (n : ℝ) ^ (-(3 / 2 : ℝ)) := by ring
 
 end CollatzPosDens

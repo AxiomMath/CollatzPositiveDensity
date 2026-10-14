@@ -40,10 +40,7 @@ theorem log_le_sqrt {x : ℝ} (hx : 0 ≤ x) : Real.log x ≤ Real.sqrt x := by
   · simp
   have hs : 0 < Real.sqrt x := Real.sqrt_pos.2 hx
   have h1 := Real.log_le_sub_one_of_pos (half_pos hs)
-  have h2 := Real.log_le_sub_one_of_pos (two_pos (α := ℝ))
   rw [Real.log_div hs.ne' two_ne_zero] at h1
-  have h3 : Real.log x = 2 * Real.log (Real.sqrt x) := by
-    rw [Real.log_sqrt hx.le]; ring
-  linarith
+  linarith [Real.log_le_sub_one_of_pos (two_pos (α := ℝ)), Real.log_sqrt hx.le]
 
 end CollatzPosDens

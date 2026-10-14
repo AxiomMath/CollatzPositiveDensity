@@ -53,16 +53,18 @@ noncomputable def Dcap : ℕ := DcapAux Bstar LB
 
 /-- The defining formula of `D_cap`. -/
 theorem Dcap_def : Dcap = (Bstar * LB) ^ 2 := by
-  delta Dcap; exact DcapAux_def Bstar LB
+  delta Dcap
+  exact DcapAux_def Bstar LB
 
 /-- The defining formula of `D_cap`, cast into a semiring. -/
 @[simp, norm_cast]
 theorem cast_Dcap {R : Type*} [Semiring R] : (Dcap : R) = ((Bstar : R) * LB) ^ 2 := by
-  rw [Dcap_def]; push_cast; rfl
+  rw [Dcap_def, Nat.cast_pow, Nat.cast_mul]
 
 /-- `D_cap` is positive. -/
 theorem Dcap_pos : 0 < Dcap := by
-  rw [Dcap_def]; exact pow_pos (Nat.mul_pos Bstar_pos LB_pos) 2
+  rw [Dcap_def]
+  exact pow_pos (Nat.mul_pos Bstar_pos LB_pos) 2
 
 /-- `B_* L_B ≤ D_cap`. -/
 theorem Bstar_mul_LB_le_Dcap : Bstar * LB ≤ Dcap := by

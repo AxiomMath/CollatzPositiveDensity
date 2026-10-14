@@ -64,7 +64,7 @@ def blockListEquivFin (K : ℕ) :
     exact (x k).2⟩
   left_inv u := by
     obtain ⟨u, rfl, -⟩ := u
-    exact Subtype.ext (List.ofFn_getElem)
+    exact Subtype.ext List.ofFn_getElem
   right_inv x := by
     funext k
     simp
@@ -91,14 +91,12 @@ theorem tsum_trListWeight_le_one_of_prefixFree_cylinder {N : ℕ} (u : List (Lis
     (fun u' _ ↦ if u' = u then 1 else 0)
   simp only [trSublist_one] at h
   rw [h]
-  have hu' : (∀ x ∈ u, x ∈ {b : List ℤ × ℤ | b.2 ∈ ({4, 5} : Set ℤ)}) := hu
-  rw [tsum_eq_single (⟨u, rfl, hu'⟩ : {u' : List (List ℤ × ℤ) //
+  rw [tsum_eq_single (⟨u, rfl, hu⟩ : {u' : List (List ℤ × ℤ) //
       u'.length = u.length ∧ ∀ x ∈ u', x ∈ {b : List ℤ × ℤ | b.2 ∈ ({4, 5} : Set ℤ)}})]
   · simp only [ite_true, mul_one]
     rw [ENNReal.tsum_mul_left, tsum_ofReal_trListWeight_length_eq, mul_one]
   · intro v hv
-    have : v.1 ≠ u := fun h ↦ hv (Subtype.ext h)
-    simp [this]
+    simp [show v.1 ≠ u from fun h ↦ hv (Subtype.ext h)]
 
 /-- **Prefix-free families of block lists.** If `F` is a set of block lists, each of length at
 most `M`, no element of which is a proper prefix of another, then `∑_{u ∈ F} bw^⊗(u) ≤ 1`. -/
@@ -139,6 +137,6 @@ theorem tsum_trListWeight_le_one_of_prefixFree (M : ℕ) (F : Set (List (List �
                 (List.prefix_of_prefix_length_le hwp hvp h)).symm
         · push Not at hex
           simp [hex]
-    _ = 1 := by simp_rw [mul_one]; exact tsum_ofReal_trListWeight_length_eq M
+    _ = 1 := by simpa only [mul_one] using tsum_ofReal_trListWeight_length_eq M
 
 end CollatzPosDens

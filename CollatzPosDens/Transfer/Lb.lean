@@ -50,19 +50,23 @@ noncomputable def LB : ℕ := bitLength Bstar
 
 /-- The defining formula `L_B = bl(B_*)`. -/
 theorem LB_def : LB = bitLength Bstar := by
-  delta LB; rfl
+  delta LB
+  rfl
 
 /-- `L_B ≤ k ↔ B_* < 2^k`. -/
 theorem LB_le_iff {k : ℕ} : LB ≤ k ↔ Bstar < 2 ^ k := by
-  rw [LB_def]; exact bitLength_le_iff
+  rw [LB_def]
+  exact bitLength_le_iff
 
 /-- `k < L_B ↔ 2^k ≤ B_*`. -/
 theorem lt_LB_iff {k : ℕ} : k < LB ↔ 2 ^ k ≤ Bstar := by
-  rw [LB_def]; exact bitLength_lt_iff
+  rw [LB_def]
+  exact bitLength_lt_iff
 
 /-- `L_B` is positive, since `B_*` is. -/
 theorem LB_pos : 0 < LB := by
-  rw [LB_def]; exact bitLength_pos.2 Bstar_pos
+  rw [LB_def]
+  exact bitLength_pos.2 Bstar_pos
 
 /-- `B_* < 2^L_B`. -/
 theorem Bstar_lt_two_pow_LB : Bstar < 2 ^ LB := LB_le_iff.1 le_rfl

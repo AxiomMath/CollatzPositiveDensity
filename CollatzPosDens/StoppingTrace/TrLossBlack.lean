@@ -53,7 +53,7 @@ variable {n : ℕ} {ξ : ResidueGroup n} {y : ℤ × ℤ}
 /-- At a black point `y`, the bridge gain is `H(y) = δ_tr(gap(y))`. -/
 lemma trBridgeGain_of_bkBlack (hy : BkBlack n ξ (epsStar : ℝ) y) :
     trBridgeGain n ξ y = ENNReal.ofReal (trDelta (trGap n ξ (epsStar : ℝ) y)) := by
-  rw [trBridgeGain_def, trFirstStopSet_eq_singleton_nil_of_bkBlack hy]
+  rw [trBridgeGain_def, trFirstStopSet_of_bkBlack hy]
   refine (tsum_singleton ([] : List (List ℤ × ℤ)) fun b ↦ ENNReal.ofReal (trListWeight b) *
     ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ y b b.length)) *
       ENNReal.ofReal

@@ -67,9 +67,7 @@ theorem take_mem_mxHeadGate_of_mem_mxSliceGate {n k l : ℕ} {w : Word}
 
 /-- The slice gate `Sl(n, k, l)` is empty unless `k < n`. -/
 theorem mxSliceGate_eq_empty_of_le {n k l : ℕ} (h : n ≤ k) : mxSliceGate n k l = ∅ := by
-  ext w
-  simp only [mem_mxSliceGate, Set.mem_empty_iff_false, iff_false, not_and]
-  intro hn hw
+  refine Set.eq_empty_of_forall_notMem fun w ⟨hn, hw⟩ => ?_
   have := length_of_mem_mxHeadGate hw
   simp only [List.length_take] at this
   omega

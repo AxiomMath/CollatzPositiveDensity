@@ -61,13 +61,7 @@ theorem tsum_trLow_diff_trBad_trFreshLaw_le {n : ℕ} {ξ : ResidueGroup n} (hξ
       ∑' a : trEStar n ξ e, ENNReal.ofReal (trFreshLaw n e g a) +
         ENNReal.ofReal (1 / (PT : ℝ)) + ENNReal.ofReal ((2 : ℝ) ^ (-43 : ℤ)) := by
   set μ : (ℕ × ℤ) × List (List ℤ × ℤ) → ℝ≥0∞ := fun a ↦ ENNReal.ofReal (trFreshLaw n e g a)
-    with hμ
-  set R := trLow n ξ e \ (trBad n e m ∪ trEStar n ξ e ∪ trClear n) with hR
-  have hRle : ∑' a : R, μ a ≤ ENNReal.ofReal (1 / (PT : ℝ)) :=
-    (tsum_trFreshLaw_trLow_diff_le hξ he hm g hP).trans
-      (ENNReal.ofReal_le_ofReal exp_gammaStar_mul_rhoStar_pow_lt.le)
-  have hClr : ∑' a : trClear n, μ a ≤ ENNReal.ofReal ((2 : ℝ) ^ (-43 : ℤ)) :=
-    (tsum_trFreshLaw_trClear_lt n e g hP).le
+  set R := trLow n ξ e \ (trBad n e m ∪ trEStar n ξ e ∪ trClear n)
   calc ∑' a : ↥(trLow n ξ e \ trBad n e m), μ a
       ≤ ∑' a : trEStar n ξ e, μ a + ∑' a : R, μ a + ∑' a : trClear n, μ a := by
         rw [tsum_subtype (trLow n ξ e \ trBad n e m) μ, tsum_subtype (trEStar n ξ e) μ,
@@ -89,5 +83,8 @@ theorem tsum_trLow_diff_trBad_trFreshLaw_le {n : ℕ} {ξ : ResidueGroup n} (hξ
     _ ≤ ∑' a : trEStar n ξ e, μ a + ENNReal.ofReal (1 / (PT : ℝ)) +
           ENNReal.ofReal ((2 : ℝ) ^ (-43 : ℤ)) := by
         gcongr
+        · exact (tsum_trFreshLaw_trLow_diff_le hξ he hm g hP).trans
+            (ENNReal.ofReal_le_ofReal exp_gammaStar_mul_rhoStar_pow_lt.le)
+        · exact (tsum_trFreshLaw_trClear_lt n e g hP).le
 
 end CollatzPosDens

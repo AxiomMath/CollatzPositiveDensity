@@ -51,11 +51,10 @@ theorem chQm_le_chQm_pred (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {A : ℝ} (
   have hp1 : 1 ≤ bkJ p := hp
   by_cases hcase : ((n / 2 : ℕ) : ℤ) ≤ bkJ p + (m - 1 : ℕ)
   · exact chQm_dominate n ξ ε hA (m - 1) hp (by omega)
-  · have hJ : bkJ p + m = ((n / 2 : ℕ) : ℤ) := by omega
-    have hd : chDist n p = m := by
-      have := chDist_eq_of_lt (n := n) (p := p) (by omega); omega
-    have hmpos : (0 : ℝ) < m := by exact_mod_cast hm
-    rw [hd, ← le_inv_mul_iff₀ (by positivity), ← Real.rpow_neg hmpos.le]
-    exact h p hp hJ
+  · have hd : chDist n p = m := by
+      have := chDist_eq_of_lt (n := n) (p := p) (by omega)
+      omega
+    rw [hd, ← le_inv_mul_iff₀ (by positivity), ← Real.rpow_neg m.cast_nonneg]
+    exact h p hp (by omega)
 
 end CollatzPosDens

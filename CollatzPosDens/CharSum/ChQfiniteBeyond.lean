@@ -66,10 +66,10 @@ theorem chQFinite_eq_one_of_lt_bkJ (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K
   rw [chQFinite_eq_tsum, ← tsum_prod_chBlockWeight K]
   refine tsum_congr fun β ↦ ?_
   unfold chQFiniteTerm
-  rw [Finset.prod_eq_one fun i _ ↦ chWhiteFactor_of_not_isBkWhite fun hw ↦ by
-      have := hw.bkJ_le; have := hge (List.ofFn fun k ↦ (β k).1) i; omega,
+  rw [Finset.prod_eq_one fun i _ ↦ chWhiteFactor_of_not_isBkWhite fun hw ↦
+      (hw.bkJ_le.trans_lt (hp.trans_le (hge _ i))).false,
     Finset.prod_eq_one fun k _ ↦ chQFinite_eq_one_of_lt_bkJ_chInternalWeight ξ ε
-      (by have := hge (List.ofFn fun k ↦ (β k).1) k; omega) _]
+      (by exact hp.le.trans (hge _ _)) _]
   ring
 
 end CollatzPosDens

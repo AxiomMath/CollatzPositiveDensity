@@ -47,10 +47,11 @@ private theorem abs_bkTheta_eq_two_mul_of_step (n : ℕ) (ξ : ResidueGroup n) {
     (hj : 1 ≤ j) (hsmall : 2 * |bkTheta n ξ (j, l + 1)| < 1 / 2) :
     |bkTheta n ξ (j, l)| = 2 * |bkTheta n ξ (j, l + 1)| := by
   have hexp : Real.exp (bkSe (j, l + 1) (j, l)) = 2 := by
-    rw [exp_bkSe]; simp [bkJ, bkL]
-  have h := abs_bkTheta_eq_exp_bkSe_mul n ξ (a := (j, l + 1)) (q := (j, l)) hj hj le_rfl
-    (show l ≤ l + 1 by omega) (by rw [hexp]; exact hsmall)
-  rwa [hexp] at h
+    rw [exp_bkSe]
+    simp [bkJ, bkL]
+  rw [← hexp]
+  exact abs_bkTheta_eq_exp_bkSe_mul n ξ hj hj le_rfl (show l ≤ l + 1 by omega)
+    (by rwa [hexp])
 
 /-- **A black column ends within `2n` steps.** Let `ξ` be a unit, `ε < 1/4` and let
 `p = (j, l) ∈ 𝒫` be black. Then there is an integer `t` with `1 ≤ t ≤ 2n` such that
@@ -75,16 +76,16 @@ theorem exists_isBkWhite_of_bkBlack {n : ℕ} {ξ : ResidueGroup n} (hξ : IsRes
       |bkTheta n ξ (j, l)| = 2 ^ u * |bkTheta n ξ (j, l + u)| := by
     intro u
     induction u with
-    | zero => intro _; simp
+    | zero => simp
     | succ u ih =>
       intro hu
-      have hstep := abs_bkTheta_eq_two_mul_of_step n ξ (l := l + u) hp
-        (by have := hblack (u + 1) hu; push_cast at this; rw [add_assoc]; linarith)
-      rw [ih (by omega), hstep]
+      have h := hblack (u + 1) hu
+      push_cast at h
+      rw [ih (by omega), abs_bkTheta_eq_two_mul_of_step n ξ (l := l + u) hp
+        (by rw [add_assoc]; linarith)]
       push_cast
       rw [add_assoc]
       ring
-  have h4 := hscale (2 * n) le_rfl
   have hstrip := one_third_le_three_zpow_mul_abs_bkTheta hξ (p := (j, l + ((2 * n : ℕ) : ℤ)))
     (by simpa using hp) (by simpa using hb.1)
   simp only [bkJ] at hstrip
@@ -94,9 +95,7 @@ theorem exists_isBkWhite_of_bkBlack {n : ℕ} {ξ : ResidueGroup n} (hξ : IsRes
       _ = 3 ^ n := zpow_natCast _ _
       _ ≤ 4 ^ n := pow_le_pow_left₀ (by norm_num) (by norm_num) n
       _ = 2 ^ (2 * n) := by rw [pow_mul]; norm_num
-  have habs := abs_nonneg (bkTheta n ξ (j, l + ((2 * n : ℕ) : ℤ)))
-  have := mul_le_mul_of_nonneg_right hpow habs
-  have hle := hb.2
-  linarith
+  linarith [hscale (2 * n) le_rfl, hb.2,
+    mul_le_mul_of_nonneg_right hpow (abs_nonneg (bkTheta n ξ (j, l + ((2 * n : ℕ) : ℤ))))]
 
 end CollatzPosDens

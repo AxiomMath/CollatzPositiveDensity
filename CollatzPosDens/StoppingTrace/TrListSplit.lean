@@ -54,11 +54,9 @@ private def appendEquiv {α : Type*} (B : Set α) (a b : ℕ) :
     rcases List.mem_append.mp hx with h | h
     exacts [p.1.2.2 x h, p.2.2.2 x h]⟩
   invFun β :=
-    (⟨trSublist β.1 1 a, by
-        rw [length_trSublist le_rfl (by omega)]; omega,
+    (⟨trSublist β.1 1 a, (length_trSublist le_rfl (by omega)).trans (by omega),
         fun x hx ↦ β.2.2 x (mem_of_mem_trSublist hx)⟩,
-      ⟨trSublist β.1 (a + 1) (a + b), by
-        rw [length_trSublist (by omega) (by omega)]; omega,
+      ⟨trSublist β.1 (a + 1) (a + b), (length_trSublist (by omega) (by omega)).trans (by omega),
         fun x hx ↦ β.2.2 x (mem_of_mem_trSublist hx)⟩)
   left_inv p := by
     obtain ⟨⟨u, hu, -⟩, ⟨f, hf, -⟩⟩ := p
@@ -86,12 +84,9 @@ theorem tsum_trListWeight_trSublist (B : Set (List ℤ × ℤ)) (a b : ℕ)
         ∑' f : {f : List (List ℤ × ℤ) // f.length = b ∧ ∀ x ∈ f, x ∈ B},
           ENNReal.ofReal (trListWeight u.1) * ENNReal.ofReal (trListWeight f.1) * Ψ u.1 f.1 := by
   rw [← ENNReal.tsum_prod, ← (appendEquiv B a b).tsum_eq]
-  refine tsum_congr fun p ↦ ?_
-  obtain ⟨⟨u, hu, -⟩, ⟨f, hf, -⟩⟩ := p
+  refine tsum_congr fun ⟨⟨u, hu, _⟩, ⟨f, hf, _⟩⟩ ↦ ?_
   subst hu hf
-  change ENNReal.ofReal (trListWeight (u ++ f)) *
-      Ψ (trSublist (u ++ f) 1 u.length) (trSublist (u ++ f) (u.length + 1)
-        (u.length + f.length)) = _
+  simp only [appendEquiv, Equiv.coe_fn_mk]
   rw [trSublist_append_left, trSublist_append_right, trListWeight_append,
     ENNReal.ofReal_mul (trListWeight_nonneg u)]
 

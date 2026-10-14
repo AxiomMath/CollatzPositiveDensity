@@ -11,59 +11,55 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # A root dominates the logarithm
 
-For every real `x ≥ 2^131072` we have `1280 log x < x^{1/2048}`.
+For every real `x ≥ 2^80000` we have `1280 log x < x^{1/2048}`.
 
-Put `δ = 1/4096`, so that `x^{1/2048} = x^δ · x^δ` and `x^δ ≥ (2^131072)^δ = 2^32`. The
-elementary bound `log x ≤ x^δ / δ = 4096 x^δ` gives
-`1280 log x ≤ 1280 · 4096 · x^δ < 2^32 · x^δ ≤ x^δ · x^δ = x^{1/2048}`.
+Put `ε = 1/5120`, so that `x^{1/2048} = x^ε · x^{3/10240}` and
+`x^{3/10240} ≥ (2^80000)^{3/10240} = 2^{375/16} ≥ 2^23`. The elementary bound
+`log x ≤ x^ε / ε = 5120 x^ε` gives
+`1280 log x ≤ 1280 · 5120 · x^ε < 2^23 · x^ε ≤ x^{3/10240} · x^ε = x^{1/2048}`.
 
 ## Main results
 
-* `CollatzPosDens.mul_log_lt_rpow_of_two_pow_131072_le`: `1280 log x < x^{1/2048}` for
-  `x ≥ 2^131072`.
+* `CollatzPosDens.mul_log_lt_rpow_of_two_pow_80000_le`: `1280 log x < x^{1/2048}` for
+  `x ≥ 2^80000`.
 
 ## Implementation notes
 
-Mazur's proof compares `x^δ / log x` with its value at `x₀ = 2^131072` by the mean value
-theorem, using numerical bounds on `log 2`. Here the general inequality `log x ≤ x^δ / δ`
-replaces that monotonicity argument: since `1280 / δ = 1280 · 4096 < 2^32 ≤ x^δ`, no bound on
-`log 2` is needed.
+The source compares `x^δ / log x` (`δ = 1/4096`) with its value at `x₀ = 2^80000` by the mean
+value theorem, using the numerical bounds on `log 2`. Here the general inequality
+`log x ≤ x^ε / ε` with `ε = 1/5120` replaces that monotonicity argument: since
+`1280 / ε = 6553600 < 2^23 ≤ x^{1/2048 - ε}`, no bound on `log 2` is needed.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026],
-  §13.4.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- A root dominates the logarithm: for every real `x ≥ 2^131072`, `1280 log x < x^{1/2048}`. -/
+/-- A root dominates the logarithm: for every real `x ≥ 2^80000`, `1280 log x < x^{1/2048}`. -/
 @[collatz_pos_dens "lem_mx_root_vs_log"]
-theorem mul_log_lt_rpow_of_two_pow_131072_le {x : ℝ} (hx : (2 : ℝ) ^ 131072 ≤ x) :
+theorem mul_log_lt_rpow_of_two_pow_80000_le {x : ℝ} (hx : (2 : ℝ) ^ 80000 ≤ x) :
     1280 * Real.log x < x ^ ((1 : ℝ) / 2048) := by
-  have h0 : (0 : ℝ) < (2 : ℝ) ^ 131072 := by positivity
+  have h0 : (0 : ℝ) < (2 : ℝ) ^ 80000 := by positivity
   have hx0 : 0 < x := h0.trans_le hx
-  set δ : ℝ := 1 / 4096 with hδ
-  have hδ0 : 0 < δ := by norm_num [hδ]
-  have hbase : ((2 : ℝ) ^ 131072) ^ δ = 2 ^ 32 := by
-    have : (2 : ℝ) ^ 131072 = ((2 : ℝ) ^ 32) ^ (4096 : ℕ) := by rw [← pow_mul]
-    rw [this, hδ, one_div]
-    rw [show (4096 : ℝ) = ((4096 : ℕ) : ℝ) by norm_num]
-    exact Real.pow_rpow_inv_natCast (by positivity) (by norm_num)
-  have hroot : (2 : ℝ) ^ 32 ≤ x ^ δ := by
-    rw [← hbase]
-    exact Real.rpow_le_rpow h0.le hx hδ0.le
-  have hpos : 0 < x ^ δ := Real.rpow_pos_of_pos hx0 δ
-  have hlog : Real.log x ≤ x ^ δ / δ := Real.log_le_rpow_div hx0.le hδ0
-  have hsplit : x ^ ((1 : ℝ) / 2048) = x ^ δ * x ^ δ := by
-    rw [← Real.rpow_add hx0, hδ]; norm_num
-  rw [hsplit]
-  have hdiv : x ^ δ / δ = 4096 * x ^ δ := by rw [hδ]; field_simp
+  set ε : ℝ := 1 / 5120 with hε
+  have hbase : (2 : ℝ) ^ (23 : ℝ) ≤ ((2 : ℝ) ^ 80000) ^ ((3 : ℝ) / 10240) := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul (by norm_num)]
+    exact Real.rpow_le_rpow_of_exponent_le (by norm_num) (by norm_num)
+  have hroot : (2 : ℝ) ^ 23 ≤ x ^ ((3 : ℝ) / 10240) := by
+    exact_mod_cast hbase.trans (Real.rpow_le_rpow h0.le hx (by norm_num))
+  have hpos : 0 < x ^ ε := Real.rpow_pos_of_pos hx0 ε
+  have hlog : Real.log x ≤ x ^ ε / ε := Real.log_le_rpow_div hx0.le (by norm_num [hε])
+  rw [show x ^ ((1 : ℝ) / 2048) = x ^ ((3 : ℝ) / 10240) * x ^ ε by
+    rw [← Real.rpow_add hx0, hε]
+    norm_num]
+  have hdiv : x ^ ε / ε = 5120 * x ^ ε := by rw [hε]; field_simp
   rw [hdiv] at hlog
-  calc 1280 * Real.log x ≤ 1280 * (4096 * x ^ δ) := by gcongr
-    _ < 2 ^ 32 * x ^ δ := by nlinarith
-    _ ≤ x ^ δ * x ^ δ := by gcongr
+  calc 1280 * Real.log x ≤ 1280 * (5120 * x ^ ε) := by gcongr
+    _ < 2 ^ 23 * x ^ ε := by nlinarith
+    _ ≤ x ^ ((3 : ℝ) / 10240) * x ^ ε := by gcongr
 
 end CollatzPosDens

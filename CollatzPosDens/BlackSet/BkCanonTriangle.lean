@@ -84,8 +84,7 @@ theorem bkCanonSize_eq_ite (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ �
       if bkTheta n ξ (bkRowStart n ξ ε p, bkColTop n ξ ε p) = 0 then 0
       else Real.log (ε / |bkTheta n ξ (bkRowStart n ξ ε p, bkColTop n ξ ε p)|) := by
   split_ifs with h
-  · exact bkCanonSize_eq_zero_of_bkTheta_eq_zero h
-  · rfl
+  exacts [bkCanonSize_eq_zero_of_bkTheta_eq_zero h, rfl]
 
 /-- The canonical triangle `Δ(p) := (j_*(p), l_*(p), log (ε / |ϑ(j_*(p), l_*(p))|))` at a point
 `p ∈ 𝒫`, with third entry `0` if `ϑ(j_*(p), l_*(p)) = 0`. -/

@@ -66,7 +66,7 @@ theorem exists_bkBlack_trFreshPath_of_mem_trLow_diff_trBad {n : ℕ} {ξ : Resid
   have hatom : a ∈ trAtoms n := hlow.1
   have hTP : tStar + 1 ≤ pStar - 1 := by
     have h1 := pInit_le_schedule rStar
-    have h2 := pStar_def
+    have := pStar_def
     rw [pInit_def] at h1
     rw [tStar_def]
     omega
@@ -78,17 +78,15 @@ theorem exists_bkBlack_trFreshPath_of_mem_trLow_diff_trBad {n : ℕ} {ξ : Resid
         IsBkWhite n ξ (epsStar : ℝ) (trPath (bkJ e + a.1.1, bkL e + a.1.2) a.2 i) := by
       intro i hi
       rw [Finset.mem_Icc] at hi
-      rw [Finset.mem_filter, Finset.mem_Icc]
-      exact ⟨⟨hi.1, hi.2.trans hTP⟩, h i hi.1 hi.2⟩
+      exact Finset.mem_filter.2 ⟨Finset.mem_Icc.2 ⟨hi.1, hi.2.trans hTP⟩, h i hi.1 hi.2⟩
     have hcard := Finset.card_le_card hsub
     rw [Nat.card_Icc] at hcard
     have hcount := card_white_le_trCount (n := n) (ξ := ξ)
       (bkJ e + a.1.1, bkL e + a.1.2) a.2 hlen
     have hlowle := trWhiteCount_le_of_mem_trLow hlow
     rw [trWhiteCount_def] at hlowle
-    have : ((tStar + 1 + 1 - 1 : ℕ) : ℝ) ≤ (tStar : ℝ) :=
-      (Nat.cast_le.2 hcard).trans (hcount.trans hlowle)
-    have : tStar + 1 + 1 - 1 ≤ tStar := by exact_mod_cast this
+    have : tStar + 1 + 1 - 1 ≤ tStar := by
+      exact_mod_cast (Nat.cast_le.2 hcard).trans (hcount.trans hlowle)
     omega
   have hjc := bkJ_trFreshPath_le_of_notMem_trBad hm hatom hbad (t := c) (by omega)
   exact ⟨c, hc1, hc2, by omega, hjc, not_lt.1 fun hlt => hw ⟨hjc, hlt⟩⟩

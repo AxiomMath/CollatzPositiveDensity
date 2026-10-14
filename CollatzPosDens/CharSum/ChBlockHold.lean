@@ -87,8 +87,7 @@ theorem exists_mem_holdWords_holdWordBlock_eq {n : ℕ} {l : ℤ} {β : List ℤ
     · simpa [w] using hc _ (List.get_mem c i)
     · simpa [w] using he
     · simp only [w, Fin.snoc_castSucc, Fin.snoc_last]
-      rw [← List.sum_ofFn, List.ofFn_get]
-      exact hsum
+      rwa [← List.sum_ofFn, List.ofFn_get]
   refine ⟨w, hw, ?_⟩
   simp only [holdWordBlock, w, Fin.snoc_castSucc, Fin.snoc_last, List.ofFn_get]
 

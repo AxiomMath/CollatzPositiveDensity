@@ -34,19 +34,18 @@ public import CollatzPosDens.FirstCrossing.SurvivalProduct
 /-!
 # The central increment bound
 
-Let `M` be an odd positive integer and `n ≥ 9200000`. Then
+Let `M` be an odd positive integer and `n ≥ 6000000`. Then
 $$|Z_{n+1}(M) - Z_n(M)| \le F\, n^{5/2}\, \varrho^n.$$
 
-Write `b = scale n` and `Q = hb b + level (n + 1)`. Since `b ≥ scale 444 = 16544`, the growth
-step is `eb b = ⌈b/100⌉`, and `Q ≤ 2b`. By `weightedCentralSum_succ_sub`, the increment
-`Z_{n+1}(M) - Z_n(M)` is `∑_{h ∈ 𝓗_n(M)} ω(h) f_n(R_h mod 3^Q)`, and
-`pairing_finsum_weight_mul_abs_le` bounds its absolute value by
-`(4075/56)(277/128) n^{5/2} 𝖦^n ⟨|f_n|⟩_Q`. The transfer estimate
-`residueAvg_abs_sum_liftedTransfer_refDensity_sub_le`, applied to the finite prefix-free family
-`centralFamily b (cap n)` with `k = level (n + 1)` and `ℓ = level n` (both at least `2^131072` by
-`level_gate`), bounds `⟨|f_n|⟩_Q` by `(2/3)(C k^{-9/8} + C ℓ^{-9/8} + Δ_n)`, where
-`Δ_n = 1 - 𝐩(centralFamily b (cap n))` lies in `[0, (2^121 + 1024 + 2^{-16}) ς^n]`, and
-`bracket_decay_lt` bounds this by `(2/3)(28/1000)(C + 1) ς^n`. Finally `𝖦 ς = ϱ`, and
+Write `b = b_n` and `Q = h_b + k_{n+1}`. Since `b ≥ b_{444} = 16544`, the growth step is
+`e_b = ⌈b/100⌉`, and `Q ≤ 2b`. By the increment identity,
+`Z_{n+1}(M) - Z_n(M) = ∑_{h ∈ 𝓗_n(M)} ω(h) f_n(R_h mod 3^Q)`, and the pairing estimate bounds
+its absolute value by `(4075/56)(277/128) n^{5/2} 𝖦^n ⟨|f_n|⟩_Q`. The finite-transfer estimate,
+applied to the finite prefix-disjoint family `𝒞(b, K_n)` with `k = k_{n+1}` and `ℓ = k_n` (both
+at least `2^80000` by the level gate), bounds `⟨|f_n|⟩_Q` by
+`(2/3)(C k_{n+1}^{-3/2} + C k_n^{-3/2} + Δ_n)` with
+`Δ_n = 1 - 𝐩(𝒞(b, K_n)) ∈ [0, (1024 + 2^{-16}) ς^n]`, and the bracket-decay lemma bounds
+this by `(2/3)(28/1000)(C + 1) ς^n`. Finally `𝖦 ς = ϱ`, and
 `(4075/56)(277/128)(2/3)(28/1000) = 45151/15360 < 3`, with `F = 3 (C + 1)`.
 
 ## Main results
@@ -60,7 +59,7 @@ integer, cast to `ℚ` as in the definition of `Z_n(M)`.
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -96,8 +95,8 @@ lemma one_sub_geomMass_centralFamily_toReal_le (n : ℕ) :
   refine h.trans (mul_le_mul_of_nonneg_right ?_ (by positivity))
   norm_num
 
-/-- The residue average `⟨|f_n|⟩_Q` satisfies `⟨|f_n|⟩_Q ≤ (2/3)(28/1000)(C + 1) ς^n`. -/
-lemma residueAvg_abs_centralIncrementDensity_le {n : ℕ} (hn : 9200000 ≤ n) :
+/-- The finite-transfer estimate: `⟨|f_n|⟩_Q ≤ (2/3)(28/1000)(C + 1) ς^n`. -/
+lemma residueAvg_abs_centralIncrementDensity_le {n : ℕ} (hn : 6000000 ≤ n) :
     residueAvg (hb (scale n) + level (n + 1)) (fun y => |centralIncrementDensity n y|) ≤
       2 / 3 * (28 / 1000 * (mixingConst + 1) * deficitRate ^ n) := by
   classical
@@ -110,7 +109,7 @@ lemma residueAvg_abs_centralIncrementDensity_le {n : ℕ} (hn : 9200000 ≤ n) :
   have hlen : ∀ w ∈ V, w.length ≤ hb (scale n) := fun w hw =>
     length_le_hb_of_mem_firstCrossing ((Set.Finite.mem_toFinset _).1 hw).1
   have htr := residueAvg_abs_sum_liftedTransfer_refDensity_sub_le hV
-    (level_gate (by omega) : 2 ^ 131072 ≤ level (n + 1)) hlen (level_gate hn)
+    (level_gate (by omega) : 2 ^ 80000 ≤ level (n + 1)) hlen (level_gate hn)
     (centralIncrementDensity_level_le n)
   have hfeq : ∀ y, centralIncrementDensity n y = ∑ w ∈ V.attach,
       liftedTransfer w.1 (Nat.add_le_add_right (hlen w.1 w.2) _) (refDensity (level (n + 1))) y -
@@ -124,18 +123,18 @@ lemma residueAvg_abs_centralIncrementDensity_le {n : ℕ} (hn : 9200000 ≤ n) :
   simp only [← hfeq, hVcoe] at htr
   have hbr := bracket_decay_lt (by omega : 444 ≤ n) (level_monotone (Nat.le_succ n)) le_rfl
     (one_sub_geomMass_centralFamily_toReal_nonneg n) (one_sub_geomMass_centralFamily_toReal_le n)
-  have hconv : ∀ k : ℕ, mixingConst / (k : ℝ) ^ (9 / 8 : ℝ) =
-      mixingConst * (k : ℝ) ^ (-(9 / 8) : ℝ) := fun k => by
+  have hconv : ∀ k : ℕ, mixingConst / (k : ℝ) ^ (3 / 2 : ℝ) =
+      mixingConst * (k : ℝ) ^ (-(3 / 2) : ℝ) := fun k => by
     rw [Real.rpow_neg (Nat.cast_nonneg _), div_eq_mul_inv]
   refine htr.trans ?_
   rw [hconv, hconv]
   linarith
 
-/-- For an odd positive integer `M` and `n ≥ 9200000`, `|Z_{n+1}(M) - Z_n(M)| ≤ F n^{5/2} ϱ^n`,
-where `F = errorPrefactor` and `ϱ = errorDecayRatio`. -/
+/-- **Central increment bound.** For an odd positive integer `M` and
+`n ≥ 6000000`, `|Z_{n+1}(M) - Z_n(M)| ≤ F n^{5/2} ϱ^n`. -/
 @[collatz_pos_dens "lem_central_increment"]
 theorem abs_weightedCentralSum_succ_sub_le {M : ℤ} (hodd : Odd M) (hM : 0 < M) {n : ℕ}
-    (hn : 9200000 ≤ n) :
+    (hn : 6000000 ≤ n) :
     |weightedCentralSum (n + 1) M - weightedCentralSum n M| ≤
       errorPrefactor * (n : ℝ) ^ (5 / 2 : ℝ) * errorDecayRatio ^ n := by
   classical

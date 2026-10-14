@@ -52,8 +52,7 @@ private theorem sum_fxChar_fiber_eq_mul {m n : ℕ} (h : m ≤ n) (ξ y' : Resid
   symm
   refine sum_nbij (fun t : ℕ => y' + ((3 ^ m * t : ℕ) : ResidueGroup n)) ?_ ?_ ?_ ?_
   · intro t ht
-    have := hb.mapsTo (Set.mem_Iio.2 (mem_range.1 ht))
-    simpa using this
+    simpa using hb.mapsTo (Set.mem_Iio.2 (mem_range.1 ht))
   · intro s hs t ht hst
     exact hb.injOn (Set.mem_Iio.2 (mem_range.1 hs)) (Set.mem_Iio.2 (mem_range.1 ht)) hst
   · intro y hy
@@ -73,8 +72,7 @@ private theorem sum_fxChar_kernel_eq {m n : ℕ} (h : m ≤ n) (ξ : ResidueGrou
     intro t
     rw [fxChar_eq_exp_of_intModEq n _ (-(ξ.val * 3 ^ m * t : ℤ))]
     · congr 1
-      have h3 : (3 : ℂ) ^ n = 3 ^ m * 3 ^ (n - m) := by exact_mod_cast hpow
-      rw [h3]
+      rw [show (3 : ℂ) ^ n = 3 ^ m * 3 ^ (n - m) by exact_mod_cast hpow]
       push_cast
       field_simp
     · have hc := (ZMod.intCast_eq_intCast_iff (-(ξ.val * 3 ^ m * t : ℤ))
@@ -118,7 +116,9 @@ theorem fxDft_sub_fiberAvg {m n : ℕ} (h : m ≤ n) (c d : ResidueGroup n → �
           refine sum_congr rfl fun y _ => ?_
           simp only [eq_comm (a := residueReduction h y')]
           split_ifs <;> simp
-      _ = _ := by rw [this, ← hS]; ring
+      _ = _ := by
+          rw [this, ← hS]
+          ring
   have hsplit : fxDft n (fun y => (d y : ℂ)) ξ =
       fxDft n (fun y => (c y : ℂ)) ξ - fxDft n (fun y => (fiberAvg h c y : ℂ)) ξ := by
     simp only [fxDft_apply, hd, ← sum_sub_distrib]

@@ -95,8 +95,7 @@ theorem max_sub_one_rpow_neg_le_mul_exp_moRate {A : ℝ} (hA : 0 ≤ A) {m : ℕ
     exact Real.rpow_le_rpow hm0.le (natCast_le_max_sub_mul_exp m r hm) hA
   have hmA : 0 < (m : ℝ) ^ A := Real.rpow_pos_of_pos hm0 A
   have hMA : 0 < ((max (m - r) 1 : ℕ) : ℝ) ^ A := Real.rpow_pos_of_pos hM0 A
-  rw [Real.rpow_neg hM0.le, Real.rpow_neg hm0.le, hE, ← div_eq_inv_mul,
+  rwa [Real.rpow_neg hM0.le, Real.rpow_neg hm0.le, hE, ← div_eq_inv_mul,
     le_div_iff₀ hmA, inv_mul_eq_div, div_le_iff₀ hMA, mul_comm (Real.exp B ^ A)]
-  exact key
 
 end CollatzPosDens

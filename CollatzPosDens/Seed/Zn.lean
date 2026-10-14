@@ -69,7 +69,7 @@ theorem weightedCentralSum_eq_sum (n : ℕ) (M : ℚ) :
 /-- The weighted central sum is nonnegative. -/
 theorem weightedCentralSum_nonneg (n : ℕ) (M : ℚ) : 0 ≤ weightedCentralSum n M := by
   rw [weightedCentralSum_eq_sum]
-  refine Finset.sum_nonneg fun h _ => mul_nonneg ?_ (refDensity_nonneg _ _)
-  exact_mod_cast (Word.weight_pos _).le
+  exact Finset.sum_nonneg fun _ _ =>
+    mul_nonneg (by exact_mod_cast (Word.weight_pos _).le) (refDensity_nonneg _ _)
 
 end CollatzPosDens
