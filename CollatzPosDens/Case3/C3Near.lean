@@ -89,6 +89,49 @@ private lemma c3Near_sum_take_le {f : List ℤ × ℤ → ℤ} {β : List (List 
   obtain ⟨b, hb, rfl⟩ := List.mem_map.1 hx
   exact hf b (List.mem_of_mem_drop (List.mem_of_mem_take hb))
 
+/-- Block points have nonnegative `j`-coordinate. -/
+theorem bkJ_chBlockPoint_nonneg (b : List ℤ × ℤ) : 0 ≤ bkJ (chBlockPoint b) := by
+  simp only [bkJ, chBlockPoint_fst]
+  positivity
+
+/-- The `j`-coordinate of the fresh path: `j(y^e_u) = j(e) + r + ∑_{k ≤ u} j(βᵏ)`. -/
+theorem bkJ_trFreshPath (e : ℤ × ℤ) (r : ℕ) (ℓ : ℤ) (β : List (List ℤ × ℤ)) (u : ℕ) :
+    bkJ (trFreshPath e ((r, ℓ), β) u) =
+      bkJ e + r + ((β.take u).map fun b => bkJ (chBlockPoint b)).sum := by
+  rw [trFreshPath_def, trPath_eq_add_chBlockPath, chBlockPath]
+  simp only [bkJ, Prod.fst_add]
+  exact congrArg (_ + ·) ((bkJ_list_sum _).trans (congrArg List.sum (List.map_map ..)))
+
+/-- The `l`-coordinate of the fresh path: `l(y^e_u) = l(e) + ℓ + ∑_{k ≤ u} l(βᵏ)`. -/
+theorem bkL_trFreshPath (e : ℤ × ℤ) (r : ℕ) (ℓ : ℤ) (β : List (List ℤ × ℤ)) (u : ℕ) :
+    bkL (trFreshPath e ((r, ℓ), β) u) =
+      bkL e + ℓ + ((β.take u).map fun b => bkL (chBlockPoint b)).sum := by
+  rw [trFreshPath_def, trPath_eq_add_chBlockPath, chBlockPath]
+  simp only [bkL, Prod.snd_add]
+  exact congrArg (_ + ·) ((bkL_list_sum _).trans (congrArg List.sum (List.map_map ..)))
+
+namespace BkTriangle
+
+/-- A point of a triangle lies at or beyond its tip. -/
+theorem tip_le_bkL_of_mem {Δ : BkTriangle} {p : ℤ × ℤ} (h : p ∈ Δ) :
+    Δ.tip ≤ ((bkL p : ℤ) : ℝ) := by
+  have hjz : (0 : ℝ) ≤ ((bkJ p - Δ.j : ℤ) : ℝ) := by exact_mod_cast sub_nonneg.2 (mem_iff.1 h).1
+  have := nonneg_of_mul_nonneg_left
+    ((mul_nonneg hjz (Real.log_pos (by norm_num : (1 : ℝ) < 9)).le).trans (row_bound_of_mem h))
+    (Real.log_pos one_lt_two)
+  linarith
+
+/-- A point of a triangle within `2X` of its tip lies within `2 α X` of its row. -/
+theorem bkJ_sub_j_lt_of_mem {Δ : BkTriangle} {p : ℤ × ℤ} (h : p ∈ Δ) {X : ℝ}
+    (hX : ((bkL p : ℤ) : ℝ) < Δ.tip + 2 * X) : ((bkJ p - Δ.j : ℤ) : ℝ) < 2 * alpha * X := by
+  have hlog9 : 0 < Real.log 9 := Real.log_pos (by norm_num)
+  rw [alpha_def, show 2 * (Real.log 2 / Real.log 9) * X = 2 * X * Real.log 2 / Real.log 9 by
+    ring, lt_div_iff₀ hlog9]
+  exact (row_bound_of_mem h).trans_lt
+    (mul_lt_mul_of_pos_right (by linarith) (Real.log_pos one_lt_two))
+
+end BkTriangle
+
 /-- **Large triangles sit at anchors**, for `𝔗_{n,ξ,ε}` with `ξ` a unit and `0 < ε < 1/27`. -/
 theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional {n : ℕ}
     {ξ : ResidueGroup n} {ε : ℝ} (hξ : IsResidueUnit ξ) (hε : 0 < ε) (hε' : ε < 1 / 27)
@@ -105,85 +148,49 @@ theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional {n : ℕ}
   obtain ⟨hex₁, hex₂, hex₃, hex₄⟩ := hex
   simp only at hex₁ hex₂ hex₃ hex₄
   rw [trFreshLaw_mk] at hμ
-  have hℓ : (G : ℤ) < ℓ := (firstPassageLaw_support (left_ne_zero_of_mul hμ)).2
-  have hw : ∀ b ∈ β, chBlockWeight b ≠ 0 :=
-    trListWeight_ne_zero_iff.1 (right_ne_zero_of_mul hμ)
+  have hℓ : (G : ℝ) < ℓ := by exact_mod_cast (firstPassageLaw_support (left_ne_zero_of_mul hμ)).2
   have hjl : ∀ b ∈ β, bkJ (chBlockPoint b) ≤ bkL (chBlockPoint b) := fun b hb =>
-    c3Near_fst_le_snd (hw b hb) (trAtoms_closing_mem ha hb)
-  have hj0 : ∀ b ∈ β, 0 ≤ bkJ (chBlockPoint b) := fun b _ => by
-    simp only [bkJ, chBlockPoint_fst]; positivity
+    c3Near_fst_le_snd (trListWeight_ne_zero_iff.1 (right_ne_zero_of_mul hμ) b hb)
+      (trAtoms_closing_mem ha hb)
+  have hj0 : ∀ b ∈ β, 0 ≤ bkJ (chBlockPoint b) := fun b _ => bkJ_chBlockPoint_nonneg b
   have hl0 : ∀ b ∈ β, 0 ≤ bkL (chBlockPoint b) := fun b hb => (hj0 b hb).trans (hjl b hb)
-  set H : ℤ := ((β.take u).map fun b => bkJ (chBlockPoint b)).sum with hH
-  set V : ℤ := ((β.take u).map fun b => bkL (chBlockPoint b)).sum with hV
-  have hyJ : bkJ (trFreshPath e ((r, ℓ), β) u) = bkJ e + r + H := by
-    rw [trFreshPath_def, trPath_eq_add_chBlockPath, chBlockPath]
-    simp only [bkJ, Prod.fst_add] at hH ⊢
-    rw [hH]
-    exact congrArg (_ + ·) ((bkJ_list_sum _).trans (congrArg List.sum (List.map_map ..)))
-  have hyL : bkL (trFreshPath e ((r, ℓ), β) u) = bkL e + ℓ + V := by
-    rw [trFreshPath_def, trPath_eq_add_chBlockPath, chBlockPath]
-    simp only [bkL, Prod.snd_add] at hV ⊢
-    rw [hV]
-    exact congrArg (_ + ·) ((bkL_list_sum _).trans (congrArg List.sum (List.map_map ..)))
-  set y := trFreshPath e ((r, ℓ), β) u with hydef
-  have hH0 : 0 ≤ H := List.sum_nonneg fun x hx => by
-    obtain ⟨b, hb, rfl⟩ := List.mem_map.1 hx
-    exact hj0 b (List.mem_of_mem_take hb)
+  have hyJ := bkJ_trFreshPath e r ℓ β u
+  have hyL := bkL_trFreshPath e r ℓ β u
+  set H : ℤ := ((β.take u).map fun b => bkJ (chBlockPoint b)).sum
+  set V : ℤ := ((β.take u).map fun b => bkL (chBlockPoint b)).sum
+  set y := trFreshPath e ((r, ℓ), β) u
+  have hH0 : 0 ≤ H := by
+    simpa only [List.take_zero, List.map_nil, List.sum_nil] using c3Near_sum_take_le hj0 u.zero_le
   have hHV : H ≤ V := List.sum_le_sum fun b hb => hjl b (List.mem_of_mem_take hb)
   have hHv : (H : ℝ) ≤ (((β.take v).map fun b => bkJ (chBlockPoint b)).sum : ℤ) := by
     exact_mod_cast c3Near_sum_take_le hj0 huv
   have hVv : (V : ℝ) ≤ (((β.take v).map fun b => bkL (chBlockPoint b)).sum : ℤ) := by
     exact_mod_cast c3Near_sum_take_le hl0 huv
-  have hV0 : (0 : ℝ) ≤ V := by exact_mod_cast hH0.trans hHV
+  have hH0r : (0 : ℝ) ≤ H := by exact_mod_cast hH0
   have hHVr : (H : ℝ) ≤ V := by exact_mod_cast hHV
-  have hℓr : (G : ℝ) < ℓ := by exact_mod_cast hℓ
   have hGr : ((bkL e : ℤ) : ℝ) + G = Δ₀.l := by exact_mod_cast hG
   have hlr : ((bkL y : ℤ) : ℝ) = (bkL e : ℝ) + ℓ + V := by rw [hyL]; push_cast; ring
   have hjr : ((bkJ y : ℤ) : ℝ) = (bkJ e : ℝ) + r + H := by rw [hyJ]; push_cast; ring
   have hl₁ : Δ₀.l < bkL y := by
-    have : ((Δ₀.l : ℤ) : ℝ) < ((bkL y : ℤ) : ℝ) := by rw [hlr, ← hGr]; linarith
-    exact_mod_cast this
+    exact_mod_cast (show ((Δ₀.l : ℤ) : ℝ) < ((bkL y : ℤ) : ℝ) by rw [hlr, ← hGr]; linarith)
   have hl₂ : ((bkL y : ℤ) : ℝ) < Δ₀.l + 2 * X := by rw [hlr, ← hGr]; linarith
   have hj : |((bkJ y : ℤ) : ℝ) - ((bkJ e : ℤ) + (G : ℝ) / 4)| ≤ 2 * (G : ℝ) ^ ((3 : ℝ) / 5) := by
     rw [hjr, show (bkJ e : ℝ) + r + H - ((bkJ e : ℤ) + (G : ℝ) / 4) = ((r : ℝ) - G / 4) + H by
       ring]
     refine (abs_add_le _ _).trans ?_
-    rw [abs_of_nonneg (by exact_mod_cast hH0 : (0 : ℝ) ≤ H)]
+    rw [abs_of_nonneg hH0r]
     linarith
   have hne : Δ₀ ≠ Δ' := by
     rintro rfl
-    exact absurd (le_l_of_mem hy) (not_le.2 hl₁)
-  have hE : 2 * (G : ℝ) ^ ((3 : ℝ) / 5) + alpha * (2 * X) + 1 ≤ G * drift := by linarith
-  have hy' : (bkJ y, bkL y) ∈ Δ' := hy
-  have he' : (bkJ e, bkL e) ∈ Δ₀ := he
+    exact (le_l_of_mem hy).not_gt hl₁
   have htip : (Δ₀.l : ℝ) ≤ Δ'.tip :=
-    le_tip_of_mem_bkFamily hξ hε hε' hΔ₀ hΔ' hne he' hG hy' hl₁.le hl₂.le hj hE
-  have hrow := row_bound_of_mem hy
-  have hjz : Δ'.j ≤ bkJ y := ((mem_iff).1 hy).1
-  have hjz' : (0 : ℝ) ≤ ((bkJ y - Δ'.j : ℤ) : ℝ) := by exact_mod_cast sub_nonneg.2 hjz
-  have hlog9 : 0 < Real.log 9 := Real.log_pos (by norm_num)
-  have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
-  have htip₂ : Δ'.tip ≤ ((bkL y : ℤ) : ℝ) := by
-    have : 0 ≤ ((bkL y : ℝ) - Δ'.tip) * Real.log 2 :=
-      (mul_nonneg hjz' hlog9.le).trans hrow
-    have := nonneg_of_mul_nonneg_left this hlog2
-    linarith
+    le_tip_of_mem_bkFamily hξ hε hε' hΔ₀ hΔ' hne he hG hy hl₁.le hl₂.le hj (by linarith)
+  have htip₂ := tip_le_bkL_of_mem hy
+  have hjz : (0 : ℝ) ≤ ((bkJ y - Δ'.j : ℤ) : ℝ) := by exact_mod_cast sub_nonneg.2 (mem_iff.1 hy).1
+  have hjy : ((bkJ y - Δ'.j : ℤ) : ℝ) = (bkJ e : ℝ) + r + H - Δ'.j := by rw [Int.cast_sub, hjr]
   refine ⟨Δ'.j, j_mem_bkAnchors hΔ' hs htip (by linarith), ?_, ?_⟩
-  · have : ((bkJ y - Δ'.j : ℤ) : ℝ) = (bkJ e : ℝ) + r + H - Δ'.j := by
-      rw [← hjr]; push_cast; ring
-    have hX : (V : ℝ) < X := hVv.trans_lt hex₂
-    linarith
-  · have h1 : ((bkJ y - Δ'.j : ℤ) : ℝ) * Real.log 9 < 2 * X * Real.log 2 := by
-      refine hrow.trans_lt ?_
-      exact mul_lt_mul_of_pos_right (by linarith) hlog2
-    have h2 : ((bkJ y - Δ'.j : ℤ) : ℝ) < 2 * alpha * X := by
-      rw [alpha_def, show 2 * (Real.log 2 / Real.log 9) * X = 2 * X * Real.log 2 / Real.log 9 by
-        ring, lt_div_iff₀ hlog9]
-      exact h1
-    have : ((bkJ y - Δ'.j : ℤ) : ℝ) = (bkJ e : ℝ) + r + H - Δ'.j := by
-      rw [← hjr]; push_cast; ring
-    have : (0 : ℝ) ≤ H := by exact_mod_cast hH0
-    linarith
+  · linarith [hVv.trans_lt hex₂]
+  · linarith [bkJ_sub_j_lt_of_mem hy (X := X) (by linarith)]
 
 /-- **Outside the exceptional event, large triangles sit at anchors**. Let `ξ` be a unit,
 `e = (j₀, l₀) ∈ Δ₀ ∈ 𝔗 = 𝔗_{n,ξ,ε_*}`, `G ∈ ℕ` with `l₀ + G = l_{Δ₀}`, `v ∈ ℕ`, `X, s ∈ ℝ`, and

@@ -52,8 +52,7 @@ theorem PW_def :
 
 /-- The value of the white-term exponent `x_W = 101 z_* - A_* ℓ_c`. -/
 theorem PW_exponent_eq : 101 * zStar - Aexp * lc = 126992817 / 409600000 := by
-  simp only [zStar_eq, Aexp_eq, lc_eq]
-  norm_num
+  norm_num [zStar_eq, Aexp_eq, lc_eq]
 
 /-- The white-term exponent `x_W = 101 z_* - A_* ℓ_c` is positive. -/
 theorem PW_exponent_pos : 0 < 101 * zStar - Aexp * lc := by

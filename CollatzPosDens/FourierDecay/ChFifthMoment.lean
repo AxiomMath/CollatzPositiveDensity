@@ -38,21 +38,13 @@ namespace CollatzPosDens
 
 /-- `(k+1)^5 ≤ 5! · binom(k+5, 5)`. -/
 private lemma pow_five_le_choose (k : ℕ) : ((k : ℝ) + 1) ^ 5 ≤ 120 * ((k + 5).choose 5 : ℝ) := by
-  have h : (k + 5).descFactorial 5 = Nat.factorial 5 * (k + 5).choose 5 :=
-    Nat.descFactorial_eq_factorial_mul_choose _ _
-  have h' : (k + 5).descFactorial 5 = (k + 5) * (k + 4) * (k + 3) * (k + 2) * (k + 1) := by
-    simp [Nat.descFactorial_succ]
-    ring
-  have hN : (k + 1) ^ 5 ≤ 120 * (k + 5).choose 5 := by
-    have : Nat.factorial 5 = 120 := by decide
-    rw [← this, ← h, h']
-    have h1 : k + 1 ≤ k + 2 := by omega
-    have h2 : k + 1 ≤ k + 3 := by omega
-    have h3 : k + 1 ≤ k + 4 := by omega
-    have h4 : k + 1 ≤ k + 5 := by omega
-    calc (k + 1) ^ 5 = (k + 1) * (k + 1) * (k + 1) * (k + 1) * (k + 1) := by ring
-      _ ≤ (k + 5) * (k + 4) * (k + 3) * (k + 2) * (k + 1) := by gcongr
-  exact_mod_cast hN
+  have h := Nat.descFactorial_eq_factorial_mul_choose (k + 5) 5
+  simp only [Nat.descFactorial_succ, Nat.descFactorial_zero,
+    show Nat.factorial 5 = 120 by decide] at h
+  norm_cast
+  rw [← h]
+  calc (k + 1) ^ 5 = (k + 1) * ((k + 1) * ((k + 1) * ((k + 1) * ((k + 1) * 1)))) := by ring
+    _ ≤ _ := by gcongr <;> omega
 
 /-- The fifth moment of `ν₄₅`, indexed by `j = k + 1`: the series `∑_{k ≥ 0} ν₄₅(k+1) (k+1)⁵`
 converges and its sum is at most `20⁵`. -/

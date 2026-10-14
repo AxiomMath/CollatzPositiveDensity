@@ -69,8 +69,7 @@ theorem four_mul_sixteen_pow_ceil_le_four_thirds_pow {b : ℕ} (hb : 256 ≤ b) 
     4 * (16 : ℝ) ^ ⌈(b : ℝ) / 100⌉₊ ≤ (4 / 3 : ℝ) ^ b := by
   have hk : 100 * ⌈(b : ℝ) / 100⌉₊ < b + 100 := by
     have h := Nat.ceil_lt_add_one (show (0 : ℝ) ≤ (b : ℝ) / 100 by positivity)
-    have : (100 : ℝ) * ⌈(b : ℝ) / 100⌉₊ < b + 100 := by linarith
-    exact_mod_cast this
+    exact_mod_cast (by linarith : (100 : ℝ) * ⌈(b : ℝ) / 100⌉₊ < b + 100)
   rw [div_pow, le_div_iff₀ (by positivity)]
   exact_mod_cast four_mul_sixteen_pow_mul_three_pow_le_four_pow hb hk
 

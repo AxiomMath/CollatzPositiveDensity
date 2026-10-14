@@ -47,7 +47,7 @@ theorem epsStar_eq : epsStar = 8 / 217 := rfl
 /-- The value of the colour scale cast into a division ring of characteristic zero. -/
 theorem epsStar_cast {K : Type*} [DivisionRing K] [CharZero K] :
     (epsStar : K) = 8 / 217 := by
-  simp [epsStar_eq]
+  simp
 
 /-- The colour scale is positive. -/
 theorem epsStar_pos : 0 < epsStar := by norm_num

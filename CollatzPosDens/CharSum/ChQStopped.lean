@@ -67,15 +67,14 @@ private lemma chQStopped_first_step_le (s : ℕ) (x : ℤ × ℤ) :
         ENNReal.ofReal (holdLaw h.1.1.toNat h.1.2 * firstPassageLaw (s - bkL h) (x - h)) ≤
       ENNReal.ofReal (firstPassageLaw s x) := by
   rw [ofReal_firstPassageLaw_eq_first_step]
-  refine add_le_add (le_of_eq ?_) (le_of_eq (tsum_congr fun h ↦ ENNReal.ofReal_mul
-    (holdLaw_nonneg _ _)))
+  refine add_le_add (le_of_eq ?_) (tsum_congr fun h ↦ ENNReal.ofReal_mul (holdLaw_nonneg _ _)).le
   by_cases hx : x ∈ bkPoints ∧ (s : ℤ) < bkL x
   · rw [tsum_eq_single ⟨x, hx⟩ fun h hne ↦ by
       simp [show x ≠ h.1 from fun e ↦ hne (Subtype.ext e.symm)]]
     simp [hx]
   · simp only [hx, ↓reduceIte]
     exact ENNReal.tsum_eq_zero.2 fun h ↦ by
-      simp [show x ≠ h.1 by rintro rfl; exact hx h.2]
+      simp [show x ≠ h.1 from fun e ↦ hx (e ▸ h.2)]
 
 /-- The renewal bound `Q(p) ≤ ∑_{h ∈ 𝒫} η(h) Q(p + h)` in `ℝ≥0∞`. -/
 private lemma chQStopped_ofReal_le_tsum (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ)
@@ -88,9 +87,17 @@ private lemma chQStopped_ofReal_le_tsum (n : ℕ) (ξ : ResidueGroup n) (ε : �
   have hQ : chQ n ξ ε p ≤ ∑' h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε (p + h) :=
     (chQ_le_mul_tsum n ξ ε hp).trans
       (mul_le_of_le_one_left (tsum_nonneg hnn) (chWhiteFactor_le_one n ξ ε p))
-  refine ((ENNReal.ofReal_le_ofReal hQ).trans
-    (ENNReal.ofReal_tsum_of_nonneg hnn (chQ_le_mul_tsum_summable n ξ ε p)).le).trans ?_
-  exact le_of_eq (tsum_congr fun h ↦ ENNReal.ofReal_mul (holdLaw_nonneg _ _))
+  exact ((ENNReal.ofReal_le_ofReal hQ).trans
+    (ENNReal.ofReal_tsum_of_nonneg hnn (chQ_le_mul_tsum_summable n ξ ε p)).le).trans_eq
+    (tsum_congr fun h ↦ ENNReal.ofReal_mul (holdLaw_nonneg _ _))
+
+/-- Interchanging two double sums of products in `ℝ≥0∞` and combining them. -/
+theorem tsum_tsum_mul_add_tsum_tsum_mul {α β γ : Type*} (f : α → γ → ℝ≥0∞)
+    (g : β → γ → ℝ≥0∞) (c : γ → ℝ≥0∞) :
+    (∑' a, ∑' x, f a x * c x) + ∑' b, ∑' x, g b x * c x =
+      ∑' x, ((∑' a, f a x) + ∑' b, g b x) * c x := by
+  simp_rw [add_mul, ← ENNReal.tsum_mul_right]
+  rw [ENNReal.tsum_add, ENNReal.tsum_comm, ENNReal.tsum_comm (f := fun b x ↦ g b x * c x)]
 
 /-- The stopped inequality in `ℝ≥0∞`, with the sum over all of `ℤ × ℤ`. -/
 private lemma chQStopped_ofReal_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (s : ℕ) :
@@ -120,8 +127,8 @@ private lemma chQStopped_ofReal_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (s
     have hcast : (s : ℤ) - bkL h = (m : ℤ) := by omega
     have hms : m < s := by omega
     simp only [hcast, hG]
-    refine (mul_le_mul_of_nonneg_left (ih m hms (p + h) (add_mem_bkPoints hp hP)) bot_le).trans
-      (le_of_eq ?_)
+    refine (mul_le_mul_of_nonneg_left (ih m hms (p + h) (add_mem_bkPoints hp hP)) bot_le).trans_eq
+      ?_
     rw [← ENNReal.tsum_mul_left]
     refine ((Equiv.subRight h).tsum_eq _).symm.trans (tsum_congr fun x ↦ ?_)
     simp only [Equiv.subRight_apply, ENNReal.ofReal_mul (holdLaw_nonneg _ _), mul_assoc]
@@ -136,17 +143,14 @@ private lemma chQStopped_ofReal_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (s
         ∑' h : {h : ℤ × ℤ // h ∈ bkPoints ∧ 1 ≤ bkL h ∧ bkL h ≤ s}, ∑' x : ℤ × ℤ,
           ENNReal.ofReal (holdLaw h.1.1.toNat h.1.2 * firstPassageLaw (s - bkL h) (x - h)) *
             ENNReal.ofReal (Q (p + x)) :=
-        add_le_add (le_of_eq (tsum_congr hA)) (ENNReal.tsum_le_tsum hB)
+        add_le_add (tsum_congr hA).le (ENNReal.tsum_le_tsum hB)
     _ = ∑' x : ℤ × ℤ,
           ((∑' h : {h : ℤ × ℤ // h ∈ bkPoints ∧ (s : ℤ) < bkL h},
             ENNReal.ofReal (if x = h.1 then holdLaw h.1.1.toNat h.1.2 else 0)) +
           ∑' h : {h : ℤ × ℤ // h ∈ bkPoints ∧ 1 ≤ bkL h ∧ bkL h ≤ s},
             ENNReal.ofReal (holdLaw h.1.1.toNat h.1.2 * firstPassageLaw (s - bkL h) (x - h))) *
-          ENNReal.ofReal (Q (p + x)) := by
-        rw [ENNReal.tsum_comm, ENNReal.tsum_comm (f := fun (h : {h : ℤ × ℤ // h ∈ bkPoints ∧
-          1 ≤ bkL h ∧ bkL h ≤ s}) x ↦ _), ← ENNReal.tsum_add]
-        refine tsum_congr fun x ↦ ?_
-        rw [add_mul, ENNReal.tsum_mul_right, ENNReal.tsum_mul_right]
+          ENNReal.ofReal (Q (p + x)) :=
+        tsum_tsum_mul_add_tsum_tsum_mul _ _ _
     _ ≤ ∑' x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) * ENNReal.ofReal (Q (p + x)) :=
         ENNReal.tsum_le_tsum fun x ↦ mul_le_mul_of_nonneg_right
           (chQStopped_first_step_le s x) bot_le
@@ -172,9 +176,12 @@ theorem chQ_le_tsum_firstPassageLaw_mul (n : ℕ) (ξ : ResidueGroup n) (ε : �
     intro x hx
     have hF : firstPassageLaw s x ≠ 0 := fun h0 ↦ hx (by simp [h0])
     have h1 := (firstPassageLaw_support hF).1
-    exact ⟨(x.1.toNat, x.2), by simp only [hι]; ext <;> simp; omega⟩
+    refine ⟨(x.1.toNat, x.2), ?_⟩
+    simp only [hι]
+    ext <;> simp
+    omega
   rw [← ENNReal.ofReal_le_ofReal_iff (tsum_nonneg hnn), ENNReal.ofReal_tsum_of_nonneg hnn hsum]
-  refine (chQStopped_ofReal_le n ξ ε s p hp).trans (le_of_eq ?_)
+  refine (chQStopped_ofReal_le n ξ ε s p hp).trans_eq ?_
   rw [← hinj.tsum_eq hsupp]
   exact tsum_congr fun x ↦ (ENNReal.ofReal_mul (firstPassageLaw_nonneg _ _)).symm
 

@@ -46,11 +46,10 @@ overshoot bound `K`, the first-crossing family `𝒲(b, u, K)` is finite. -/
 theorem firstCrossing_finite (b : ℕ) (u : ℤ) (K : ℕ) : (firstCrossing b u K).Finite := by
   set M : ℕ := (Finset.range (hb b + 1)).sup fun t => (barrier b u t + K).toNat
   refine (Word.finite_setOf_valSum_le M).subset fun w hw => ?_
-  have hlen := length_le_hb_of_mem_firstCrossing hw
   have hval := valSum_le_barrier_add_of_mem_firstCrossing hw
   have hM : (barrier b u w.length + K).toNat ≤ M :=
     Finset.le_sup (f := fun t => (barrier b u t + K).toNat)
-      (Finset.mem_range.2 (Nat.lt_succ_of_le hlen))
+      (Finset.mem_range.2 (Nat.lt_succ_of_le (length_le_hb_of_mem_firstCrossing hw)))
   change w.valSum ≤ M
   omega
 

@@ -17,13 +17,13 @@ public import CollatzPosDens.Recipe.MomentTail
 /-!
 # The central tail after the generation threshold
 
-Let `F` be the error prefactor, `ϱ = 𝗀^{-5/8}` the error decay ratio and `N_*` the generation
+Let `F` be the error prefactor, `ϱ = 𝗀^{-1}` the error decay ratio and `N_*` the generation
 threshold. Then
 $$F \sum_{j \ge N_*} j^{5/2} \varrho^j < \frac{47}{32}\, 2^{-24}.$$
 
-Since `2^δ = 𝗀`, one has `ϱ^{N_*} = 2^{-5 N_* δ / 8}`, and the definition of `N_*` gives
-`5 N_* δ / 8 ≥ B_ph + 535/8 = 23 + log₂ F + 535/8`; hence `F ϱ^{N_*} ≤ 2^{-23-535/8}`. As
-`N_* = 9766262 ≥ 9200000`, the tail bound `CollatzPosDens.moment_tail_lt` gives
+Since `2^δ = 𝗀`, one has `ϱ^{N_*} = 2^{-N_* δ}`, and the definition of `N_*` gives
+`N_* δ ≥ B_ph + 535/8 = 23 + log₂ F + 535/8`; hence `F ϱ^{N_*} ≤ 2^{-23-535/8}`. As
+`N_* = 6103914 ≥ 6000000`, the whole-tail bound gives
 `F ∑_{j ≥ N_*} j^{5/2} ϱ^j < 162 N_*^{5/2} 2^{-23-535/8}`, and the exact comparison
 `162^8 N_*^{20} 64^8 < 47^8 2^{535}` shows `162 N_*^{5/2} 2^{-535/8} < 47/64`.
 
@@ -36,8 +36,12 @@ Since `2^δ = 𝗀`, one has `ϱ^{N_*} = 2^{-5 N_* δ / 8}`, and the definition 
 
 The tail is the sum over the subtype `Set.Ici N_*` of `ℕ`, with `j^{5/2}` the real power of the
 cast; summability is part of the conclusion, so that the bound on the `tsum` is not vacuous.
-The final comparison uses the exact value `N_* = 9766262` rather than the upper bound
-`N_* ≤ 13 · 10^6`; both make the eighth-power comparison true.
+The final comparison uses the exact value `N_* = 6103914` rather than the upper bound
+`13 · 10^6` of the source; both make the eighth-power comparison true.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -61,7 +65,7 @@ set_option exponentiation.threshold 600 in
 private lemma generationThreshold_central_tail_const :
     162 * ((generationThreshold : ℝ) ^ (5 / 2 : ℝ)) * (2 : ℝ) ^ (-535 / 8 : ℝ) < 47 / 64 := by
   rw [generationThreshold_eq]
-  have h0 : 0 ≤ 162 * ((9766262 : ℕ) : ℝ) ^ (5 / 2 : ℝ) * (2 : ℝ) ^ (-535 / 8 : ℝ) := by
+  have h0 : 0 ≤ 162 * ((6103914 : ℕ) : ℝ) ^ (5 / 2 : ℝ) * (2 : ℝ) ^ (-535 / 8 : ℝ) := by
     positivity
   refine (pow_lt_pow_iff_left₀ h0 (by norm_num) (n := 8) (by norm_num)).1 ?_
   rw [mul_pow, mul_pow, ← Real.rpow_natCast (_ ^ (5 / 2 : ℝ)),

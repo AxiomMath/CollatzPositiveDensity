@@ -52,17 +52,15 @@ theorem abs_bkTheta_add_right_le (n : ℕ) (ξ : ResidueGroup n) {j l : ℤ}
   induction m with
   | zero => simpa using h₀
   | succ m ih =>
-    have hw := ih fun k hk hkm => hs k hk (by omega)
-    have hw' : |bkTheta n ξ ((j + ((m + 1 : ℕ) : ℤ)) - 1, l)| ≤ ε := by
-      convert hw using 4; push_cast; ring
+    have hw : |bkTheta n ξ ((j + ((m + 1 : ℕ) : ℤ)) - 1, l)| ≤ ε := by
+      convert ih fun k hk hkm => hs k hk (by omega) using 4
+      push_cast
+      ring
     have hS := hs (m + 1) (by omega) le_rfl
     have h2 := two_mul_bkTheta_eq_of_west_of_south n ξ (j := j + ((m + 1 : ℕ) : ℤ)) (l := l)
-      (by omega) (by linarith) hw' hS
+      (by omega) (by linarith) hw hS
     have hε0 : 0 ≤ ε := (abs_nonneg _).trans h₀
-    have : |bkTheta n ξ (j + ((m + 1 : ℕ) : ℤ), l)| =
-        |bkTheta n ξ (j + ((m + 1 : ℕ) : ℤ), l - 1)| / 2 := by
-      rw [← h2, abs_mul, abs_two]; ring
-    rw [this]
+    rw [← h2, abs_mul, abs_two] at hS
     linarith
 
 end CollatzPosDens

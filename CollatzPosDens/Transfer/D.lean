@@ -59,17 +59,15 @@ def dStar : ℚ :=
 @[simp]
 theorem dStar_eq :
     dStar = 331784646551677809785190276273027 / 4000000000000000000000000000000000 := by
-  rw [dStar, gammaStar_eq, kappaStar_def]
-  rw [show Icc 1 8 = {1, 2, 3, 4, 5, 6, 7, 8} by decide]
-  simp [Nat.factorial]
-  norm_num
+  rw [dStar, gammaStar_eq, kappaStar_def, show Icc 1 8 = {1, 2, 3, 4, 5, 6, 7, 8} by decide]
+  norm_num [Nat.factorial]
 
 /-- The single-passage loss is positive. -/
 theorem dStar_pos : 0 < dStar := by
-  rw [dStar_eq]; norm_num
+  norm_num [dStar_eq]
 
 /-- The single-passage loss is less than one. -/
 theorem dStar_lt_one : dStar < 1 := by
-  rw [dStar_eq]; norm_num
+  norm_num [dStar_eq]
 
 end CollatzPosDens

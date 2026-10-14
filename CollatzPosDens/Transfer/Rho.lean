@@ -52,14 +52,14 @@ theorem rhoStar_eq :
     rhoStar =
       146226396865330841441006996169475586133169771748943233545640893008664541329 /
         174134416000000000000000000000000000000000000000000000000000000000000000000 := by
-  rw [rhoStar_def, dStar_eq, omegaStar_eq]; norm_num
+  norm_num [rhoStar_def, dStar_eq, omegaStar_eq]
 
 /-- The two-passage rate is positive. -/
 theorem rhoStar_pos : 0 < rhoStar := by
-  rw [rhoStar_eq]; norm_num
+  norm_num [rhoStar_eq]
 
 /-- The two-passage rate is less than one. -/
 theorem rhoStar_lt_one : rhoStar < 1 := by
-  rw [rhoStar_eq]; norm_num
+  norm_num [rhoStar_eq]
 
 end CollatzPosDens

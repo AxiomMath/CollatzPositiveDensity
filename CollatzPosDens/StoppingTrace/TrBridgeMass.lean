@@ -83,11 +83,8 @@ lemma trBridgeMass_exp_le_one (b : List (List ℤ × ℤ)) (t : ℕ) :
 lemma trBridgeMass_term_le (b : List (List ℤ × ℤ)) (t : ℕ) :
     ENNReal.ofReal (trListWeight b) *
         ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ y b t)) ≤
-      ENNReal.ofReal (trListWeight b) := by
-  calc _ ≤ ENNReal.ofReal (trListWeight b) * 1 := by
-        gcongr
-        exact ENNReal.ofReal_le_one.2 (trBridgeMass_exp_le_one b t)
-    _ = _ := mul_one _
+      ENNReal.ofReal (trListWeight b) :=
+  mul_le_of_le_one_right' (ENNReal.ofReal_le_one.2 (trBridgeMass_exp_le_one b t))
 
 /-- The bridge mass is at most the untilted weight `∑_{b ∈ 𝒰(y)} bw^⊗(b)`. -/
 lemma trBridgeMass_le_tsum_trListWeight :
@@ -97,8 +94,7 @@ lemma trBridgeMass_le_tsum_trListWeight :
 
 /-- If `y` is black, the empty list is the only first-stop list and `g_br(y) = 1`. -/
 lemma trBridgeMass_of_bkBlack (hy : BkBlack n ξ (epsStar : ℝ) y) : trBridgeMass n ξ y = 1 := by
-  rw [trBridgeMass_def, trFirstStopSet_eq_singleton_nil_of_bkBlack hy]
-  exact (tsum_singleton ([] : List (List ℤ × ℤ)) fun b ↦ ENNReal.ofReal (trListWeight b) *
-    ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ y b b.length))).trans (by simp)
+  rw [trBridgeMass_def, trFirstStopSet_of_bkBlack hy]
+  simp
 
 end CollatzPosDens

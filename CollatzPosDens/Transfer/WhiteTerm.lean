@@ -51,10 +51,10 @@ namespace CollatzPosDens
 theorem exp_neg_zStar_mul_rpow_Aexp_lt_log_lt_lc : Real.log (400 / 83) < (lc : ℝ) := by
   rw [Real.log_lt_iff_lt_exp (by norm_num)]
   have hsum : ((400 / 83 : ℚ) : ℝ) <
-      ((∑ j ∈ Finset.range 21, lc ^ j / (j.factorial : ℚ) : ℚ) : ℝ) := by
-    exact_mod_cast lc_expPartialSum_gt
+      ((∑ j ∈ Finset.range 21, lc ^ j / (j.factorial : ℚ) : ℚ) : ℝ) :=
+    mod_cast lc_expPartialSum_gt
   push_cast at hsum
-  exact hsum.trans_le (Real.sum_le_exp_of_nonneg (by exact_mod_cast lc_pos.le) 21)
+  exact hsum.trans_le (Real.sum_le_exp_of_nonneg (mod_cast lc_pos.le) 21)
 
 /-- The many-white Taylor sum is a lower bound for `exp (101 z_* - A_* ℓ_c)`. -/
 theorem exp_neg_zStar_mul_rpow_Aexp_lt_PW_le_exp :
@@ -64,10 +64,9 @@ theorem exp_neg_zStar_mul_rpow_Aexp_lt_PW_le_exp :
     rfl
   have hPW : (PW : ℝ) = ∑ j ∈ Finset.range 21,
       ((101 * zStar - Aexp * lc : ℚ) : ℝ) ^ j / (j.factorial : ℝ) := by
-    rw [PW_def, Rat.cast_sum]
-    simp only [Rat.cast_div, Rat.cast_pow, Rat.cast_natCast]
+    simp only [PW_def, Rat.cast_sum, Rat.cast_div, Rat.cast_pow, Rat.cast_natCast]
   rw [hPW, ← h]
-  exact Real.sum_le_exp_of_nonneg (by exact_mod_cast PW_exponent_pos.le) 21
+  exact Real.sum_le_exp_of_nonneg (mod_cast PW_exponent_pos.le) 21
 
 /-- **The many-white term**: `exp (-101 z_*) (400/83)^{A_*} < 1 / P_W`. -/
 @[collatz_pos_dens "lem_s02_white_term"]
@@ -76,13 +75,13 @@ theorem exp_neg_zStar_mul_rpow_Aexp_lt :
   have hpow : (400 / 83 : ℝ) ^ (Aexp : ℝ) < Real.exp (Aexp * lc) := by
     rw [Real.rpow_def_of_pos (by norm_num), mul_comm (Real.log _)]
     exact Real.exp_lt_exp.mpr <| mul_lt_mul_of_pos_left
-      exp_neg_zStar_mul_rpow_Aexp_lt_log_lt_lc (by exact_mod_cast Aexp_pos)
+      exp_neg_zStar_mul_rpow_Aexp_lt_log_lt_lc (mod_cast Aexp_pos)
   calc Real.exp (-(101 * zStar)) * (400 / 83 : ℝ) ^ (Aexp : ℝ)
       < Real.exp (-(101 * zStar)) * Real.exp (Aexp * lc) := by gcongr
     _ = 1 / Real.exp (101 * zStar - Aexp * lc) := by
       rw [← Real.exp_add, one_div, ← Real.exp_neg]
       ring_nf
-    _ ≤ 1 / (PW : ℝ) := one_div_le_one_div_of_le (by exact_mod_cast PW_pos)
+    _ ≤ 1 / (PW : ℝ) := one_div_le_one_div_of_le (mod_cast PW_pos)
         exp_neg_zStar_mul_rpow_Aexp_lt_PW_le_exp
 
 end CollatzPosDens

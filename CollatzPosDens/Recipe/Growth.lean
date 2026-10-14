@@ -61,8 +61,8 @@ theorem histogramGrowth_eq_sqrt_num : histogramGrowth = Real.sqrt (101 / 100) :=
   rw [histogramGrowth_eq_sqrt, growthRatio_cast]
 
 /-- `𝖦` is positive. -/
-theorem histogramGrowth_pos : 0 < histogramGrowth := by
-  rw [histogramGrowth_eq_sqrt]; exact Real.sqrt_pos.2 growthRatio_cast_pos
+theorem histogramGrowth_pos : 0 < histogramGrowth :=
+  histogramGrowth_eq_sqrt ▸ Real.sqrt_pos.2 growthRatio_cast_pos
 
 /-- `𝖦` is nonnegative. -/
 theorem histogramGrowth_nonneg : 0 ≤ histogramGrowth := histogramGrowth_pos.le

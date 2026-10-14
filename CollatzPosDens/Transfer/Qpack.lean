@@ -43,7 +43,7 @@ theorem Qpack_eq : Qpack = 34267893 / 4480000 := rfl
 /-- The value of the packing mass cast into a division ring of characteristic zero. -/
 theorem Qpack_cast {K : Type*} [DivisionRing K] [CharZero K] :
     (Qpack : K) = 34267893 / 4480000 := by
-  simp [Qpack_eq]
+  simp
 
 /-- The packing mass is the sum `69003/17500 + 3795/1024` of the two packing contributions. -/
 theorem Qpack_eq_add : Qpack = 69003 / 17500 + 3795 / 1024 := by norm_num

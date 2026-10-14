@@ -38,7 +38,7 @@ empty word has `A(∅) = 0`; it is the sum of the letters coerced to `ℕ`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §2.
 -/
 
 @[expose] public section
@@ -85,10 +85,9 @@ theorem length_le_valSum (w : Word) : w.length ≤ valSum w := by
 
 /-- A word has valuation sum `0` exactly when it is empty. -/
 @[simp]
-theorem valSum_eq_zero_iff {w : Word} : valSum w = 0 ↔ w = [] := by
-  refine ⟨fun h => ?_, fun h => h ▸ rfl⟩
-  have := length_le_valSum w
-  exact List.eq_nil_of_length_eq_zero (by omega)
+theorem valSum_eq_zero_iff {w : Word} : valSum w = 0 ↔ w = [] :=
+  ⟨fun h => List.eq_nil_of_length_eq_zero (by have := length_le_valSum w; omega),
+    fun h => h ▸ rfl⟩
 
 /-- Every letter of a word is at most its valuation sum. -/
 theorem le_valSum_of_mem {a : ℕ+} {w : Word} (ha : a ∈ w) : (a : ℕ) ≤ valSum w :=
@@ -116,18 +115,30 @@ def incrHead : Word → Word
   | [] => []
   | a :: w => (a + 1) :: w
 
-/-- Raising the first letter of the empty word leaves it empty. -/
+/-- Raising the first letter of the empty word gives the empty word. -/
 @[simp]
 theorem incrHead_nil : incrHead [] = [] := rfl
 
-/-- Raising the first letter of `a :: w` gives `(a + 1) :: w`. -/
+/-- Raising the first letter of `a w` gives `(a + 1) w`. -/
 @[simp]
 theorem incrHead_cons (a : ℕ+) (w : Word) : incrHead (a :: w) = (a + 1) :: w := rfl
 
+/-- Raising the first letter does not change the length of a word. -/
+@[simp]
+theorem length_incrHead (w : Word) : (incrHead w).length = w.length := by
+  cases w <;> rfl
+
+/-- Raising the first letter of a nonempty word raises its valuation sum by one. -/
+theorem valSum_incrHead {w : Word} (hw : w ≠ []) : valSum (incrHead w) = valSum w + 1 := by
+  cases w with
+  | nil => exact absurd rfl hw
+  | cons a w =>
+    simp only [incrHead_cons, valSum_cons, PNat.add_coe, PNat.one_coe]
+    omega
+
 /-- Raising the first letter by one is injective on words. -/
 theorem incrHead_injective : Function.Injective incrHead := by
-  intro x y h
-  rcases x with _ | ⟨a, x⟩ <;> rcases y with _ | ⟨c, y⟩ <;> simp_all
+  rintro (_ | ⟨a, x⟩) (_ | ⟨c, y⟩) h <;> simp_all [incrHead]
 
 end Word
 

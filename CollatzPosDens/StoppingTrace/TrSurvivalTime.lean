@@ -75,7 +75,7 @@ theorem le_trNu_and_trStopTime_le_schedule {n : ℕ} {ξ : ResidueGroup n}
     i ≤ trNu n ξ (epsStar : ℝ) (trFreshPath e a) ∧
       ∃ t, trStopTime n ξ (epsStar : ℝ) (trFreshPath e a) i = some t ∧
         t ≤ schedule (i - 1) := by
-  set y := trFreshPath e a with hy
+  set y := trFreshPath e a
   suffices h : ∃ t, trStopTime n ξ (epsStar : ℝ) y i = some t ∧ t ≤ schedule (i - 1) by
     obtain ⟨t, ht, hle⟩ := h
     exact ⟨(isSome_trStopTime_iff.1 (by rw [ht]; rfl)).2, t, ht, hle⟩
@@ -85,19 +85,21 @@ theorem le_trNu_and_trStopTime_le_schedule {n : ℕ} {ξ : ResidueGroup n}
     obtain ⟨c, -, hcT, hcJ, hc⟩ :=
       exists_bkBlack_trFreshPath_of_mem_trLow_diff_trBad hm hP ⟨hlow, hbad⟩
     have hc0 : c ≤ schedule 0 := by
-      rw [schedule_zero, pInit_def]; rw [tStar_def] at hcT; omega
+      rw [schedule_zero, pInit_def]
+      rw [tStar_def] at hcT
+      omega
     rcases ht : trStopTime n ξ (epsStar : ℝ) y 1 with _ | t
     · exact absurd hc ((trStopTime_one_eq_none_iff.1 ht) c hcJ)
     · refine ⟨t, rfl, ?_⟩
-      have hmin := (trStopTime_one_eq_some_iff.1 ht).2.2
-      exact (not_lt.1 fun hlt => hmin c hlt hc).trans hc0
+      exact (not_lt.1 fun hlt => (trStopTime_one_eq_some_iff.1 ht).2.2 c hlt hc).trans hc0
   | succ k ih =>
     obtain ⟨q, hq, hqle⟩ := ih (by omega) (by omega)
     rw [Nat.add_sub_cancel] at hqle
     rw [show k + 1 + 1 - 1 = k + 1 by omega]
     have hqb : BkBlack n ξ (epsStar : ℝ) (y q) := isTrHit_of_trStopTime_eq_some hq
     have hgq : recipeMap q ≤ schedule (k + 1) := by
-      rw [schedule_succ]; exact recipeMap_le_recipeMap hqle
+      rw [schedule_succ]
+      exact recipeMap_le_recipeMap hqle
     have hgP : recipeMap q ≤ pStar - 1 := by
       have := schedule_le_schedule (show k + 1 ≤ rStar by omega)
       rw [pStar_def]; omega

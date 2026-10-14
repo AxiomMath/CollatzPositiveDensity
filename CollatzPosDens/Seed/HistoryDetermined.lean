@@ -64,9 +64,7 @@ theorem historyDetermined_of_isPrefixFree {α : Type*} {F : ℕ → Set (List α
     obtain ⟨htail, rfl⟩ := historyDetermined_of_isPrefixFree (F := fun j => F (j + 1))
       (fun j => hF (j + 1)) (h := fun i => h i.succ) (h' := fun i => h' i.succ)
       (fun j => hh j.succ) (fun j => hh' j.succ) heq
-    refine ⟨funext fun i => ?_, rfl⟩
-    refine Fin.cases h0 (fun i => ?_) i
-    exact congrFun htail i
+    exact ⟨funext fun i => Fin.cases h0 (congrFun htail) i, rfl⟩
 
 /-- The central family `𝒞(b, K)` is prefix-free, being contained in the prefix-free
 family `𝒲(b, r_b, K)`. -/

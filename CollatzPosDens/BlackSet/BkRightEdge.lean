@@ -45,8 +45,7 @@ theorem j_add_s_div_log_nine_lt_of_mem_bkFamily (hξ : IsResidueUnit ξ) (hε : 
     (hε' : ε < 1 / 27) (hΔ : Δ ∈ bkFamily n ξ ε) :
     (Δ.j : ℝ) + Δ.s / Real.log 9 < (n : ℝ) / 2 - 1 / 2 := by
   obtain ⟨p, hp, hb, rfl⟩ := hΔ
-  have h1 := bkCanonTriangle_j_add_s_div_log_nine_le hξ hε hp hb
-  have h2 := three_halves_lt_log_inv_div_log_nine hε hε'
-  linarith
+  linarith [bkCanonTriangle_j_add_s_div_log_nine_le hξ hε hp hb,
+    three_halves_lt_log_inv_div_log_nine hε hε']
 
 end CollatzPosDens

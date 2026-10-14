@@ -28,10 +28,15 @@ function `t ↦ t^θ` at `20⁵`. Applying this at `x = j⁵` and summing agains
 
 ## Implementation notes
 
-The tangent line is taken directly at `20⁵` rather than at the fifth moment `M`, which needs no
-lower bound on `M`. As in `nu45_fifth_moment_le`, the sum is taken over all of `ℤ`, the domain
-of `nu45`; the terms with `j ≤ 0` vanish since `ν₄₅(j) = 0` there, so this is the sum over
-`j ≥ 1`. The power `j^A` is the real power `Real.rpow`, and summability is recorded explicitly.
+[mazur2026] takes the tangent line at the fifth moment `M` itself and then uses `M ≤ 20⁵`;
+we take the tangent line directly at `20⁵`, which needs no lower bound on `M`. As in
+`nu45_fifth_moment_le`, the sum is taken over all of `ℤ`, the domain of `nu45`; the terms with
+`j ≤ 0` vanish since `ν₄₅(j) = 0` there, so this is the sum of [mazur2026] over `j ≥ 1`. The power
+`j^A` is the real power `Real.rpow`, and summability is recorded explicitly.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -47,23 +52,19 @@ private lemma nu45_rpow_moment_le_aux {A : ℝ} (hA : 0 < A) (hA5 : A ≤ 5) (j 
   rcases le_or_gt j 0 with hj | hj
   · simp [nu45_of_nonpos hj]
   have hj0 : (0 : ℝ) ≤ j := by exact_mod_cast hj.le
-  have hθ0 : 0 ≤ A / 5 := by positivity
-  have hθ1 : 0 ≤ 1 - A / 5 := by linarith
-  have hx : (0 : ℝ) ≤ (j : ℝ) ^ 5 / 20 ^ 5 := by positivity
-  have key := Real.geom_mean_le_arith_mean2_weighted hθ0 hθ1 hx zero_le_one (by ring)
+  have key := Real.geom_mean_le_arith_mean2_weighted (w₁ := A / 5) (w₂ := 1 - A / 5)
+    (by positivity) (by linarith) (by positivity : (0 : ℝ) ≤ (j : ℝ) ^ 5 / 20 ^ 5) zero_le_one
+    (by ring)
   rw [Real.one_rpow, mul_one, Real.div_rpow (by positivity) (by positivity),
     ← Real.rpow_natCast, ← Real.rpow_natCast, ← Real.rpow_mul hj0, ← Real.rpow_mul (by norm_num)]
     at key
   push_cast at key
   rw [show (5 : ℝ) * (A / 5) = A by ring, mul_one,
-    show (j : ℝ) ^ (5 : ℝ) = (j : ℝ) ^ (5 : ℕ) by exact_mod_cast Real.rpow_natCast (j : ℝ) 5]
-    at key
-  rw [div_le_iff₀ (by positivity)] at key
+    show (j : ℝ) ^ (5 : ℝ) = (j : ℝ) ^ (5 : ℕ) by exact_mod_cast Real.rpow_natCast (j : ℝ) 5,
+    div_le_iff₀ (by positivity)] at key
   have hν := nu45_nonneg j
-  refine ⟨mul_nonneg hν (Real.rpow_nonneg hj0 _), ?_⟩
-  calc nu45 j * (j : ℝ) ^ A ≤ nu45 j * ((A / 5 * ((j : ℝ) ^ 5 / 20 ^ 5) + (1 - A / 5)) * 20 ^ A) :=
-        mul_le_mul_of_nonneg_left key hν
-    _ = _ := by ring
+  exact ⟨mul_nonneg hν (Real.rpow_nonneg hj0 _),
+    (mul_le_mul_of_nonneg_left key hν).trans_eq (by ring)⟩
 
 /-- **Real moments of the horizontal hold law.** For every real `A` with `0 < A ≤ 5`, the series
 `∑_j ν₄₅(j) j^A` over `j ∈ ℤ` (whose nonzero terms are those with `j ≥ 1`) converges and its sum

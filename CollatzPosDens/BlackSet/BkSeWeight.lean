@@ -67,16 +67,19 @@ theorem bkSe_self (a : ℤ × ℤ) : bkSe a a = 0 := by
 
 /-- `se` is antisymmetric. -/
 theorem bkSe_swap (a q : ℤ × ℤ) : bkSe q a = -bkSe a q := by
-  simp only [bkSe, Int.cast_sub]; ring
+  simp only [bkSe, Int.cast_sub]
+  ring
 
 /-- `se` is additive along a chain of points. -/
 theorem bkSe_add_bkSe (a b c : ℤ × ℤ) : bkSe a b + bkSe b c = bkSe a c := by
-  simp only [bkSe, Int.cast_sub]; ring
+  simp only [bkSe, Int.cast_sub]
+  ring
 
 /-- `se` is invariant under translating both points by the same vector. -/
 @[simp]
 theorem bkSe_add_add (a q v : ℤ × ℤ) : bkSe (a + v) (q + v) = bkSe a q := by
-  simp only [bkSe, bkJ, bkL, Prod.fst_add, Prod.snd_add, Int.cast_sub, Int.cast_add]; ring
+  simp only [bkSe, bkJ, bkL, Prod.fst_add, Prod.snd_add, Int.cast_sub, Int.cast_add]
+  ring
 
 /-- The exponential of `se` is `9 ^ (j(q) - j(a)) · 2 ^ (l(a) - l(q))`. -/
 theorem exp_bkSe (a q : ℤ × ℤ) :
@@ -93,7 +96,6 @@ theorem exp_bkSe_eq_natCast {a q : ℤ × ℤ} (hj : bkJ a ≤ bkJ q) (hl : bkL 
   obtain ⟨u, hu⟩ := Int.eq_ofNat_of_zero_le (sub_nonneg.2 hj)
   obtain ⟨v, hv⟩ := Int.eq_ofNat_of_zero_le (sub_nonneg.2 hl)
   rw [exp_bkSe, hu, hv, Int.toNat_natCast, Int.toNat_natCast, zpow_natCast, zpow_natCast]
-  push_cast
-  rfl
+  norm_num
 
 end CollatzPosDens

@@ -91,11 +91,8 @@ theorem three_pow_le_two_pow_ceilLog3 (j : ℕ) : 3 ^ j ≤ 2 ^ ceilLog3 j :=
 
 /-- `B(j)` is positive for positive `j`. -/
 theorem ceilLog3_pos {j : ℕ} (hj : 0 < j) : 0 < ceilLog3 j := by
-  refine Nat.pos_of_ne_zero fun h0 => ?_
-  have h1 : 1 < 3 ^ j := Nat.one_lt_pow hj.ne' (by norm_num)
-  have := three_pow_le_two_pow_ceilLog3 j
-  rw [h0] at this
-  omega
+  rw [Nat.pos_iff_ne_zero, Ne, ← Nat.le_zero, ceilLog3_le_iff, pow_zero, not_le]
+  exact Nat.one_lt_pow hj.ne' (by norm_num)
 
 /-- `3 ^ j < 2 ^ B(j)` for positive `j`. -/
 theorem three_pow_lt_two_pow_ceilLog3 {j : ℕ} (hj : 0 < j) : 3 ^ j < 2 ^ ceilLog3 j := by

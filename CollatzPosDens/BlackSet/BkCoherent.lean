@@ -49,14 +49,14 @@ theorem bkCanonTriangle_eq_of_mem_bkCanonTriangle {n : ℕ} {ξ : ResidueGroup n
     (hqb : BkBlack n ξ ε q) :
     bkCanonTriangle n ξ ε q (BkTriangle.mem_bkPoints_of_mem hq) =
       bkCanonTriangle n ξ ε p hp := by
-  have hqP : q ∈ bkPoints := BkTriangle.mem_bkPoints_of_mem hq
   have htop := bkColTop_eq_of_mem_bkCanonTriangle hξ hε hε' hp hb hq hqb
-  obtain ⟨h1, -, -, hcase⟩ := (eq_bkRowStart_iff hp hb (bkRowStart n ξ ε p)).1 rfl
+  obtain ⟨ha, -, -, hcase⟩ := (eq_bkRowStart_iff hp hb (bkRowStart n ξ ε p)).1 rfl
   have hrow : bkRowStart n ξ ε q = bkRowStart n ξ ε p := by
-    refine ((eq_bkRowStart_iff hqP hqb _).2 ⟨h1, hq.1, fun r h₁ h₂ => ?_, ?_⟩).symm
+    refine ((eq_bkRowStart_iff (BkTriangle.mem_bkPoints_of_mem hq) hqb _).2
+      ⟨ha, hq.1, fun r h₁ h₂ => ?_, ?_⟩).symm
     · rw [htop]
-      refine bkBlack_of_mem_bkCanonTriangle hξ hε hε' hp hb ?_
-      exact BkTriangle.mem_of_mem_of_nw (q' := (r, bkColTop n ξ ε p)) hq h₁ h₂ hq.2.1 le_rfl
+      exact bkBlack_of_mem_bkCanonTriangle hξ hε hε' hp hb
+        (BkTriangle.mem_of_mem_of_nw (q' := (r, bkColTop n ξ ε p)) hq h₁ h₂ hq.2.1 le_rfl)
     · rwa [htop]
   ext
   · exact hrow

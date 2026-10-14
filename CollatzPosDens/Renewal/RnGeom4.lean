@@ -69,9 +69,9 @@ lemma nu45_nonneg (j : ℤ) : 0 ≤ nu45 j := by
 lemma nu45_pos_iff {j : ℤ} : 0 < nu45 j ↔ 1 ≤ j := by
   refine ⟨fun h ↦ ?_, fun hj ↦ ?_⟩
   · by_contra hj
-    rw [nu45_of_nonpos (by omega)] at h
-    exact lt_irrefl _ h
-  · rw [nu45_of_pos hj]; exact mul_pos (by norm_num) (zpow_pos (by norm_num) _)
+    simp [nu45_of_nonpos (by omega : j ≤ 0)] at h
+  · rw [nu45_of_pos hj]
+    exact mul_pos (by norm_num) (zpow_pos (by norm_num) _)
 
 /-- For `j ≥ 1`, consecutive weights have ratio `11/16`. -/
 lemma nu45_add_one {j : ℤ} (hj : 1 ≤ j) : nu45 (j + 1) = 11 / 16 * nu45 j := by

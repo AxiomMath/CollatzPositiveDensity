@@ -40,11 +40,11 @@ public import CollatzPosDens.Transfer.MixingConst
 /-!
 # Terminal transport error
 
-Let `M ≥ 16^{b_0}` be an odd integer, `n ≥ 9200000`, and let `X` be admissible for generation
+Let `M ≥ 16^{b_0}` be an odd integer, `n ≥ 6000000`, and let `X` be admissible for generation
 `n`. Then the unfiltered marked mass and the weighted central sum are close:
 $$\bigl|\Theta^{\circ}_{n,X}(M) - Z_n(M)\bigr| \le F\, n^{9/2} \varrho^n.$$
 
-Write `b = b_n`, `k = k_n` and `Q = h_b + k ≤ 2b`; the level gate gives `k ≥ 2^{131072}`.
+Write `b = b_n`, `k = k_n` and `Q = h_b + k ≤ 2b`; the level gate gives `k ≥ 2^{80000}`.
 For each shift `u` let `f_u = ∑_{w ∈ 𝒲(b, u, K_n)} 𝒯_{w,Q} ρ_k - ρ_k ∘ π_{Q,k}` on `G_Q`.
 Evaluating a transfer at an integer point gives
 `Θ°_{n,X}(M) - Z_n(M) = ∑_h ω(h) f_{u_h}(R_h mod 3^Q)`. Grouping the histories by their shift,
@@ -67,7 +67,7 @@ the real power `(n : ℝ) ^ (9 / 2 : ℝ)`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §18.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -158,7 +158,9 @@ private theorem terminalTransport_deficit_mem (n u : ℕ)
     geomMass_le_one_of_isPrefixFree (terminalTransportWords_isPrefixFree n u)
       (fun w hw => terminalTransportWords_length_le hw)
   refine ⟨?_, ?_⟩
-  · simpa using ENNReal.toReal_mono ENNReal.one_ne_top hle1
+  · have := ENNReal.toReal_mono ENNReal.one_ne_top hle1
+    rw [ENNReal.toReal_one] at this
+    linarith
   have hdef := one_sub_geomMass_firstCrossing_le (scale n) (Int.natCast_nonneg u) hu (cap n)
   have hb0 : (scale n : ℝ≥0∞) ^ 6 ≠ 0 :=
     pow_ne_zero _ (by exact_mod_cast (show 0 < scale n by have := nine_le_scale n; omega).ne')
@@ -182,8 +184,8 @@ private theorem terminalTransport_deficit_mem (n u : ℕ)
   have hς : 0 ≤ deficitRate ^ n := pow_nonneg deficitRate_nonneg n
   nlinarith
 
-/-- `⟨|f_u|⟩_Q < (2/3)(28/1000)(C+1) ς^n` for `0 ≤ u ≤ 2 r_{b_n}` and `n ≥ 9200000`. -/
-private theorem terminalTransportDefect_residueAvg_lt {n : ℕ} (hn : 9200000 ≤ n) (u : ℕ)
+/-- `⟨|f_u|⟩_Q < (2/3)(28/1000)(C+1) ς^n` for `0 ≤ u ≤ 2 r_{b_n}` and `n ≥ 6000000`. -/
+private theorem terminalTransportDefect_residueAvg_lt {n : ℕ} (hn : 6000000 ≤ n) (u : ℕ)
     (hu : (u : ℤ) ≤ 2 * rb (scale n)) :
     residueAvg (hb (scale n) + level n) (fun y => |terminalTransportDefect n u y|) <
       2 / 3 * (28 / 1000 * (mixingConst + 1) * deficitRate ^ n) := by
@@ -194,8 +196,8 @@ private theorem terminalTransportDefect_residueAvg_lt {n : ℕ} (hn : 9200000 �
   obtain ⟨hD0, hD⟩ := terminalTransport_deficit_mem n u hu
   have hbr := bracket_decay_lt (by omega : 444 ≤ n) le_rfl le_rfl hD0 hD
   have hkpos : (0 : ℝ) < level n := by exact_mod_cast level_pos n
-  have hconv : mixingConst / (level n : ℝ) ^ (9 / 8 : ℝ) =
-      mixingConst * (level n : ℝ) ^ (-(9 / 8) : ℝ) := by
+  have hconv : mixingConst / (level n : ℝ) ^ (3 / 2 : ℝ) =
+      mixingConst * (level n : ℝ) ^ (-(3 / 2) : ℝ) := by
     rw [Real.rpow_neg hkpos.le, div_eq_mul_inv]
   rw [hconv] at hest
   refine hest.trans_lt ?_
@@ -206,7 +208,7 @@ private theorem terminalTransportDefect_residueAvg_lt {n : ℕ} (hn : 9200000 �
 /-- The histories with a fixed shift `u` contribute less than
 `Π_n · (2/3)(28/1000)(C+1) ς^n`. -/
 private theorem terminalTransport_abs_sum_shift_le {M : ℤ} (hodd : Odd M) (hM : 0 < M)
-    {n : ℕ} (hn : 9200000 ≤ n) {X : ℝ} (hX : IsAdmissibleScale M n X) {u : ℕ}
+    {n : ℕ} (hn : 6000000 ≤ n) {X : ℝ} (hX : IsAdmissibleScale M n X) {u : ℕ}
     (hu : u ∈ (centralHistories_finite M n).toFinset.image
       (historyShift n X M)) :
     |∑ h ∈ (centralHistories_finite M n).toFinset with
@@ -244,12 +246,12 @@ private theorem terminalTransport_abs_sum_shift_le {M : ℤ} (hodd : Odd M) (hM 
     _ ≤ _ := mul_le_mul_of_nonneg_left
         (terminalTransportDefect_residueAvg_lt hn u hrange).le hcoef
 
-/-- **Terminal transport error**. Let `M ≥ 16^{b_0}` be an odd integer, `n ≥ 9200000`, and let
-`X` be admissible for generation `n`. Then
+/-- **Terminal transport error.** Let `M ≥ 16^{b_0}` be an odd
+integer, `n ≥ 6000000`, and let `X` be admissible for generation `n`. Then
 `|Θ°_{n,X}(M) - Z_n(M)| ≤ F n^{9/2} ϱ^n`. -/
 @[collatz_pos_dens "lem_terminal_transport"]
 theorem abs_markedMassUnfiltered_sub_weightedCentralSum_le {M : ℤ} (hodd : Odd M)
-    (hM : 16 ^ scale 0 ≤ M) {n : ℕ} (hn : 9200000 ≤ n) {X : ℝ}
+    (hM : 16 ^ scale 0 ≤ M) {n : ℕ} (hn : 6000000 ≤ n) {X : ℝ}
     (hX : IsAdmissibleScale M n X) :
     |markedMassUnfiltered n X M - weightedCentralSum n M| ≤
       errorPrefactor * (n : ℝ) ^ (9 / 2 : ℝ) * errorDecayRatio ^ n := by

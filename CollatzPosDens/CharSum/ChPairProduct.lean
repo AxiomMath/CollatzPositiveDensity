@@ -56,14 +56,12 @@ noncomputable def chPairProduct (n : ℕ) (ξ : ResidueGroup n) : ℕ → ℤ �
 /-- `Ep(j, s; ∅) = 1`. -/
 @[simp]
 theorem chPairProduct_nil (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : ℤ) :
-    chPairProduct n ξ j s [] = 1 := by
-  simp [chPairProduct]
+    chPairProduct n ξ j s [] = 1 := rfl
 
 /-- `Ep(j, s; (a)) = e_n(-px(j, s + a) ξ)`. -/
 @[simp]
 theorem chPairProduct_singleton (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : ℤ) (a : ℕ+) :
-    chPairProduct n ξ j s [a] = fxChar n (-(chPairPoint n j (s + a) * ξ)) := by
-  simp [chPairProduct]
+    chPairProduct n ξ j s [a] = fxChar n (-(chPairPoint n j (s + a) * ξ)) := rfl
 
 /-- `Ep(j, s; (a₁, a₂) w') = e_n(-(2^{a₂} + 3) px(j, s + a₁ + a₂) ξ) · Ep(j + 1, s + a₁ + a₂; w')`.
 -/
@@ -72,7 +70,6 @@ theorem chPairProduct_cons_cons (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : �
     (w : Word) :
     chPairProduct n ξ j s (a₁ :: a₂ :: w) =
       fxChar n (-((2 ^ (a₂ : ℕ) + 3) * chPairPoint n j (s + a₁ + a₂) * ξ)) *
-        chPairProduct n ξ (j + 1) (s + a₁ + a₂) w := by
-  simp [chPairProduct]
+        chPairProduct n ξ (j + 1) (s + a₁ + a₂) w := rfl
 
 end CollatzPosDens

@@ -46,7 +46,8 @@ fractional part has absolute value `1/3`. -/
 theorem abs_sfr_three_pow_mul_eq {m : ℕ} {w : ResidueGroup (m + 1)} (hw : IsResidueUnit w) :
     |sfr ((3 : ResidueGroup (m + 1)) ^ m * w)| = 1 / 3 := by
   have hc : w.val % 3 = 1 ∨ w.val % 3 = 2 := by
-    unfold IsResidueUnit at hw; omega
+    unfold IsResidueUnit at hw
+    omega
   have hrep : (3 : ResidueGroup (m + 1)) ^ m * w = ((3 ^ m * (w.val % 3) : ℕ) : _) := by
     rw [← Nat.mul_mod_mul_left, ← pow_succ, ZMod.natCast_mod]
     push_cast
@@ -59,7 +60,10 @@ theorem abs_sfr_three_pow_mul_eq {m : ℕ} {w : ResidueGroup (m + 1)} (hw : IsRe
     · push_cast
       rw [abs_of_pos (by positivity)]
       field_simp
-    · rw [hN]; push_cast; rw [abs_of_pos hpos]; linarith
+    · rw [hN]
+      push_cast
+      rw [abs_of_pos hpos]
+      linarith
   · rw [hc] at hrep
     have hz : ((-(3 ^ m : ℕ) : ℤ) : ResidueGroup (m + 1)) =
         (3 : ResidueGroup (m + 1)) ^ m * w := by
@@ -72,7 +76,10 @@ theorem abs_sfr_three_pow_mul_eq {m : ℕ} {w : ResidueGroup (m + 1)} (hw : IsRe
     · push_cast
       rw [abs_div, abs_neg, abs_of_pos hpos, abs_of_pos (by positivity)]
       field_simp
-    · rw [hN]; push_cast; rw [abs_neg, abs_of_pos hpos]; linarith
+    · rw [hN]
+      push_cast
+      rw [abs_neg, abs_of_pos hpos]
+      linarith
 
 /-- **Strip bound.** Let `ξ ∈ G_n` be a unit and `p = (j, l) ∈ 𝒫` with `j ≤ ⌊n/2⌋`. Then
 `1/3 ≤ 3^{n+1-2j} |ϑ_{n,ξ}(j, l)|`. -/
@@ -85,7 +92,8 @@ theorem one_third_le_three_zpow_mul_abs_bkTheta {n : ℕ} {ξ : ResidueGroup n}
   obtain ⟨a, ha⟩ : ∃ a : ℕ, bkJ p = a + 1 := ⟨(bkJ p - 1).toNat, by omega⟩
   obtain ⟨b, rfl⟩ : ∃ b : ℕ, n = 2 * a + b + 2 := ⟨n - 2 * a - 2, by omega⟩
   have hexp : (((2 * a + b + 2 : ℕ) : ℤ) + 1 - 2 * bkJ p) = ((b + 1 : ℕ) : ℤ) := by
-    push_cast; omega
+    push_cast
+    omega
   have he : (2 * (bkJ p - 1)).toNat = 2 * a := by omega
   rw [hexp, zpow_natCast]
   set U : ResidueGroup (2 * a + b + 2) :=

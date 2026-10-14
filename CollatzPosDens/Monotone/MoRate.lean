@@ -12,8 +12,9 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 # The case-one rate function
 
 For a real `A ≥ 0` and an integer `m ≥ 1`, the case-one rate is
-`rt_A(m) := 4A(1 + log m)/m`, with `log` the natural logarithm. It is the rate appearing in
-exponential envelopes of the form `max(m - r, 1)^{-A} ≤ m^{-A} exp(rt_A(m) r)`.
+`rt_A(m) := 4A(1 + log m)/m`, with `log` the natural logarithm. It is the scalar rate used in
+the scalar lemmas for the white case, for instance in the exponential envelope
+`max(m - r, 1)^{-A} ≤ m^{-A} exp(rt_A(m) r)`.
 
 ## Main definitions
 
@@ -30,12 +31,12 @@ exponential envelopes of the form `max(m - r, 1)^{-A} ≤ m^{-A} exp(rt_A(m) r)`
 ## Implementation notes
 
 The function is defined for every real `A` and every `m : ℕ`; at `m = 0` it takes the junk
-value `0` (division by zero in `ℝ`). The hypotheses `A ≥ 0` and `m ≥ 1` are carried by the
-lemmas that need them rather than by the definition.
+value `0` (division by zero in `ℝ`). [mazur2026] only uses `A ≥ 0` and `m ≥ 1`, and these
+hypotheses are carried by the lemmas that need them rather than by the definition.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §8.2.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -65,15 +66,12 @@ theorem moRate_one_right (A : ℝ) : moRate A 1 = 4 * A := by simp [moRate]
 
 /-- Clearing the denominator: `rt_A(m) · m = 4A(1 + log m)` for `m ≥ 1`. -/
 theorem moRate_mul_natCast (A : ℝ) {m : ℕ} (hm : 1 ≤ m) :
-    moRate A m * m = 4 * A * (1 + Real.log m) := by
-  have hm' : (m : ℝ) ≠ 0 := by positivity
-  rw [moRate, div_mul_cancel₀ _ hm']
+    moRate A m * m = 4 * A * (1 + Real.log m) :=
+  div_mul_cancel₀ _ (by positivity)
 
 /-- The rate is nonnegative for `0 ≤ A`. -/
 theorem moRate_nonneg {A : ℝ} (hA : 0 ≤ A) (m : ℕ) : 0 ≤ moRate A m := by
-  rcases Nat.eq_zero_or_pos m with rfl | hm
-  · simp
-  have : 0 ≤ Real.log m := Real.log_nonneg (by exact_mod_cast hm)
+  have := Real.log_natCast_nonneg m
   unfold moRate
   positivity
 
@@ -86,9 +84,7 @@ theorem moRate_pos {A : ℝ} {m : ℕ} (hA : 0 < A) (hm : 1 ≤ m) : 0 < moRate 
 
 /-- The rate is monotone in `A`. -/
 theorem moRate_mono_left {A B : ℝ} (h : A ≤ B) (m : ℕ) : moRate A m ≤ moRate B m := by
-  rcases Nat.eq_zero_or_pos m with rfl | hm
-  · simp
-  have : 0 ≤ Real.log m := Real.log_nonneg (by exact_mod_cast hm)
+  have := Real.log_natCast_nonneg m
   unfold moRate
   gcongr
 

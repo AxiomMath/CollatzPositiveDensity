@@ -40,15 +40,10 @@ namespace CollatzPosDens
 theorem moRate_le_div_thirtyTwo {A w : ℝ} (hA : 0 ≤ A) (hw : 0 < w) {m : ℕ}
     (hm : (256 * A / w) ^ 2 + 2 ≤ (m : ℝ)) :
     moRate A m ≤ w / 32 := by
-  have hm1 : 1 ≤ m := by
-    have : (1 : ℝ) ≤ m := by nlinarith [sq_nonneg (256 * A / w)]
-    exact_mod_cast this
+  have hm1 : 1 ≤ m := by exact_mod_cast (by nlinarith [sq_nonneg (256 * A / w)] : (1 : ℝ) ≤ m)
   have hs : 0 < Real.sqrt m := Real.sqrt_pos.2 (by exact_mod_cast hm1)
-  have hsqrt : 256 * A / w ≤ Real.sqrt m :=
-    Real.le_sqrt_of_sq_le (by nlinarith)
-  have hsqrt' : 256 * A ≤ w * Real.sqrt m := by
-    rw [div_le_iff₀ hw] at hsqrt
-    linarith
+  have hsqrt : 256 * A ≤ w * Real.sqrt m :=
+    (div_le_iff₀' hw).1 (Real.le_sqrt_of_sq_le (by nlinarith))
   calc moRate A m ≤ 8 * A / Real.sqrt m := moRate_le_div_sqrt hA hm1
     _ ≤ w / 32 := by
       rw [div_le_div_iff₀ hs (by norm_num)]

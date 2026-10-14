@@ -66,14 +66,12 @@ theorem chPairFactor_le_chPenaltyFrom_letter {n : ℕ} {ξ : ResidueGroup n} {ε
       (if a ∈ ({4, 5} : Finset ℤ) then chWhiteFactor n ξ ε ((j : ℤ) + 1, s + a) else 1) *
         (if a = 3 then chRaw3Factor n ξ ε ((j : ℤ) + 1, s + a) else 1) := by
   have hle := chPairFactor_le_one n ξ (j + 1) s a
-  have hθ : IsBkWhite n ξ ε ((j : ℤ) + 1, s + a) →
-      8 / 217 < |bkTheta n ξ (((j + 1 : ℕ) : ℤ), s + a)| := fun hw => by
-    have h := hw.lt_abs_bkTheta
-    rw [epsStar_cast] at hε
-    push_cast
-    linarith
   by_cases hw : IsBkWhite n ξ ε ((j : ℤ) + 1, s + a)
-  · have h8 := hθ hw
+  · have h8 : 8 / 217 < |bkTheta n ξ (((j + 1 : ℕ) : ℤ), s + a)| := by
+      have h := hw.lt_abs_bkTheta
+      rw [epsStar_cast] at hε
+      push_cast
+      linarith
     rw [chWhiteFactor_of_isBkWhite' hw, chRaw3Factor_of_isBkWhite' hw]
     by_cases h3 : a = 3
     · subst h3
@@ -106,10 +104,9 @@ theorem prod_chPairFactor_le_chPenaltyFrom {n : ℕ} {ξ : ResidueGroup n} {ε :
     · simpa using chPairFactor_le_chPenaltyFrom_letter hε j s a
     · convert ih (j + 1) (s + a) using 2 with i
       · simp only [Fin.val_succ, List.take_succ_cons, List.sum_cons]
-        congr 1
-        · ring
-        · ring
-      · push_cast; rfl
+        congr 1 <;> ring
+      · push_cast
+        rfl
 
 /-- **The pair factors of a word are bounded by its penalty.** For `ε ≥ ε_*` and every word
 `b = (b₁, …, b_k)`, `∏_{i=1}^k Fp(i, b₁ + ⋯ + b_{i-1}, b_i) ≤ Pen(b)`. -/

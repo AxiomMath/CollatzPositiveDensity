@@ -48,11 +48,8 @@ theorem rpow_Aexp_lt_ccont : (400 / 83 : ℝ) ^ (Aexp : ℝ) < (ccont : ℝ) := 
     rw [← Real.rpow_natCast, ← Real.rpow_mul (by norm_num)]
     norm_num
   have hint : (400 : ℕ) ^ 10241 * 10 ^ 4096 < 511 ^ 4096 * 83 ^ 10241 := by decide +kernel
-  have hR := (Nat.cast_lt (α := ℝ)).mpr hint
-  rw [Nat.cast_mul, Nat.cast_mul, Nat.cast_pow, Nat.cast_pow, Nat.cast_pow, Nat.cast_pow,
-    Nat.cast_ofNat, Nat.cast_ofNat, Nat.cast_ofNat, Nat.cast_ofNat] at hR
   refine lt_of_pow_lt_pow_left₀ 4096 (by norm_num) ?_
   rw [key, div_pow, div_pow, div_lt_div_iff₀ (by positivity) (by positivity)]
-  exact hR
+  exact_mod_cast hint
 
 end CollatzPosDens

@@ -51,7 +51,7 @@ theorem one_lt_growthRatio : 1 < growthRatio := by norm_num [growthRatio]
 
 /-- The real cast of the growth ratio `𝗀` equals `101/100`. -/
 theorem growthRatio_cast : (growthRatio : ℝ) = 101 / 100 := by
-  rw [growthRatio_def]; norm_num
+  norm_num [growthRatio]
 
 /-- The real cast of the growth ratio `𝗀` is positive. -/
 theorem growthRatio_cast_pos : 0 < (growthRatio : ℝ) := Rat.cast_pos.mpr growthRatio_pos

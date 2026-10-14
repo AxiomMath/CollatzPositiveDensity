@@ -133,7 +133,7 @@ theorem trMoment_le_one : trMoment n ξ o β R ≤ 1 := by
   cases trStopTime n ξ (epsStar : ℝ) (trPath o β) R with
   | none => exact zero_le_one
   | some t =>
-    refine Real.exp_le_one_iff.2 (neg_nonpos.2 (mul_nonneg ?_ (trCount_nonneg _ _ _)))
-    exact_mod_cast gammaStar_pos.le
+    exact Real.exp_le_one_iff.2
+      (neg_nonpos.2 (mul_nonneg (mod_cast gammaStar_pos.le) (trCount_nonneg _ _ _)))
 
 end CollatzPosDens

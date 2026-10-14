@@ -79,10 +79,8 @@ private lemma firstPassageLaw_ofReal_eq (s : ℕ)
     refine mul_le_of_le_one_right (holdLaw_nonneg _ _) (hb _ ?_ _)
     have := h.2.2.1
     omega
-  have n1 : 0 ≤ if x ∈ bkPoints ∧ (s : ℤ) < bkL x then holdLaw x.1.toNat x.2 else 0 := by
-    split_ifs
-    · exact holdLaw_nonneg _ _
-    · exact le_rfl
+  have n1 : 0 ≤ if x ∈ bkPoints ∧ (s : ℤ) < bkL x then holdLaw x.1.toNat x.2 else 0 :=
+    ite_nonneg (holdLaw_nonneg _ _) le_rfl
   have n2 : 0 ≤ ∑' h : {h : ℤ × ℤ // h ∈ bkPoints ∧ 1 ≤ bkL h ∧ bkL h ≤ s},
       holdLaw h.1.1.toNat h.1.2 * firstPassageLaw (s - bkL h) (x - h) :=
     tsum_nonneg fun h ↦ mul_nonneg (holdLaw_nonneg _ _) (firstPassageLaw_nonneg _ _)
@@ -92,9 +90,7 @@ private lemma firstPassageLaw_ofReal_eq (s : ℕ)
       (fun h ↦ mul_nonneg (holdLaw_nonneg _ _) (firstPassageLaw_nonneg _ _)) hsum]
   congr 1
   · split_ifs <;> simp
-  · congr 1
-    ext h
-    exact ENNReal.ofReal_mul (holdLaw_nonneg _ _)
+  · exact tsum_congr fun h ↦ ENNReal.ofReal_mul (holdLaw_nonneg _ _)
 
 /-- The total mass of `F_s` is `1`, in `ℝ≥0∞`, given that the first-passage law at the smaller
 levels is at most `1` and has total mass `1`. -/
@@ -110,8 +106,7 @@ private lemma tsum_firstPassageLaw_ofReal (s : ℕ)
       ∑' x, ENNReal.ofReal (firstPassageLaw (s - bkL h) (x - h)) = 1 := by
     rintro ⟨h, hp, hl1, hl2⟩
     obtain ⟨m, hm⟩ : ∃ m : ℕ, (m : ℤ) = s - bkL h := ⟨(s - bkL h).toNat, by omega⟩
-    have hms : m < s := by omega
-    rw [← hm, ← ih m hms]
+    rw [← hm, ← ih m (by omega)]
     exact (Equiv.subRight h).tsum_eq fun x ↦ ENNReal.ofReal (firstPassageLaw m x)
   simp only [hshift, mul_one]
   have hmass : ∑' p : bkPoints, ENNReal.ofReal (holdLaw p.1.1.toNat p.1.2) = 1 := by
@@ -128,8 +123,7 @@ private lemma tsum_firstPassageLaw_ofReal (s : ℕ)
 private lemma hasSum_firstPassageLaw_of_tsum_ofReal (s : ℕ)
     (h : ∑' x, ENNReal.ofReal (firstPassageLaw s x) = 1) :
     HasSum (fun x ↦ firstPassageLaw s x) 1 := by
-  have hne : ∑' x, ENNReal.ofReal (firstPassageLaw s x) ≠ ∞ := by
-    rw [h]; exact one_ne_top
+  have hne : ∑' x, ENNReal.ofReal (firstPassageLaw s x) ≠ ∞ := by simp [h]
   have hs : Summable fun x ↦ firstPassageLaw s x := by
     simpa [ENNReal.toReal_ofReal (firstPassageLaw_nonneg _ _)] using ENNReal.summable_toReal hne
   convert hs.hasSum
@@ -142,14 +136,14 @@ private lemma firstPassageLaw_mass_aux (s : ℕ) :
     ∑' x, ENNReal.ofReal (firstPassageLaw s x) = 1 ∧ HasSum (fun x ↦ firstPassageLaw s x) 1 := by
   induction s using Nat.strong_induction_on with
   | _ s ih =>
-  have hb : ∀ t : ℤ, t < s → ∀ y, firstPassageLaw t y ≤ 1 := by
-    intro t ht y
-    rcases lt_or_ge t 0 with h0 | h0
-    · rw [firstPassageLaw_of_neg h0]; exact zero_le_one
-    · lift t to ℕ using h0
-      exact le_hasSum (ih t (by exact_mod_cast ht)).2 y fun _ _ ↦ firstPassageLaw_nonneg _ _
-  have h := tsum_firstPassageLaw_ofReal s hb fun m hm ↦ (ih m hm).1
-  exact ⟨h, hasSum_firstPassageLaw_of_tsum_ofReal s h⟩
+    have hb : ∀ t : ℤ, t < s → ∀ y, firstPassageLaw t y ≤ 1 := by
+      intro t ht y
+      rcases lt_or_ge t 0 with h0 | h0
+      · simp [firstPassageLaw_of_neg h0]
+      · lift t to ℕ using h0
+        exact le_hasSum (ih t (by exact_mod_cast ht)).2 y fun _ _ ↦ firstPassageLaw_nonneg _ _
+    have h := tsum_firstPassageLaw_ofReal s hb fun m hm ↦ (ih m hm).1
+    exact ⟨h, hasSum_firstPassageLaw_of_tsum_ofReal s h⟩
 
 /-- **Total mass of the first-passage law.** For every `s ∈ ℕ`, `x ↦ F_s(x)` has sum `1`
 (in particular the series converges). -/
@@ -170,7 +164,7 @@ theorem summable_firstPassageLaw (s : ℕ) : Summable fun x ↦ firstPassageLaw 
 /-- The first-passage law takes values at most `1`, at every level. -/
 theorem firstPassageLaw_le_one (s : ℤ) (x : ℤ × ℤ) : firstPassageLaw s x ≤ 1 := by
   rcases lt_or_ge s 0 with h0 | h0
-  · rw [firstPassageLaw_of_neg h0]; exact zero_le_one
+  · simp [firstPassageLaw_of_neg h0]
   · lift s to ℕ using h0
     exact le_hasSum (hasSum_firstPassageLaw s) x fun _ _ ↦ firstPassageLaw_nonneg _ _
 

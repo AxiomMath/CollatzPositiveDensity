@@ -76,10 +76,9 @@ theorem le_trDelta_255 : (39886 / 10 ^ 6 : ℝ) ≤ trDelta 255 := by
 @[collatz_pos_dens "lem_tr_W_mixed"]
 theorem trMu_lt_mixed :
     trMu < 3 / 16 * (515 / 2048 * E8 (gammaStar : ℝ) - (dStar : ℝ)) + 1 / 8 * trDelta 255 := by
-  have h := le_trDelta_255
   rw [trMu_value, E8_ratCast, gammaStar_eq, dStar_eq]
   push_cast
   norm_num
-  linarith
+  linarith [le_trDelta_255]
 
 end CollatzPosDens

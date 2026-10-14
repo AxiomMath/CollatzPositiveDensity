@@ -26,16 +26,16 @@ public import CollatzPosDens.Terminal.CensusUnfold
 # The masked census
 
 Let `s ≥ 1` and let `M` be an `s`-good seed, `n ≥ 0`, let `X` be admissible for generation `n`,
-write `k = k_n` and let `m'` be an integer with `2^131072 ≤ m' ≤ k`. Then
-$$\Theta_{n,X}(M) \le \frac{64}9\, m'^{5633/2048}\, \Upsilon_{n,X}(M)
+write `k = k_n` and let `m'` be an integer with `2^80000 ≤ m' ≤ k`. Then
+$$\Theta_{n,X}(M) \le \frac{64}9\, m'^{4097/2048}\, \Upsilon_{n,X}(M)
   + 44 M \Bigl(\bigl\langle |\rho_k - \rho_{m'} \circ \pi_{k,m'}| \bigr\rangle_k
   + \langle \rho_{m'} - g_{m'} \rangle_{m'}\Bigr).$$
 
 Write `δ = |ρ_k - ρ_{m'} ∘ π_{k,m'}| + (ρ_{m'} - g_{m'}) ∘ π_{k,m'}` on `G_k`; it is nonnegative
 since `g_{m'} ≤ ρ_{m'}`. Unfolding `Θ_{n,X}(M)` over the counted pairs `(h, w)` of
 `Υ_{n,X}(M)` bounds it by `∑_{(h,w)} ω(h) ω(w) ∑_{j ≥ 0} 4^{-j} ρ_k(z_j(h, w))`. Pointwise
-`ρ_k ≤ g_{m'} ∘ π_{k,m'} + δ ≤ (16/3) m'^{5633/2048} + δ` by the cap on the subdensity. Since
-`∑_j 4^{-j} = 4/3`, the constant part contributes `(64/9) m'^{5633/2048} Υ_{n,X}(M)`, and the
+`ρ_k ≤ g_{m'} ∘ π_{k,m'} + δ ≤ (16/3) m'^{4097/2048} + δ` by the cap on the subdensity. Since
+`∑_j 4^{-j} = 4/3`, the constant part contributes `(64/9) m'^{4097/2048} Υ_{n,X}(M)`, and the
 error part, after exchanging the finite sum with the series, is at most
 `(4/3) · 33 M ⟨δ⟩_k = 44 M ⟨δ⟩_k` by the error bound of the census. Finally every fibre of
 `π_{k,m'}` has `3^{k-m'}` elements, so `⟨(ρ_{m'} - g_{m'}) ∘ π_{k,m'}⟩_k = ⟨ρ_{m'} - g_{m'}⟩_{m'}`.
@@ -49,14 +49,14 @@ error part, after exchanging the finite sum with the series, is at most
 
 ## Implementation notes
 
-Mazur assumes `2^131072 ≤ m'`; the only use of this is the cap
-`g_{m'} ≤ (16/3) m'^{5633/2048}`, which already holds for `m' ≥ 16`, so the bound is stated
+[mazur2026] assumes `2^80000 ≤ m'`; the only use of this is the cap
+`g_{m'} ≤ (16/3) m'^{4097/2048}`, which already holds for `m' ≥ 16`, so the bound is stated
 under `16 ≤ m' ≤ k_n`. The reduction `π_{k,m'}` is `CollatzPosDens.residueReduction`, and the
 seed `M` is a natural number cast to `ℚ` in `Θ` and `Υ`.
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -119,13 +119,13 @@ private theorem sum_mul_tsum_inv_four_pow_mul_le {ι G : Type*} [Finite G] {P : 
     _ = 4 / 3 * B := by rw [tsum_mul_right, tsum_inv_four_pow]
 
 /-- **Masked census.** Let `s ≥ 1` and let `M` be an `s`-good seed, let `X` be admissible for
-generation `n`, write `k = k_n` and let `16 ≤ m' ≤ k` (Mazur takes `2^131072 ≤ m'`). Then
-`Θ_{n,X}(M) ≤ (64/9) m'^{5633/2048} Υ_{n,X}(M)
+generation `n`, write `k = k_n` and let `16 ≤ m' ≤ k` ([mazur2026] takes `2^80000 ≤ m'`). Then
+`Θ_{n,X}(M) ≤ (64/9) m'^{4097/2048} Υ_{n,X}(M)
   + 44 M (⟨|ρ_k - ρ_{m'} ∘ π_{k,m'}|⟩_k + ⟨ρ_{m'} - g_{m'}⟩_{m'})`. -/
 @[collatz_pos_dens "lem_census"]
 theorem GoodSeed.markedMass_le_census {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {n : ℕ}
     {X : ℝ} (hX : IsAdmissibleScale M n X) {m' : ℕ} (hm16 : 16 ≤ m') (hm' : m' ≤ level n) :
-    markedMass n X M ≤ 64 / 9 * (m' : ℝ) ^ ((5633 : ℝ) / 2048) * unweightedMass n X M +
+    markedMass n X M ≤ 64 / 9 * (m' : ℝ) ^ ((4097 : ℝ) / 2048) * unweightedMass n X M +
       44 * M * (residueAvg (level n)
           (fun y => |refDensity (level n) y - refDensity m' (residueReduction hm' y)|) +
         residueAvg m' (fun y => refDensity m' y - mxSubdensity m' y)) := by
@@ -135,7 +135,7 @@ theorem GoodSeed.markedMass_le_census {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < 
   set e : ResidueGroup m' → ℝ := fun y => refDensity m' y - mxSubdensity m' y
   set δ : ResidueGroup k → ℝ := fun y =>
     |refDensity k y - refDensity m' (π y)| + e (π y)
-  set c : ℝ := 16 / 3 * (m' : ℝ) ^ ((5633 : ℝ) / 2048)
+  set c : ℝ := 16 / 3 * (m' : ℝ) ^ ((4097 : ℝ) / 2048)
   set P := (unweightedMassPairs_finite n X M).toFinset
   set ω : (Fin n → Word) × Word → ℝ := fun p =>
     ((concatWord p.1).weight : ℝ) * (p.2.weight : ℝ)

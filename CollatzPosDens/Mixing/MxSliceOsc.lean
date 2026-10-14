@@ -23,7 +23,7 @@ public import CollatzPosDens.Mixing.MxTailDecay
 /-!
 # Oscillation of one slice
 
-Let `n ≥ 2 ^ 131072` and `k, l, m ∈ ℕ` with `k < n`, `m ≤ n` and `9 n ≤ 10 m`. Then the submass
+Let `n ≥ 2 ^ 80000` and `k, l, m ∈ ℕ` with `k < n`, `m ≤ n` and `9 n ≤ 10 m`. Then the submass
 of the slice gate `Sl(n, k, l)` has oscillation at scale `m` at most
 `C_* 20^{A_*} / n^{A_*} · (3^n 2^{-l} 𝐩(Hd(n, k, l)))^{1/2}`, where `A_* = 10241/4096`.
 
@@ -58,26 +58,28 @@ namespace CollatzPosDens
 
 open Finset
 
-/-- **Oscillation of one slice.** Let `n ≥ 2 ^ 131072` and `k, l, m ∈ ℕ` with `k < n`, `m ≤ n`
+/-- **Oscillation of one slice.** Let `n ≥ 2 ^ 80000` and `k, l, m ∈ ℕ` with `k < n`, `m ≤ n`
 and `9 n ≤ 10 m`. Then
 `Osc_{m,n}(Sub^n_{Sl(n,k,l)}) ≤ C_* 20^{A_*} / n^{A_*} · (3^n 2^{-l} 𝐩(Hd(n, k, l)))^{1/2}`. -/
 @[collatz_pos_dens "lem_mx_slice_osc"]
-theorem oscillation_subMass_mxSliceGate_le_sqrt {n k l m : ℕ} (hn : 2 ^ 131072 ≤ n)
+theorem oscillation_subMass_mxSliceGate_le_sqrt {n k l m : ℕ} (hn : 2 ^ 80000 ≤ n)
     (hk : k < n) (hmn : m ≤ n) (h9 : 9 * n ≤ 10 * m) :
     oscillation hmn (fun y => (subMass n (mxSliceGate n k l) y).toReal) ≤
       Cstar * 20 ^ (10241 / 4096 : ℝ) / (n : ℝ) ^ (10241 / 4096 : ℝ) *
         Real.sqrt ((3 : ℝ) ^ n * (2⁻¹ : ℝ) ^ l * (geomMass (mxHeadGate n k l)).toReal) := by
   set H : ResidueGroup n → ℝ := mxHeadMass n k l
   set T : ResidueGroup n → ℝ := fun x => (tailLaw n k l x).toReal
-  set δ : ℝ := Cstar * 20 ^ (10241 / 4096 : ℝ) / (n : ℝ) ^ (10241 / 4096 : ℝ) with hδ
+  set δ : ℝ := Cstar * 20 ^ (10241 / 4096 : ℝ) / (n : ℝ) ^ (10241 / 4096 : ℝ)
   have hconv : ∀ x, (subMass n (mxSliceGate n k l) x).toReal = ∑ y, H y * T (x - y) := by
     intro x
     rw [subMass_mxSliceGate_eq_sum hk x, ENNReal.toReal_sum]
     · refine sum_congr rfl fun y _ => ?_
       rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal (mxHeadMass_nonneg n k l y)]
     · exact fun y _ => ENNReal.mul_ne_top ENNReal.ofReal_ne_top (tailLaw_ne_top _ _ _ _)
-  have hn1 : 1 ≤ n := le_trans Nat.one_le_two_pow hn
-  have hδ0 : 0 ≤ δ := by have := Cstar_pos; positivity
+  have hn1 : 1 ≤ n := Nat.one_le_two_pow.trans hn
+  have hδ0 : 0 ≤ δ := by
+    have := Cstar_pos
+    positivity
   have hrhs : 0 ≤ δ * Real.sqrt ((3 : ℝ) ^ n * (2⁻¹ : ℝ) ^ l *
       (geomMass (mxHeadGate n k l)).toReal) := mul_nonneg hδ0 (Real.sqrt_nonneg _)
   by_cases hHd : mxHeadGate n k l = ∅

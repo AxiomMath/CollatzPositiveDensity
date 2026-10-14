@@ -45,6 +45,10 @@ Since `201 < 2^8` and `𝗀^{69} < 2`, one gets `lg(b_j) ≤ 9 + j/69`, so for `
 The inequality is stated in `ℝ`, with the natural-number depth half-widths cast to `ℝ`.
 The intermediate bound `n ≤ 𝗀^n` is obtained from `𝗀^{3k} ≥ (1 + k/100)^3` with `k = ⌊n/3⌋`
 (Bernoulli's inequality) rather than from the cubic binomial term.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -72,7 +76,7 @@ theorem two_mul_sum_dw_scale_add_one_lt_lg_scale_le (j : ℕ) :
   have hkj : (k : ℝ) ≤ (j : ℝ) / 69 := by
     rw [le_div_iff₀ (by norm_num)]
     exact_mod_cast (by omega : k * 69 ≤ j)
-  have hleR : (lg (scale j) : ℝ) ≤ k + 9 := by exact_mod_cast hle
+  have : (lg (scale j) : ℝ) ≤ k + 9 := by exact_mod_cast hle
   linarith
 
 /-- `n ≤ 𝗀^n` for `n ≥ 10000`. -/
@@ -87,6 +91,8 @@ private theorem le_growthRatio_pow {n : ℕ} (hn : 10000 ≤ n) :
     exact one_add_mul_le_pow (by norm_num) k
   have hkR : (3333 : ℝ) ≤ k := by exact_mod_cast hk0
   have hnR : (n : ℝ) ≤ 3 * k + 2 := by exact_mod_cast hnk
+  have h3 : (1 + (k : ℝ) * (1 / 100)) ^ 3 ≤ ((growthRatio : ℝ) ^ k) ^ 3 := by
+    gcongr
   have hk2 : (3333 : ℝ) ^ 2 ≤ (k : ℝ) ^ 2 := by gcongr
   have hk3 : (n : ℝ) ≤ ((k : ℝ) / 100) ^ 3 := by
     have : (k : ℝ) * 3333 ^ 2 ≤ (k : ℝ) * (k : ℝ) ^ 2 := by gcongr
@@ -95,58 +101,9 @@ private theorem le_growthRatio_pow {n : ℕ} (hn : 10000 ≤ n) :
         refine hk3.trans ?_
         gcongr
         linarith
-    _ ≤ ((growthRatio : ℝ) ^ k) ^ 3 := by gcongr
+    _ ≤ ((growthRatio : ℝ) ^ k) ^ 3 := h3
     _ = (growthRatio : ℝ) ^ (3 * k) := by rw [← pow_mul, mul_comm]
     _ ≤ (growthRatio : ℝ) ^ n := pow_le_pow_right₀ hg1 (by omega)
-
-/-- For `j < n` with `n ≥ 10000`, `dw(b_j) < (81/8) √n 𝖦^j + 1`. -/
-theorem dw_scale_lt_sqrt_mul_histogramGrowth_pow {n j : ℕ} (hn : 10000 ≤ n) (hjn : j < n) :
-    (dw (scale j) : ℝ) < 81 / 8 * √(n : ℝ) * histogramGrowth ^ j + 1 := by
-  have hG0 : 0 ≤ histogramGrowth := histogramGrowth_nonneg
-  have hnR : (10000 : ℝ) ≤ n := by exact_mod_cast hn
-  have hsqsq : √(n : ℝ) ^ 2 = n := Real.sq_sqrt (by positivity)
-  have hjR : (j : ℝ) ≤ n := by exact_mod_cast hjn.le
-  have hb := scale_lt_mul_growthRatio_pow j
-  have hb0 : (0 : ℝ) ≤ scale j := Nat.cast_nonneg _
-  have hlg := two_mul_sum_dw_scale_add_one_lt_lg_scale_le j
-  have hlg0 : (0 : ℝ) ≤ lg (scale j) := Nat.cast_nonneg _
-  have hlgn : (lg (scale j) : ℝ) ≤ n / 64 := by linarith
-  have hgj : (growthRatio : ℝ) ^ j = (histogramGrowth ^ j) ^ 2 := by
-    rw [← pow_mul, mul_comm, histogramGrowth_pow_two_mul]
-  have hgj0 : (0 : ℝ) ≤ (growthRatio : ℝ) ^ j := (pow_pos growthRatio_cast_pos j).le
-  have hroot : √(32 * (scale j : ℝ) * (lg (scale j) : ℝ)) ≤
-      81 / 8 * √(n : ℝ) * histogramGrowth ^ j := by
-    rw [Real.sqrt_le_iff]
-    refine ⟨by positivity, ?_⟩
-    rw [mul_pow, mul_pow, hsqsq, ← hgj]
-    calc 32 * (scale j : ℝ) * (lg (scale j) : ℝ)
-        ≤ 32 * (201 * (growthRatio : ℝ) ^ j) * (n / 64) := by gcongr
-      _ ≤ (81 / 8) ^ 2 * n * (growthRatio : ℝ) ^ j := by nlinarith
-  calc (dw (scale j) : ℝ) ≤ (⌈√(32 * (scale j : ℝ) * (lg (scale j) : ℝ))⌉₊ : ℝ) := by
-        exact_mod_cast dw_le_ceil_sqrt (scale j)
-    _ < √(32 * (scale j : ℝ) * (lg (scale j) : ℝ)) + 1 :=
-        Nat.ceil_lt_add_one (Real.sqrt_nonneg _)
-    _ ≤ 81 / 8 * √(n : ℝ) * histogramGrowth ^ j + 1 := by linarith
-
-/-- The geometric sum `∑_{j<n} 𝖦^j` is less than `201 𝖦^n`. -/
-theorem sum_range_histogramGrowth_pow_lt (n : ℕ) :
-    ∑ j ∈ Finset.range n, histogramGrowth ^ j < 201 * histogramGrowth ^ n := by
-  have h := geom_sum_mul histogramGrowth n
-  have hG1 := one_lt_histogramGrowth
-  have hG201 := lt_histogramGrowth_sub_one
-  have hS0 : 0 ≤ ∑ j ∈ Finset.range n, histogramGrowth ^ j :=
-    Finset.sum_nonneg fun _ _ => by positivity
-  have hGn : 0 < histogramGrowth ^ n := by positivity
-  nlinarith
-
-/-- `√n ≤ 𝖦^n` for `n ≥ 10000`. -/
-theorem sqrt_le_histogramGrowth_pow {n : ℕ} (hn : 10000 ≤ n) :
-    √(n : ℝ) ≤ histogramGrowth ^ n := by
-  have hG0 : 0 ≤ histogramGrowth := histogramGrowth_nonneg
-  rw [Real.sqrt_le_iff]
-  refine ⟨by positivity, ?_⟩
-  rw [← pow_mul, mul_comm, histogramGrowth_pow_two_mul]
-  exact le_growthRatio_pow hn
 
 /-- **Growth of the depth-width sums**: for every `n ≥ 10000`,
 `2 ∑_{j<n} dw(b_j) + 1 < 4075 √n 𝖦^n`. -/
@@ -156,21 +113,61 @@ theorem two_mul_sum_dw_scale_add_one_lt {n : ℕ} (hn : 10000 ≤ n) :
       4075 * √(n : ℝ) * histogramGrowth ^ n := by
   set G := histogramGrowth with hGdef
   have hG1 : 1 < G := one_lt_histogramGrowth
+  have hG0 : 0 ≤ G := histogramGrowth_nonneg
+  have hnR : (10000 : ℝ) ≤ n := by exact_mod_cast hn
   have hsq0 : 0 ≤ √(n : ℝ) := Real.sqrt_nonneg _
+  have hsqsq : √(n : ℝ) ^ 2 = n := Real.sq_sqrt (by positivity)
   have hsq1 : 1 ≤ √(n : ℝ) := by
-    rw [show (1 : ℝ) = √1 by simp]
-    exact Real.sqrt_le_sqrt (by exact_mod_cast (by omega : 1 ≤ n))
+    rw [show (1 : ℝ) = √1 by simp]; exact Real.sqrt_le_sqrt (by linarith)
+  -- Individual widths.
+  have hterm : ∀ j ∈ Finset.range n,
+      (dw (scale j) : ℝ) < 81 / 8 * √(n : ℝ) * G ^ j + 1 := by
+    intro j hj
+    have hjn : j < n := Finset.mem_range.1 hj
+    have hjR : (j : ℝ) ≤ n := by exact_mod_cast hjn.le
+    have hb := scale_lt_mul_growthRatio_pow j
+    have hb0 : (0 : ℝ) ≤ scale j := Nat.cast_nonneg _
+    have hlg := two_mul_sum_dw_scale_add_one_lt_lg_scale_le j
+    have hlg0 : (0 : ℝ) ≤ lg (scale j) := Nat.cast_nonneg _
+    have hlgn : (lg (scale j) : ℝ) ≤ n / 64 := by linarith
+    have hgj : (growthRatio : ℝ) ^ j = (G ^ j) ^ 2 := by
+      rw [← pow_mul, mul_comm, hGdef, histogramGrowth_pow_two_mul]
+    have hgj0 : (0 : ℝ) ≤ (growthRatio : ℝ) ^ j := by
+      have := growthRatio_cast_pos; positivity
+    have hroot : √(32 * (scale j : ℝ) * (lg (scale j) : ℝ)) ≤ 81 / 8 * √(n : ℝ) * G ^ j := by
+      rw [Real.sqrt_le_iff]
+      refine ⟨by positivity, ?_⟩
+      have e : (81 / 8 * √(n : ℝ) * G ^ j) ^ 2 = 6561 / 64 * n * (growthRatio : ℝ) ^ j := by
+        rw [hgj, mul_pow, mul_pow, hsqsq]; ring
+      rw [e]
+      calc 32 * (scale j : ℝ) * (lg (scale j) : ℝ)
+          ≤ 32 * (201 * (growthRatio : ℝ) ^ j) * (n / 64) := by gcongr
+        _ ≤ 6561 / 64 * n * (growthRatio : ℝ) ^ j := by nlinarith
+    calc (dw (scale j) : ℝ) ≤ (⌈√(32 * (scale j : ℝ) * (lg (scale j) : ℝ))⌉₊ : ℝ) := by
+          exact_mod_cast dw_le_ceil_sqrt (scale j)
+      _ < √(32 * (scale j : ℝ) * (lg (scale j) : ℝ)) + 1 :=
+          Nat.ceil_lt_add_one (Real.sqrt_nonneg _)
+      _ ≤ 81 / 8 * √(n : ℝ) * G ^ j + 1 := by linarith
+  have hne : (Finset.range n).Nonempty := Finset.nonempty_range_iff.2 (by omega)
   have hsum1 : ∑ j ∈ Finset.range n, (dw (scale j) : ℝ) <
       ∑ j ∈ Finset.range n, (81 / 8 * √(n : ℝ) * G ^ j + 1) :=
-    Finset.sum_lt_sum_of_nonempty (Finset.nonempty_range_iff.2 (by omega))
-      fun j hj => dw_scale_lt_sqrt_mul_histogramGrowth_pow hn (Finset.mem_range.1 hj)
-  have hgeom : ∑ j ∈ Finset.range n, G ^ j < 201 * G ^ n :=
-    sum_range_histogramGrowth_pow_lt n
+    Finset.sum_lt_sum_of_nonempty hne hterm
+  -- Geometric series.
+  have hgeom : ∑ j ∈ Finset.range n, G ^ j < 201 * G ^ n := by
+    have h := geom_sum_mul G n
+    have hG201 := lt_histogramGrowth_sub_one
+    have hS0 : 0 ≤ ∑ j ∈ Finset.range n, G ^ j := Finset.sum_nonneg (fun _ _ => by positivity)
+    have hGn : 0 < G ^ n := by positivity
+    nlinarith
   have hsum2 : ∑ j ∈ Finset.range n, (81 / 8 * √(n : ℝ) * G ^ j + 1) =
       81 / 8 * √(n : ℝ) * ∑ j ∈ Finset.range n, G ^ j + n := by
-    rw [Finset.sum_add_distrib, ← Finset.mul_sum]
-    simp
-  have hGn : √(n : ℝ) ≤ G ^ n := sqrt_le_histogramGrowth_pow hn
+    rw [Finset.sum_add_distrib, ← Finset.mul_sum]; simp
+  -- `n ≤ √n 𝖦^n`.
+  have hGn : √(n : ℝ) ≤ G ^ n := by
+    rw [Real.sqrt_le_iff]
+    refine ⟨by positivity, ?_⟩
+    rw [← pow_mul, mul_comm, hGdef, histogramGrowth_pow_two_mul]
+    exact le_growthRatio_pow hn
   have hn_le : (n : ℝ) ≤ √(n : ℝ) * G ^ n := by
     calc (n : ℝ) = √(n : ℝ) * √(n : ℝ) := (Real.mul_self_sqrt (by positivity)).symm
       _ ≤ √(n : ℝ) * G ^ n := mul_le_mul_of_nonneg_left hGn hsq0

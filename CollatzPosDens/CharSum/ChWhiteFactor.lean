@@ -69,9 +69,7 @@ theorem chWhiteFactor_of_not_isBkWhite {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ
 theorem chWhiteFactor_pos (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
     0 < chWhiteFactor n ξ ε p := by
   unfold chWhiteFactor
-  split_ifs
-  · exact Real.exp_pos _
-  · exact one_pos
+  split_ifs <;> positivity
 
 /-- The white factor is nonnegative. -/
 theorem chWhiteFactor_nonneg (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
@@ -83,7 +81,8 @@ theorem chWhiteFactor_le_one (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ
     chWhiteFactor n ξ ε p ≤ 1 := by
   unfold chWhiteFactor
   split_ifs
-  · rw [zStar_cast, Real.exp_le_one_iff]; norm_num
+  · rw [zStar_cast, Real.exp_le_one_iff]
+    norm_num
   · exact le_rfl
 
 end CollatzPosDens

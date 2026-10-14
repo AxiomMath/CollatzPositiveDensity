@@ -117,16 +117,14 @@ theorem off_concatWord_mem_Icc_of_mem_selectedTuples {n : ℕ} (hn : 5 ≤ n)
     85 / 256 ≤ off (concatWord t) ∧ off (concatWord t) ≤ 637 / 256 := by
   obtain ⟨m, rfl⟩ : ∃ m, n = m + 5 := ⟨n - 5, by omega⟩
   have hmem := selectedTuples_mem_centralFamily ht
-  have hsc := scale_first_six
-  simp only [Prod.mk.injEq] at hsc
-  obtain ⟨s0, s1, s2, s3, s4, s5⟩ := hsc
+  obtain ⟨s0, s1, s2, s3, s4, s5⟩ := by simpa only [Prod.mk.injEq] using scale_first_six
   have hwt : ∀ j : Fin (m + 5), (j : ℕ) < 5 → 16 * (t j).weight < 1 := by
     intro j hj
     have h := sixteen_pow_eb_mul_weight_lt_of_mem_centralFamily (nine_le_scale j) (hmem j)
     have he : eb (scale j) = 1 := by
       have := scale_succ j
       obtain ⟨j, hj'⟩ := j
-      simp only at hj ⊢ this
+      simp only at this hj ⊢
       interval_cases j <;>
         simp only [Nat.reduceAdd, s0, s1, s2, s3, s4, s5] at this ⊢ <;> omega
     rw [he, pow_one] at h

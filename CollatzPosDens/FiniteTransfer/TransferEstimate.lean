@@ -25,37 +25,39 @@ public import CollatzPosDens.Mixing.Mixing
 /-!
 # The finite-transfer estimate
 
-Let `h ≥ 0`, `k`, `Q = h + k` and `ℓ` be natural numbers with `2 ^ 131072 ≤ k` and
-`2 ^ 131072 ≤ ℓ ≤ Q`, and let `𝒱` be a finite prefix-disjoint set of words, all of length at
+Let `h ≥ 0`, `k`, `Q = h + k` and `ℓ` be natural numbers with `2 ^ 80000 ≤ k` and
+`2 ^ 80000 ≤ ℓ ≤ Q`, and let `𝒱` be a finite prefix-disjoint set of words, all of length at
 most `h`. Then
 $$\Bigl\langle \Bigl|\sum_{w\in\mathcal V}\mathcal T_{w,Q}\,\rho_k
   - \rho_\ell\circ\pi_{Q,\ell}\Bigr|\Bigr\rangle_Q
-  \le \frac23\Bigl(\frac C{k^{9/8}}+\frac C{\ell^{9/8}}+1-\mathbf p(\mathcal V)\Bigr),$$
+  \le \frac23\Bigl(\frac C{k^{3/2}}+\frac C{\ell^{3/2}}+1-\mathbf p(\mathcal V)\Bigr),$$
 where `C` is the mixing coefficient.
 
 The difference splits as `E₁ + E₂ + E₃` with
 `E₁ = ∑_w 𝒯_w (ρ_k ∘ π_{Q-|w|,k} - ρ_{Q-|w|})`, `E₂ = ∑_w 𝒯_w ρ_{Q-|w|} - ρ_Q` and
-`E₃ = ρ_Q - ρ_ℓ ∘ π_{Q,ℓ}`. `CollatzPosDens.residueAvg_abs_liftedTransfer` and
-`CollatzPosDens.residueAvg_abs_refDensity_sub_le_of_two_pow_le` bound
-`⟨|E₁|⟩_Q ≤ 𝐩(𝒱) · 2C/(3k^{9/8}) ≤ 2C/(3k^{9/8})`; `CollatzPosDens.sum_transfer_refDensity_le`
-gives `E₂ ≤ 0`, so that `⟨|E₂|⟩_Q = (2/3)(1 - 𝐩(𝒱))` by `CollatzPosDens.residueAvg_refDensity`
-and `CollatzPosDens.residueAvg_transfer`; and
-`CollatzPosDens.residueAvg_abs_refDensity_sub_le_of_two_pow_le` bounds
-`⟨|E₃|⟩_Q ≤ 2C/(3ℓ^{9/8})`.
+`E₃ = ρ_Q - ρ_ℓ ∘ π_{Q,ℓ}`. The mean absolute value of a transfer and the mixing lemma bound
+`⟨|E₁|⟩_Q ≤ 𝐩(𝒱) · 2C/(3k^{3/2}) ≤ 2C/(3k^{3/2})`; the domination of a prefix-disjoint family by
+the reference density gives `E₂ ≤ 0`, so that `⟨|E₂|⟩_Q = (2/3)(1 - 𝐩(𝒱))` by the means of `ρ_Q`
+and of a transfer; and the mixing lemma bounds `⟨|E₃|⟩_Q ≤ 2C/(3ℓ^{3/2})`.
 
 ## Main results
 
 * `CollatzPosDens.residueAvg_abs_sum_liftedTransfer_sub_le_of_two_pow_le`: the estimate, for
   any `Q` with `|w| + k ≤ Q` for every `w ∈ 𝒱`.
-* `CollatzPosDens.residueAvg_abs_sum_liftedTransfer_refDensity_sub_le`: the estimate with
-  `Q = h + k`.
+* `CollatzPosDens.residueAvg_abs_sum_liftedTransfer_refDensity_sub_le`: the estimate in the
+  form of [mazur2026], with `Q = h + k`.
 
 ## Implementation notes
 
 The lifted transfer `𝒯_{w,Q}` carries a proof of `|w| + k ≤ Q`, so the sum over `𝒱` runs over
 `𝒱.attach`. The geometric mass `𝐩(𝒱) ∈ [0, ∞]` enters through `ENNReal.toReal`; it is finite,
-being a finite sum. The powers `k^{9/8}`, `ℓ^{9/8}` are real powers. The general form only asks
-`|w| + k ≤ Q` for each `w ∈ 𝒱`, of which `Q = h + k` with `|w| ≤ h` is a special case.
+being a finite sum. The powers `k^{3/2}`, `ℓ^{3/2}` are real powers. The general form only asks
+`|w| + k ≤ Q` for each `w ∈ 𝒱`, which is all the argument uses; [mazur2026]'s `Q = h + k` with
+`|w| ≤ h` is a special case.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -112,14 +114,14 @@ private theorem transferEstimate_liftedTransfer_refDensity_eq_add (w : Word) {k 
   rfl
 
 /-- **The finite-transfer estimate**, for any level `Q` with `|w| + k ≤ Q` for all `w ∈ 𝒱`:
-if `𝒱` is a finite prefix-disjoint set of words, `2 ^ 131072 ≤ k` and `2 ^ 131072 ≤ ℓ ≤ Q`, then
-`⟨|∑_{w ∈ 𝒱} 𝒯_{w,Q} ρ_k - ρ_ℓ ∘ π_{Q,ℓ}|⟩_Q ≤ (2/3)(C/k^{9/8} + C/ℓ^{9/8} + 1 - 𝐩(𝒱))`. -/
+if `𝒱` is a finite prefix-disjoint set of words, `2 ^ 80000 ≤ k` and `2 ^ 80000 ≤ ℓ ≤ Q`, then
+`⟨|∑_{w ∈ 𝒱} 𝒯_{w,Q} ρ_k - ρ_ℓ ∘ π_{Q,ℓ}|⟩_Q ≤ (2/3)(C/k^{3/2} + C/ℓ^{3/2} + 1 - 𝐩(𝒱))`. -/
 theorem residueAvg_abs_sum_liftedTransfer_sub_le_of_two_pow_le {V : Finset Word}
-    (hV : IsPrefixFree (V : Set Word)) {k Q ℓ : ℕ} (hk : 2 ^ 131072 ≤ k)
-    (hVQ : ∀ w ∈ V, w.length + k ≤ Q) (hℓ : 2 ^ 131072 ≤ ℓ) (hℓQ : ℓ ≤ Q) :
+    (hV : IsPrefixFree (V : Set Word)) {k Q ℓ : ℕ} (hk : 2 ^ 80000 ≤ k)
+    (hVQ : ∀ w ∈ V, w.length + k ≤ Q) (hℓ : 2 ^ 80000 ≤ ℓ) (hℓQ : ℓ ≤ Q) :
     residueAvg Q (fun y => |∑ w ∈ V.attach, liftedTransfer w.1 (hVQ w.1 w.2) (refDensity k) y -
         refDensity ℓ (residueReduction hℓQ y)|) ≤
-      2 / 3 * (mixingConst / (k : ℝ) ^ (9 / 8 : ℝ) + mixingConst / (ℓ : ℝ) ^ (9 / 8 : ℝ) + 1 -
+      2 / 3 * (mixingConst / (k : ℝ) ^ (3 / 2 : ℝ) + mixingConst / (ℓ : ℝ) ^ (3 / 2 : ℝ) + 1 -
         (geomMass (V : Set Word)).toReal) := by
   have hlenQ : ∀ w ∈ V, w.length ≤ Q := fun w hw => le_of_add_le_left (hVQ w hw)
   have hp1 : (geomMass (V : Set Word)).toReal ≤ 1 := by
@@ -144,7 +146,7 @@ theorem residueAvg_abs_sum_liftedTransfer_sub_le_of_two_pow_le {V : Finset Word}
       (sum_transfer_refDensity_le hV hlenQ le_rfl y)
   have hE1 : residueAvg Q (fun y => ∑ w ∈ V.attach, |a w y|) ≤
       (geomMass (V : Set Word)).toReal *
-        (2 * mixingConst / (3 * (k : ℝ) ^ (9 / 8 : ℝ))) := by
+        (2 * mixingConst / (3 * (k : ℝ) ^ (3 / 2 : ℝ))) := by
     rw [residueAvg_sum, toReal_geomMass_coe_finset,
       ← sum_attach V fun w => (2 : ℝ)⁻¹ ^ w.valSum, sum_mul]
     refine sum_le_sum fun w _ => ?_
@@ -154,28 +156,38 @@ theorem residueAvg_abs_sum_liftedTransfer_sub_le_of_two_pow_le {V : Finset Word}
       residueAvg_abs_refDensity_sub_le_of_two_pow_le hk (Nat.le_sub_of_add_le' (hVQ w.1 w.2))
   have hE2 : residueAvg Q (fun y => refDensity Q y - ∑ w ∈ V, b w y) =
       2 / 3 - (geomMass (V : Set Word)).toReal * (2 / 3) := by
-    rw [residueAvg_sub, residueAvg_refDensity, residueAvg_sum_transfer_refDensity hlenQ]
+    rw [residueAvg_sub, residueAvg_refDensity,
+      residueAvg_sum_transfer_refDensity hlenQ]
   have hE3 := residueAvg_abs_refDensity_sub_le_of_two_pow_le hℓ hℓQ
   have hX := mul_le_mul_of_nonneg_right hp1
-    (by have := mixingConst_pos; positivity : (0 : ℝ) ≤ mixingConst / (k : ℝ) ^ (9 / 8 : ℝ))
-  have hS := residueAvg_mono hpt
-  have e (m : ℝ) : 2 * mixingConst / (3 * m) = 2 / 3 * (mixingConst / m) := by ring
-  rw [residueAvg_add, residueAvg_add, hE2] at hS
-  rw [e] at hE1 hE3
-  nlinarith
+    (by have := mixingConst_pos; positivity : (0 : ℝ) ≤ mixingConst / (k : ℝ) ^ (3 / 2 : ℝ))
+  calc _ ≤ residueAvg Q (fun y => ∑ w ∈ V.attach, |a w y| +
+          (refDensity Q y - ∑ w ∈ V, b w y) +
+          |refDensity Q y - refDensity ℓ (residueReduction hℓQ y)|) :=
+        residueAvg_mono hpt
+    _ = residueAvg Q (fun y => ∑ w ∈ V.attach, |a w y|) +
+          residueAvg Q (fun y => refDensity Q y - ∑ w ∈ V, b w y) +
+          residueAvg Q (fun y => |refDensity Q y - refDensity ℓ (residueReduction hℓQ y)|) := by
+        rw [residueAvg_add, residueAvg_add]
+    _ ≤ _ := by
+        rw [hE2]
+        have e : ∀ m : ℝ, 2 * mixingConst / (3 * m) = 2 / 3 * (mixingConst / m) :=
+          fun m => by ring
+        rw [e] at hE1 hE3
+        nlinarith
 
 /-- **The finite-transfer estimate.** Let `h ≥ 0`, `k`, `Q = h + k` and `ℓ` be natural numbers
-with `2 ^ 131072 ≤ k` and `2 ^ 131072 ≤ ℓ ≤ Q`, and let `𝒱` be a finite prefix-disjoint set of
+with `2 ^ 80000 ≤ k` and `2 ^ 80000 ≤ ℓ ≤ Q`, and let `𝒱` be a finite prefix-disjoint set of
 words, all of length at most `h`. Then
-`⟨|∑_{w ∈ 𝒱} 𝒯_{w,Q} ρ_k - ρ_ℓ ∘ π_{Q,ℓ}|⟩_Q ≤ (2/3)(C/k^{9/8} + C/ℓ^{9/8} + 1 - 𝐩(𝒱))`. -/
+`⟨|∑_{w ∈ 𝒱} 𝒯_{w,Q} ρ_k - ρ_ℓ ∘ π_{Q,ℓ}|⟩_Q ≤ (2/3)(C/k^{3/2} + C/ℓ^{3/2} + 1 - 𝐩(𝒱))`. -/
 @[collatz_pos_dens "lem_transfer_estimate"]
 theorem residueAvg_abs_sum_liftedTransfer_refDensity_sub_le {V : Finset Word}
-    (hV : IsPrefixFree (V : Set Word)) {h k ℓ : ℕ} (hk : 2 ^ 131072 ≤ k)
-    (hlen : ∀ w ∈ V, w.length ≤ h) (hℓ : 2 ^ 131072 ≤ ℓ) (hℓQ : ℓ ≤ h + k) :
+    (hV : IsPrefixFree (V : Set Word)) {h k ℓ : ℕ} (hk : 2 ^ 80000 ≤ k)
+    (hlen : ∀ w ∈ V, w.length ≤ h) (hℓ : 2 ^ 80000 ≤ ℓ) (hℓQ : ℓ ≤ h + k) :
     residueAvg (h + k) (fun y => |∑ w ∈ V.attach,
         liftedTransfer w.1 (Nat.add_le_add_right (hlen w.1 w.2) k) (refDensity k) y -
         refDensity ℓ (residueReduction hℓQ y)|) ≤
-      2 / 3 * (mixingConst / (k : ℝ) ^ (9 / 8 : ℝ) + mixingConst / (ℓ : ℝ) ^ (9 / 8 : ℝ) + 1 -
+      2 / 3 * (mixingConst / (k : ℝ) ^ (3 / 2 : ℝ) + mixingConst / (ℓ : ℝ) ^ (3 / 2 : ℝ) + 1 -
         (geomMass (V : Set Word)).toReal) :=
   residueAvg_abs_sum_liftedTransfer_sub_le_of_two_pow_le hV hk
     (fun w hw => Nat.add_le_add_right (hlen w hw) k) hℓ hℓQ

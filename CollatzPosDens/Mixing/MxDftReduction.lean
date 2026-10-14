@@ -51,7 +51,9 @@ theorem fxChar_three_pow_mul (r j : ℕ) (z : ResidueGroup (r + j)) :
   conv_lhs => rw [← ZMod.natCast_zmod_val z]
   conv_rhs => rw [← ZMod.natCast_zmod_val z, residueReduction_natCast]
   have h : (3 : ResidueGroup (r + j)) ^ j * (z.val : ResidueGroup (r + j)) =
-      ((3 ^ j * z.val : ℕ) : ResidueGroup (r + j)) := by push_cast; rfl
+      ((3 ^ j * z.val : ℕ) : ResidueGroup (r + j)) := by
+    push_cast
+    rfl
   rw [h, fxChar_natCast, fxChar_natCast]
   congr 1
   have h3 : (3 : ℂ) ^ j ≠ 0 := pow_ne_zero _ (by norm_num)

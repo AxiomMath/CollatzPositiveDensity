@@ -56,7 +56,8 @@ theorem tsum_firstPassageLaw_threeFifths_tail_le (s : ℕ) (hs : 1 ≤ s) :
   set u : ℝ := (s : ℝ) ^ (1 / 5 : ℝ) with hu
   have hu1 : 1 ≤ u := one_le_rpow hs1 (by norm_num)
   have ht : (s : ℝ) ^ (3 / 5 : ℝ) = u ^ 3 := by
-    rw [hu, ← rpow_natCast, ← rpow_mul hs0.le]; norm_num
+    rw [hu, ← rpow_natCast, ← rpow_mul hs0.le]
+    norm_num
   have ht2 : ((s : ℝ) ^ (3 / 5 : ℝ)) ^ 2 = s * u := by
     rw [hu, ← rpow_natCast, ← rpow_mul hs0.le, ← rpow_one_add' hs0.le (by norm_num)]
     norm_num

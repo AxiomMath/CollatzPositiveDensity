@@ -53,17 +53,14 @@ theorem bStar_def : bStar = ∑ j ∈ Finset.Icc (1 : ℕ) 12, (1 - rhoStar) ^ j
 with `x = 1 - ϱ_*`. -/
 theorem bStar_eq_sum_range :
     bStar = ∑ i ∈ Finset.range 12, (1 - rhoStar) ^ (i + 1) / (i + 1) := by
-  have h : Finset.Icc (1 : ℕ) 12 = Finset.Ico (0 + 1) (12 + 1) := by decide
-  rw [bStar_def, Finset.range_eq_Ico, h,
+  rw [bStar_def, Finset.range_eq_Ico,
+    show Finset.Icc (1 : ℕ) 12 = Finset.Ico (0 + 1) (12 + 1) by decide,
     ← Finset.sum_Ico_add' (fun j : ℕ => (1 - rhoStar) ^ j / j)]
   simp
 
 /-- The pair score is positive. -/
-theorem bStar_pos : 0 < bStar := by
-  rw [bStar_def]
-  have hx : 0 < 1 - rhoStar := sub_pos.mpr rhoStar_lt_one
-  exact Finset.sum_pos (fun j hj => by
-    have : (0 : ℚ) < j := by exact_mod_cast (Finset.mem_Icc.mp hj).1
-    exact div_pos (pow_pos hx j) this) ⟨1, by simp⟩
+theorem bStar_pos : 0 < bStar :=
+  Finset.sum_pos (fun j hj => div_pos (pow_pos (sub_pos.mpr rhoStar_lt_one) j)
+    (by exact_mod_cast (Finset.mem_Icc.mp hj).1)) ⟨1, by simp⟩
 
 end CollatzPosDens

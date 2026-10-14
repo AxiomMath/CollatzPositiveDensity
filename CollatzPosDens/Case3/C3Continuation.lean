@@ -94,9 +94,7 @@ private theorem chWhiteFactor_mul_chInternalWeight (n : ℕ) (ξ : ResidueGroup 
       simp only [Finset.coe_filter, Finset.mem_Icc, Set.mem_ofPred_eq] at hi
       simp only [Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq, hp]
       refine ⟨by omega, hi.2.1, ?_⟩
-      have h1 : i - 1 + 1 = i := by omega
-      have h2 : ((i - 1 : ℕ) : ℤ) + 1 = (i : ℤ) := by omega
-      rw [h1, h2]
+      rw [show i - 1 + 1 = i by omega, show ((i - 1 : ℕ) : ℤ) + 1 = (i : ℤ) by omega]
       exact hi.2.2
     · intro i hi
       simp only [Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq, hp] at hi
@@ -147,13 +145,23 @@ private theorem prod_chWhiteFactor_mul_prod_chInternalWeight_le (n : ℕ) (ξ : 
           trReward n ξ (trPath o L k) (L.getD k ([], 0)))) := by
         rw [← Finset.prod_mul_distrib]
         refine Finset.prod_congr rfl fun k hk ↦ ?_
-        have hk : k < L.length := by rw [Finset.mem_range] at hk; omega
+        have hk : k < L.length := by
+          have := Finset.mem_range.1 hk
+          omega
         rw [chBlockPath_succ L hk, ← add_assoc, trPath_eq_add_chBlockPath,
           List.getD_eq_getElem _ _ hk]
         exact chWhiteFactor_mul_chInternalWeight n ξ _ _
     _ = _ := by
         rw [← Real.exp_sum, trCount_def, hL, Nat.add_sub_cancel,
           min_eq_left (Nat.le_succ m), Finset.mul_sum, ← Finset.sum_neg_distrib]
+
+/-- The factor `e^{-z_* N^*(o, L; k)} Q(p)` is at most `1`. -/
+private theorem exp_neg_mul_trCount_mul_chQ_le_one (n : ℕ) (ξ : ResidueGroup n) (o : ℤ × ℤ)
+    (L : List (List ℤ × ℤ)) (k : ℕ) (p : ℤ × ℤ) :
+    Real.exp (-((zStar : ℝ) * trCount n ξ o L k)) * chQ n ξ (epsStar : ℝ) p ≤ 1 := by
+  refine (mul_le_of_le_one_left (chQ_nonneg _ _ _ _) ?_).trans (chQ_le_one _ _ _ _)
+  rw [Real.exp_le_one_iff, neg_nonpos]
+  exact mul_nonneg (by exact_mod_cast zStar_nonneg) (trCount_nonneg _ _ _)
 
 /-- The continuation inequality from a base point `o` with `0 ≤ j(o)`, summed over `𝔅^J`,
 `J ≥ P`, as a sum in `[0, ∞]`. -/
@@ -169,10 +177,7 @@ private theorem ofReal_chQ_le_tsum_trListWeight (n : ℕ) (ξ : ResidueGroup n) 
     Real.exp (-((zStar : ℝ) * trCount n ξ o L (P - 1))) * chQ n ξ (epsStar : ℝ) (trPath o L P)
     with hΦ
   have hΦ0 : ∀ L, 0 ≤ Φ L := fun L ↦ mul_nonneg (Real.exp_pos _).le (chQ_nonneg _ _ _ _)
-  have hΦ1 : ∀ L, Φ L ≤ 1 := fun L ↦ by
-    refine (mul_le_of_le_one_left (chQ_nonneg _ _ _ _) ?_).trans (chQ_le_one _ _ _ _)
-    rw [Real.exp_le_one_iff, neg_nonpos]
-    exact mul_nonneg (by exact_mod_cast zStar_nonneg) (trCount_nonneg _ _ _)
+  have hΦ1 : ∀ L, Φ L ≤ 1 := fun L ↦ exp_neg_mul_trCount_mul_chQ_le_one n ξ o L _ _
   have hΦapp : ∀ u f : List (List ℤ × ℤ), u.length = P → Φ (u ++ f) = Φ u := by
     intro u f hu
     simp only [hΦ]
@@ -230,8 +235,7 @@ private theorem ofReal_chQ_le_tsum_trListWeight (n : ℕ) (ξ : ResidueGroup n) 
   refine tsum_congr fun u ↦ ?_
   simp_rw [mul_right_comm _ _ (ENNReal.ofReal (Φ u.1))]
   rw [ENNReal.tsum_mul_left, tsum_ofReal_trListWeight_length_eq, mul_one]
-  obtain ⟨u, hu, hu'⟩ := u
-  subst hu
+  obtain ⟨u, rfl, hu'⟩ := u
   congr 2
   · simp only [blockListEquivFin, Equiv.coe_fn_mk, trListWeight_eq_prod_fin]
     rfl
@@ -288,18 +292,16 @@ theorem chQ_le_tsum_trFreshLaw_mul_exp (n : ℕ) (ξ : ResidueGroup n) {e : ℤ 
     refine ENNReal.tsum_le_tsum fun x ↦ ?_
     rw [ENNReal.ofReal_mul (firstPassageLaw_nonneg _ _)]
     gcongr
-    have hox : e + ((x.1 : ℤ), x.2) = o x := rfl
-    rw [hox]
-    exact ofReal_chQ_le_tsum_trListWeight n ξ
-      (by simp only [ho, bkJ]; have := mem_bkPoints.1 he; simp only [bkJ] at this; omega) hP
+    rw [show e + ((x.1 : ℤ), x.2) = o x from rfl]
+    refine ofReal_chQ_le_tsum_trListWeight n ξ ?_ hP
+    have := mem_bkPoints.1 he
+    simp only [ho, bkJ] at this ⊢
+    omega
   have hup : S ≤ ∑' x : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw g ((x.1 : ℤ), x.2)) := by
     refine ENNReal.tsum_le_tsum fun x ↦ mul_le_of_le_one_right' ?_
     refine (ENNReal.tsum_le_tsum fun β ↦ mul_le_of_le_one_right' ?_).trans_eq
       (tsum_ofReal_trListWeight_length_eq _)
-    refine ENNReal.ofReal_le_one.2 ?_
-    refine (mul_le_of_le_one_left (chQ_nonneg _ _ _ _) ?_).trans (chQ_le_one _ _ _ _)
-    rw [Real.exp_le_one_iff, neg_nonpos]
-    exact mul_nonneg (by exact_mod_cast zStar_nonneg) (trCount_nonneg _ _ _)
+    exact ENNReal.ofReal_le_one.2 (exp_neg_mul_trCount_mul_chQ_le_one n ξ _ _ _ _)
   have hfin : ∑' a, ENNReal.ofReal (T a) ≠ ⊤ := by
     rw [hsplit]
     refine ne_top_of_le_ne_top ?_ hup
@@ -307,10 +309,8 @@ theorem chQ_le_tsum_trFreshLaw_mul_exp (n : ℕ) (ξ : ResidueGroup n) {e : ℤ 
       (summable_firstPassageLaw_natCast g)]
     exact ENNReal.ofReal_ne_top
   have hTS : Summable T := by
-    have := ENNReal.summable_toReal hfin
-    simpa only [ENNReal.toReal_ofReal (hT0 _)] using this
-  rw [← ENNReal.ofReal_le_ofReal_iff (tsum_nonneg hT0), ENNReal.ofReal_tsum_of_nonneg hT0 hTS,
+    simpa only [ENNReal.toReal_ofReal (hT0 _)] using ENNReal.summable_toReal hfin
+  rwa [← ENNReal.ofReal_le_ofReal_iff (tsum_nonneg hT0), ENNReal.ofReal_tsum_of_nonneg hT0 hTS,
     hsplit]
-  exact hlow
 
 end CollatzPosDens

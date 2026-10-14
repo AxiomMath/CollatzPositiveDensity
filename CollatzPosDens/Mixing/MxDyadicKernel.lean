@@ -41,12 +41,9 @@ theorem exists_eq_three_pow_mul_of_dyadicRed_eq_zero {T : ℕ} {q : dyadicRation
     obtain ⟨u, hu⟩ := isUnit_two_residueGroup T
     rw [← hu]
     exact (ZMod.inv_coe_unit u ▸ (u⁻¹).isUnit).pow e
-  have hn : ((n : ℤ) : ResidueGroup T) = 0 := (hu.mul_left_eq_zero).1 hq
-  rw [ZMod.intCast_zmod_eq_zero_iff_dvd] at hn
-  obtain ⟨m, rfl⟩ := hn
+  obtain ⟨m, rfl⟩ := (ZMod.intCast_zmod_eq_zero_iff_dvd _ _).1 (hu.mul_left_eq_zero.1 hq)
   refine ⟨⟨m / 2 ^ e, intCast_div_two_pow_mem m e⟩, Subtype.ext ?_⟩
   rw [hq']
-  have h3 : ((3 : dyadicRationals) : ℚ) = 3 := rfl
-  simp [h3, mul_div_assoc]
+  simp [show ((3 : dyadicRationals) : ℚ) = 3 from rfl, mul_div_assoc]
 
 end CollatzPosDens

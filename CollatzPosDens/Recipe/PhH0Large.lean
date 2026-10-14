@@ -18,7 +18,7 @@ For every endpoint `s ≥ 1`, the seed bound `𝓜(s) = s · 2 ^ (38 + 4 · 3 ^ 
 `log₂ 𝓜(s) > 10 ^ 12`.
 
 Indeed `log₂ 𝓜(s) = log₂ s + 38 + 4 · 3 ^ q_* ≥ 4 · 3 ^ q_*` since `log₂ s ≥ 0`, and
-`q_* ≥ 9 N_* ≥ 26` since `N_* = 9766262`; finally `4 · 3 ^ 26 > 10 ^ 12`.
+`q_* ≥ 9 N_* ≥ 26` since `N_* = 6103914`; finally `4 · 3 ^ 26 > 10 ^ 12`.
 
 ## Main results
 

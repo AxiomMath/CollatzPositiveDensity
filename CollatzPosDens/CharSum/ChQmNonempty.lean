@@ -40,8 +40,6 @@ nonempty: it contains the weighted value at the point `(⌊n/2⌋ + 1, 0)`. -/
 theorem chQm_set_nonempty (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (A : ℝ) (m : ℕ) :
     {x | ∃ p ∈ bkPoints, ((n / 2 - m : ℕ) : ℤ) ≤ bkJ p ∧
       x = (chDist n p : ℝ) ^ A * chQ n ξ ε p}.Nonempty := by
-  refine ⟨_, (((n / 2 + 1 : ℕ) : ℤ), 0), ?_, ?_, rfl⟩
-  · simp only [mem_bkPoints, bkJ]; omega
-  · simp only [bkJ]; omega
+  refine ⟨_, (((n / 2 + 1 : ℕ) : ℤ), 0), ?_, ?_, rfl⟩ <;> simp only [mem_bkPoints, bkJ] <;> omega
 
 end CollatzPosDens

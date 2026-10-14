@@ -45,10 +45,8 @@ theorem scale_zero : scale 0 = 9 := rfl
 theorem scale_succ (j : ℕ) : scale (j + 1) = scale j + eb (scale j) := rfl
 
 /-- Each scale is strictly smaller than the next. -/
-theorem scale_lt_succ (j : ℕ) : scale j < scale (j + 1) := by
-  rw [scale_succ]
-  have := one_le_eb (scale j)
-  omega
+theorem scale_lt_succ (j : ℕ) : scale j < scale (j + 1) :=
+  Nat.lt_add_of_pos_right (one_le_eb (scale j))
 
 /-- The scales are strictly increasing. -/
 theorem scale_strictMono : StrictMono scale :=

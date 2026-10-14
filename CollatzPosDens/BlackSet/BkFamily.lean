@@ -71,23 +71,17 @@ theorem bkCanonTriangle_mem_bkFamily (hp : p ∈ bkPoints) (hb : BkBlack n ξ ε
 at every black `p ∈ bkPoints`. -/
 theorem forall_mem_bkFamily {P : BkTriangle → Prop} :
     (∀ Δ ∈ bkFamily n ξ ε, P Δ) ↔
-      ∀ p (hp : p ∈ bkPoints), BkBlack n ξ ε p → P (bkCanonTriangle n ξ ε p hp) := by
-  constructor
-  · intro h p hp hb
-    exact h _ (bkCanonTriangle_mem_bkFamily hp hb)
-  · rintro h _ ⟨p, hp, hb, rfl⟩
-    exact h p hp hb
+      ∀ p (hp : p ∈ bkPoints), BkBlack n ξ ε p → P (bkCanonTriangle n ξ ε p hp) :=
+  ⟨fun h _ hp hb ↦ h _ (bkCanonTriangle_mem_bkFamily hp hb),
+    fun h _ ⟨p, hp, hb, hΔ⟩ ↦ hΔ ▸ h p hp hb⟩
 
 /-- Some member of the canonical family has a property iff the canonical triangle at
 some black `p ∈ bkPoints` has it. -/
 theorem exists_mem_bkFamily {P : BkTriangle → Prop} :
     (∃ Δ ∈ bkFamily n ξ ε, P Δ) ↔
-      ∃ p, ∃ hp : p ∈ bkPoints, BkBlack n ξ ε p ∧ P (bkCanonTriangle n ξ ε p hp) := by
-  constructor
-  · rintro ⟨_, ⟨p, hp, hb, rfl⟩, h⟩
-    exact ⟨p, hp, hb, h⟩
-  · rintro ⟨p, hp, hb, h⟩
-    exact ⟨_, bkCanonTriangle_mem_bkFamily hp hb, h⟩
+      ∃ p, ∃ hp : p ∈ bkPoints, BkBlack n ξ ε p ∧ P (bkCanonTriangle n ξ ε p hp) :=
+  ⟨fun ⟨_, ⟨p, hp, hb, hΔ⟩, h⟩ ↦ ⟨p, hp, hb, hΔ ▸ h⟩,
+    fun ⟨_, hp, hb, h⟩ ↦ ⟨_, bkCanonTriangle_mem_bkFamily hp hb, h⟩⟩
 
 /-- The canonical family is empty iff `bkPoints` has no black points. -/
 theorem bkFamily_eq_empty_iff :

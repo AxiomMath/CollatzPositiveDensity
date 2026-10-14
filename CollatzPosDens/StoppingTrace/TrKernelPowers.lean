@@ -69,7 +69,9 @@ theorem trKernel_le_rhoStar_pow_add_le_mul {k : ℕ} {c : ℝ≥0∞}
       trKernel n ξ (j + k) v ≤ c * trKernel n ξ j v := by
   intro j
   induction j with
-  | zero => intro v hv hb; simpa using hc v hv hb
+  | zero =>
+    intro v hv hb
+    simpa using hc v hv hb
   | succ j ih =>
     intro v hv _
     rw [show j + 1 + k = (j + k) + 1 by omega, trKernel_succ, trKernel_succ,
@@ -98,8 +100,8 @@ theorem trKernel_le_rhoStar_pow (hξ : IsResidueUnit ξ) (k : ℕ) {v : ℤ × �
   have hC2 : ∀ k, C (k + 2) = C k * rhoStar := by
     intro k
     simp only [hC]
-    rw [show (k + 2) / 2 = k / 2 + 1 by omega, show k + 2 - 2 * (k / 2 + 1) = k - 2 * (k / 2) by
-      omega, pow_succ]
+    rw [show (k + 2) / 2 = k / 2 + 1 by omega,
+      show k + 2 - 2 * (k / 2 + 1) = k - 2 * (k / 2) by omega, pow_succ]
     ring
   suffices H : ∀ k, (∀ w ∈ bkPoints, BkBlack n ξ (epsStar : ℝ) w →
       trKernel n ξ k w ≤ ENNReal.ofReal (C k)) ∧ (∀ w ∈ bkPoints, BkBlack n ξ (epsStar : ℝ) w →
@@ -112,7 +114,8 @@ theorem trKernel_le_rhoStar_pow (hξ : IsResidueUnit ξ) (k : ℕ) {v : ℤ × �
       _ ≤ ENNReal.ofReal (C k) * trKernel n ξ 2 w :=
         trKernel_le_rhoStar_pow_add_le_mul hk 2 hw hbw
       _ ≤ ENNReal.ofReal (C k) * ENNReal.ofReal (rhoStar : ℝ) := by
-        gcongr; exact trKernel_two_le_rhoStar hξ hw hbw
+        gcongr
+        exact trKernel_two_le_rhoStar hξ hw hbw
       _ = ENNReal.ofReal (C (k + 2)) := by rw [hC2, ENNReal.ofReal_mul (hC0 k)]
   intro k
   induction k with

@@ -64,7 +64,8 @@ theorem sum_firstPassageWords_eq_of_le (s r : ℕ) (ℓ : ℤ) (hℓ : ℓ ≤ s
     simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hlast
     simp only [mem_sigma, mem_Icc, mem_rawWords]
     refine ⟨by omega, fun i ↦ hc.1 _, ?_⟩
-    simp only [Fin.init]; linarith [hc.2.2.1]
+    simp only [Fin.init]
+    linarith [hc.2.2.1]
   · rintro ⟨e, d⟩ hx
     simp only [mem_sigma, mem_Icc, mem_rawWords] at hx
     obtain ⟨⟨he4, he5⟩, hd2, hds⟩ := hx
@@ -73,20 +74,23 @@ theorem sum_firstPassageWords_eq_of_le (s r : ℕ) (ℓ : ℤ) (hℓ : ℓ ≤ s
     have h2 : ∀ i, 2 ≤ (Fin.snoc d e : Fin (r + 1) → ℤ) i := by
       intro i
       refine Fin.lastCases ?_ (fun j ↦ ?_) i
-      · simp; omega
+      · simp only [Fin.snoc_last]
+        omega
       · simpa using hd2 j
     have hsum : ∑ i, (Fin.snoc d e : Fin (r + 1) → ℤ) i = ℓ := by
-      rw [Fin.sum_univ_castSucc]; simp [hds]
+      rw [Fin.sum_univ_castSucc]
+      simp [hds]
     refine ⟨h2, fun i hi ↦ ?_, hsum, fun i hi _ ↦ ?_⟩
-    · have : i = Fin.last r := Fin.ext (by simp; omega)
-      subst this
-      simp only [Fin.snoc_last, Set.mem_insert_iff, Set.mem_singleton_iff]; omega
+    · obtain rfl : i = Fin.last r := Fin.ext (by simp; omega)
+      simp only [Fin.snoc_last, Set.mem_insert_iff, Set.mem_singleton_iff]
+      omega
     · have hsub : Iic i ⊆ univ.erase (Fin.last r) := fun j hj ↦ by
         simp only [mem_Iic] at hj
         simp only [mem_erase, mem_univ, and_true, ne_eq]
-        intro h; subst h
+        rintro rfl
         have := Fin.le_iff_val_le_val.1 hj
-        simp at this; omega
+        simp only [Fin.val_last] at this
+        omega
       have hle := sum_le_sum_of_subset_of_nonneg hsub
         (f := (Fin.snoc d e : Fin (r + 1) → ℤ)) fun j _ _ ↦ by linarith [h2 j]
       have hsplit := add_sum_erase univ (Fin.snoc d e : Fin (r + 1) → ℤ) (mem_univ (Fin.last r))

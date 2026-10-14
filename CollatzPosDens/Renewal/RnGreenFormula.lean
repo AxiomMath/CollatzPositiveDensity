@@ -137,9 +137,7 @@ private lemma greenFormula_holdLaw_succ_succ (n : ℕ) (l : ℤ) :
         by_cases h45 : b ∈ ({4, 5} : Set ℤ)
         · exact varpiIn_of_mem h45
         · rw [varpiIn_of_notMem h45]
-          exact varpi_of_le_one (by
-            by_contra hb
-            exact h ⟨⟨by omega, h45⟩, hc⟩)
+          exact varpi_of_le_one (le_of_not_gt fun hb => h ⟨⟨by omega, h45⟩, hc⟩)
       simp [this]
     · simp [Set.indicator_of_notMem hc]
 
@@ -157,8 +155,7 @@ private lemma greenFormula_eta_eq (a : ℤ × ℤ) :
     greenFormulaEta a = (if a.1 = 1 then ENNReal.ofReal (varpiLast a.2) else 0) +
       ∑' b : ℤ, ENNReal.ofReal (varpiIn b) * greenFormulaEta (a - (1, b)) := by
   obtain ⟨j, l⟩ := a
-  have hsub : ∀ b : ℤ, ((j, l) - (1, b) : ℤ × ℤ) = (j - 1, l - b) := fun b ↦ rfl
-  simp only [hsub]
+  simp only [Prod.mk_sub_mk]
   rcases lt_trichotomy j 1 with hj | rfl | hj
   · simp [greenFormulaEta, show ¬ 1 ≤ j by omega, show ¬ 1 ≤ j - 1 by omega,
       show j ≠ 1 by omega]
@@ -214,13 +211,12 @@ private lemma greenFormula_G_eq_ofReal (j s : ℤ) :
           simp [greenFormulaEta, greenFormulaCast]
           omega)
       rw [h0, ite_self, Set.indicator_of_notMem]
-      exact fun hh => absurd (hh.1 i) (by omega)
+      exact fun hh => (hi.trans_le (hh.1 i)).false
   · intro h' hh
     have hne : ∏ i, greenFormulaEta (h' i) ≠ 0 := fun h0 => hh (by simp [h0])
-    have h1 := fun i =>
-      greenFormula_one_le_of_eta_ne_zero (Finset.prod_ne_zero_iff.1 hne i (Finset.mem_univ _))
     refine ⟨fun i => ((h' i).1.toNat, (h' i).2), funext fun i => ?_⟩
-    have := h1 i
+    have :=
+      greenFormula_one_le_of_eta_ne_zero (Finset.prod_ne_zero_iff.1 hne i (Finset.mem_univ _))
     simp only [greenFormulaCast]
     exact Prod.ext (by simp; omega) rfl
 
@@ -228,24 +224,27 @@ private lemma greenFormula_G_of_neg {x : ℤ × ℤ} (hx : x.1 < 0) : greenFormu
   refine ENNReal.tsum_eq_zero.2 fun N => ENNReal.tsum_eq_zero.2 fun h => ?_
   split_ifs with hs
   · by_contra hne
-    have h1 := fun i =>
-      greenFormula_one_le_of_eta_ne_zero (Finset.prod_ne_zero_iff.1 hne i (Finset.mem_univ _))
     have : 0 ≤ (∑ i, h i).1 := by
       rw [Prod.fst_sum]
-      exact Finset.sum_nonneg fun i _ => by linarith [h1 i]
+      exact Finset.sum_nonneg fun i _ => by
+        linarith [greenFormula_one_le_of_eta_ne_zero
+          (Finset.prod_ne_zero_iff.1 hne i (Finset.mem_univ _))]
     rw [hs] at this
     omega
   · rfl
 
+/-- The contribution `R(x) = ∑_a η(a) 𝒢(x - a)` of the nonempty tuples to `𝒢(x)`. -/
+private noncomputable def greenFormulaR (x : ℤ × ℤ) : ℝ≥0∞ :=
+  ∑' a, greenFormulaEta a * greenFormulaG (x - a)
+
 /-- First-step decomposition: `𝒢 = δ + η * 𝒢`. -/
 private lemma greenFormula_G_eq (x : ℤ × ℤ) :
-    greenFormulaG x =
-      (if x = 0 then 1 else 0) + ∑' a, greenFormulaEta a * greenFormulaG (x - a) := by
+    greenFormulaG x = (if x = 0 then 1 else 0) + greenFormulaR x := by
   rw [greenFormulaG, tsum_eq_zero_add' ENNReal.summable]
   congr 1
   · rw [tsum_fintype]
     simp [eq_comm]
-  · simp only [greenFormulaG, ← ENNReal.tsum_mul_left]
+  · simp only [greenFormulaR, greenFormulaG, ← ENNReal.tsum_mul_left]
     rw [ENNReal.tsum_comm]
     refine tsum_congr fun N => ?_
     rw [← (Fin.consEquiv fun _ : Fin (N + 1) => ℤ × ℤ).tsum_eq, ENNReal.tsum_prod']
@@ -256,19 +255,23 @@ private lemma greenFormula_G_eq (x : ℤ × ℤ) :
     · rw [ite_eq_left h, ite_eq_left (eq_sub_of_add_eq' h)]
     · rw [ite_eq_right h, ite_eq_right (fun h' => h (by rw [h']; abel)), mul_zero]
 
-/-- The contribution `R(x) = ∑_a η(a) 𝒢(x - a)` of the nonempty tuples to `𝒢(x)`. -/
-private noncomputable def greenFormulaR (x : ℤ × ℤ) : ℝ≥0∞ :=
-  ∑' a, greenFormulaEta a * greenFormulaG (x - a)
-
-private lemma greenFormula_G_eq_R (x : ℤ × ℤ) :
-    greenFormulaG x = (if x = 0 then 1 else 0) + greenFormulaR x :=
-  greenFormula_G_eq x
-
 private lemma greenFormula_R_of_nonpos {x : ℤ × ℤ} (hx : x.1 ≤ 0) : greenFormulaR x = 0 := by
   refine ENNReal.tsum_eq_zero.2 fun a => ?_
   by_cases ha : 1 ≤ a.1
   · rw [greenFormula_G_of_neg (by simp only [Prod.fst_sub]; omega), mul_zero]
   · simp [greenFormulaEta, ha]
+
+private lemma greenFormula_tsum_varpiLast_delta (x : ℤ × ℤ) :
+    ∑' l : ℤ, ENNReal.ofReal (varpiLast l) * (if x - (1, l) = 0 then 1 else 0) =
+      if x.1 = 1 then ENNReal.ofReal (varpiLast x.2) else 0 := by
+  by_cases hx : x.1 = 1
+  · rw [ite_eq_left hx, tsum_eq_single x.2]
+    · rw [ite_eq_left (by ext <;> simp [hx]), mul_one]
+    · intro l hl
+      rw [ite_eq_right fun h => hl (by simp [Prod.ext_iff] at h; omega), mul_zero]
+  · rw [ite_eq_right hx]
+    refine ENNReal.tsum_eq_zero.2 fun l => ?_
+    rw [ite_eq_right fun h => hx (by simp [Prod.ext_iff] at h; omega), mul_zero]
 
 /-- The letter recursion `R = ϖ_last ⊗ δ_1 + (ϖ ⊗ δ_1) * R`. -/
 private lemma greenFormula_R_eq (x : ℤ × ℤ) :
@@ -287,19 +290,6 @@ private lemma greenFormula_R_eq (x : ℤ × ℤ) :
         ∑' l : ℤ, ENNReal.ofReal (varpiLast l) * greenFormulaG (x - (1, l)) := by
     rw [ENNReal.tsum_prod', tsum_eq_single (1 : ℤ) fun j hj => by simp [hj]]
     simp
-  have hdelta : ∑' l : ℤ, ENNReal.ofReal (varpiLast l) *
-      (if x - (1, l) = 0 then 1 else 0) =
-        if x.1 = 1 then ENNReal.ofReal (varpiLast x.2) else 0 := by
-    by_cases hx : x.1 = 1
-    · rw [ite_eq_left hx, tsum_eq_single x.2]
-      · rw [ite_eq_left (by ext <;> simp [hx]), mul_one]
-      · intro l hl
-        rw [ite_eq_right (fun h => hl (by have := congrArg Prod.snd h; simp at this; omega)),
-          mul_zero]
-    · rw [ite_eq_right hx]
-      refine ENNReal.tsum_eq_zero.2 fun l => ?_
-      rw [ite_eq_right (fun h => hx (by have := congrArg Prod.fst h; simp at this; omega)),
-        mul_zero]
   calc greenFormulaR x
       = ∑' a, ((if a.1 = 1 then ENNReal.ofReal (varpiLast a.2) else 0) *
             greenFormulaG (x - a) +
@@ -316,8 +306,8 @@ private lemma greenFormula_R_eq (x : ℤ × ℤ) :
         refine tsum_congr fun b => ?_
         rw [ENNReal.tsum_mul_left, hshift]
     _ = _ := by
-        simp only [greenFormula_G_eq_R (x - _), mul_add, ENNReal.tsum_add, hdelta,
-          ← varpiLast_add_varpiIn,
+        simp only [greenFormula_G_eq (x - _), mul_add, ENNReal.tsum_add,
+          greenFormula_tsum_varpiLast_delta, ← varpiLast_add_varpiIn,
           ENNReal.ofReal_add (varpiLast_nonneg _) (varpiIn_nonneg _), add_mul]
         ring
 
@@ -369,11 +359,11 @@ private lemma greenFormula_G_natCast (n : ℕ) (s : ℤ) :
     greenFormulaG ((n : ℤ), s) = ENNReal.ofReal (greenClosed n s) := by
   cases n with
   | zero =>
-    rw [greenFormula_G_eq_R, greenFormula_R_of_nonpos (by simp), add_zero, Nat.cast_zero,
+    rw [greenFormula_G_eq, greenFormula_R_of_nonpos (by simp), add_zero, Nat.cast_zero,
       greenClosed_zero]
     by_cases hs : s = 0 <;> simp [hs, Prod.ext_iff]
   | succ n =>
-    rw [greenFormula_G_eq_R, ite_eq_right (by simp [Prod.ext_iff]; omega), zero_add,
+    rw [greenFormula_G_eq, ite_eq_right (by simp [Prod.ext_iff]; omega), zero_add,
       Nat.cast_add_one, greenFormula_R_natCast_succ]
 
 /-- **The Green's function in closed form.** For all `(j, s) ∈ ℤ × ℤ`,

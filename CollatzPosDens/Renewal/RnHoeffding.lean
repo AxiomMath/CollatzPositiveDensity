@@ -49,7 +49,7 @@ theorem sum_choose_div_two_pow_mul_exp (n : ℕ) (t : ℝ) :
       cosh (t / 2) ^ n := by
   rw [cosh_eq, div_pow, add_pow, Finset.sum_div]
   refine Finset.sum_congr rfl fun k hk => ?_
-  have hk : k ≤ n := Nat.lt_succ_iff.mp (Finset.mem_range.mp hk)
+  have hk : k ≤ n := Finset.mem_range_succ_iff.mp hk
   rw [← exp_nat_mul, ← exp_nat_mul, ← exp_add, Nat.cast_sub hk]
   field_simp
   ring_nf
@@ -90,9 +90,10 @@ theorem binomial_tail_hoeffding (n : ℕ) (hn : 1 ≤ n) (u : ℝ) (hu : 0 ≤ u
     _ = exp (-(l * u)) * (cosh (l / 2) ^ n + cosh (-l / 2) ^ n) := by
         rw [← sum_choose_div_two_pow_mul_exp, ← sum_choose_div_two_pow_mul_exp, mul_add,
           Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
-        refine Finset.sum_congr rfl fun k _ => by ring
+        exact Finset.sum_congr rfl fun k _ => by ring
     _ = 2 * (exp (-(l * u)) * cosh (l / 2) ^ n) := by
-        rw [neg_div, cosh_neg]; ring
+        rw [neg_div, cosh_neg]
+        ring
     _ ≤ 2 * (exp (-(l * u)) * exp ((l / 2) ^ 2 / 2) ^ n) := by
         gcongr
         exact cosh_le_exp_half_sq _

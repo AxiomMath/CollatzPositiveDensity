@@ -63,15 +63,15 @@ theorem chQ_le_exp_mul_rpow_mul_chQm_of_isBkWhite (n : ℕ) (ξ : ResidueGroup n
     chQ n ξ ε p ≤
       exp (-(zStar : ℝ) + (wStar : ℝ) / 2) * (m : ℝ) ^ (-(Aexp : ℝ)) *
         chQm n ξ ε (Aexp : ℝ) (m - 1) := by
-  have hA : (0 : ℝ) ≤ (Aexp : ℝ) := by norm_num [Aexp_cast]
+  have hA : (0 : ℝ) ≤ (Aexp : ℝ) := by rw [Aexp_cast]; norm_num
+  have hw₀ : (0 : ℝ) < (wStar : ℝ) := by rw [wStar_cast]; norm_num
+  have hw₁ : (wStar : ℝ) ≤ 1 / 32 := by rw [wStar_cast]; norm_num
   have hm' : (256 * (Aexp : ℝ) / (wStar : ℝ)) ^ 2 + 2 ≤ ((m : ℤ) : ℝ) := by
     have : (D1 : ℝ) = (256 * (Aexp : ℝ) / (wStar : ℝ)) ^ 2 + 2 := by
-      rw [D1_def]
-      push_cast
-      ring
-    rwa [Int.cast_natCast, ← this]
-  have hmom :=
-    tsum_nu45_mul_max_rpow_neg_le hA (by norm_num [wStar_cast]) (by norm_num [wStar_cast]) hm'
+      rw [D1_def]; push_cast; ring
+    rw [Int.cast_natCast, ← this]
+    exact hm
+  have hmom := tsum_nu45_mul_max_rpow_neg_le hA hw₀ hw₁ hm'
   have hrec := chQ_le_mul_tsum n ξ ε hp
   rw [chWhiteFactor_of_isBkWhite hwhite] at hrec
   rw [Int.cast_natCast] at hmom
@@ -85,7 +85,6 @@ theorem chQ_le_exp_mul_rpow_mul_chQm_of_isBkWhite (n : ℕ) (ξ : ResidueGroup n
           (mul_le_mul_of_nonneg_right hmom (chQm_nonneg n ξ ε _ (m - 1)))
     _ = exp (-(zStar : ℝ) + (wStar : ℝ) / 2) * (m : ℝ) ^ (-(Aexp : ℝ)) *
           chQm n ξ ε (Aexp : ℝ) (m - 1) := by
-        rw [exp_add]
-        ring
+        rw [exp_add]; ring
 
 end CollatzPosDens

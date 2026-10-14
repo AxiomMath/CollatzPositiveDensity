@@ -65,11 +65,14 @@ theorem aK_eq_ceil : aK = ⌈(4 * Kstar : ℝ) / 35⌉₊ + 11 := by
 
 /-- The growth factor dominates `4 K_* / 35 + 11`. -/
 theorem le_aK : (4 * Kstar : ℝ) / 35 + 11 ≤ aK := by
-  rw [aK_eq_ceil]; push_cast
-  gcongr; exact Nat.le_ceil _
+  rw [aK_eq_ceil]
+  push_cast
+  gcongr
+  exact Nat.le_ceil _
 
 /-- The growth factor is positive. -/
 theorem aK_pos : 0 < aK := by
-  rw [aK_eq]; decide
+  rw [aK_eq]
+  decide
 
 end CollatzPosDens

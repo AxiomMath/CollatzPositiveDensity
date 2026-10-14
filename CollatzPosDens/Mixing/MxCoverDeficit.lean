@@ -21,15 +21,15 @@ public import CollatzPosDens.Mixing.MxGoodComplement
 /-!
 # The covering deficit of the gate union
 
-For every integer `n ≥ 2^{131072}`, the submass of the gate union `𝒰_n` approximates the
+For every integer `n ≥ 2^{80000}`, the submass of the gate union `𝒰_n` approximates the
 reference law `μ_n` in `ℓ¹(G_n)`:
-$$\sum_{y \in G_n} \bigl|\mu_n(y) - \mathrm{Sub}^n_{\mathcal U_n}(y)\bigr| \le n^{-9/8}.$$
+$$\sum_{y \in G_n} \bigl|\mu_n(y) - \mathrm{Sub}^n_{\mathcal U_n}(y)\bigr| \le n^{-3/2}.$$
 
 By the offset law, `μ_n = Sub^n_{ℤ_{≥1}^n}`. Since `𝒰_n ⊆ ℤ_{≥1}^n`, additivity of the submass
 on the two disjoint sets `𝒰_n` and `ℤ_{≥1}^n \ 𝒰_n` gives
 `μ_n - Sub^n_{𝒰_n} = Sub^n_{ℤ_{≥1}^n \ 𝒰_n} ≥ 0`, all values being finite. Summing over `y`, the
 left side is `𝐩(ℤ_{≥1}^n \ 𝒰_n)`. As `Gd_n ⊆ 𝒰_n`, this is at most `𝐩(ℤ_{≥1}^n \ Gd_n)`,
-which is at most `n^{-9/8}`.
+which is at most `n^{-3/2}`.
 
 ## Main results
 
@@ -40,8 +40,8 @@ which is at most `n^{-9/8}`.
 ## Implementation notes
 
 The `[0, ∞]`-valued weights `μ_n(y)` and `Sub^n_{𝒰_n}(y)` enter the absolute value through
-`ENNReal.toReal`; both are at most one, so this loses nothing. The bound `n^{-9/8}` is the real
-power `(n : ℝ) ^ (-(9/8 : ℝ))`.
+`ENNReal.toReal`; both are at most one, so this loses nothing. The bound `n^{-3/2}` is the real
+power `(n : ℝ) ^ (-(3/2 : ℝ))`.
 
 ## References
 
@@ -65,20 +65,20 @@ theorem refLaw_sub_subMass_mxGateUnion_eq (n : ℕ) (y : ResidueGroup n) :
       (subMass_ne_top_of_subset_length n Set.sdiff_subset y)]
   ring
 
-/-- **Covering deficit.** For every integer `n ≥ 2^{131072}`,
-`∑_{y ∈ G_n} |μ_n(y) - Sub^n_{𝒰_n}(y)| ≤ n^{-9/8}`. -/
+/-- **Covering deficit.** For every integer `n ≥ 2^{80000}`,
+`∑_{y ∈ G_n} |μ_n(y) - Sub^n_{𝒰_n}(y)| ≤ n^{-3/2}`. -/
 @[collatz_pos_dens "lem_mx_cover_deficit"]
-theorem sum_abs_refLaw_sub_subMass_mxGateUnion_le (n : ℕ) (hn : 2 ^ 131072 ≤ n) :
+theorem sum_abs_refLaw_sub_subMass_mxGateUnion_le (n : ℕ) (hn : 2 ^ 80000 ≤ n) :
     ∑ y : ResidueGroup n, |(refLaw n y).toReal - (subMass n (mxGateUnion n) y).toReal| ≤
-      (n : ℝ) ^ (-(9 / 8 : ℝ)) := by
+      (n : ℝ) ^ (-(3 / 2 : ℝ)) := by
   simp_rw [refLaw_sub_subMass_mxGateUnion_eq, abs_of_nonneg ENNReal.toReal_nonneg]
   rw [← ENNReal.toReal_sum fun y _ => subMass_ne_top_of_subset_length n Set.sdiff_subset y,
     sum_subMass]
   have hmono : geomMass ({w : Word | w.length = n} \ mxGateUnion n) ≤
-      ENNReal.ofReal ((n : ℝ) ^ (-(9 / 8 : ℝ))) :=
-    (geomMass_mono (Set.sdiff_subset_sdiff_right (mxGood_subset_mxGateUnion n))).trans
+      ENNReal.ofReal ((n : ℝ) ^ (-(3 / 2 : ℝ))) :=
+    (geomMass_mono (Set.sdiff_subset_sdiff_right (mxGood_subset_mxGateUnion hn))).trans
       (geomMass_compl_mxGood_le n hn)
-  refine (ENNReal.toReal_mono ENNReal.ofReal_ne_top hmono).trans_eq ?_
-  exact ENNReal.toReal_ofReal (by positivity)
+  exact (ENNReal.toReal_mono ENNReal.ofReal_ne_top hmono).trans_eq
+    (ENNReal.toReal_ofReal (by positivity))
 
 end CollatzPosDens

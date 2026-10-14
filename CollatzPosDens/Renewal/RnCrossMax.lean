@@ -57,18 +57,20 @@ theorem straddleWeight_lt_of_le {G : ℕ} (hG : 1024 ≤ G) (j : ℤ) :
   have hGR : (1024 : ℝ) ≤ G := by exact_mod_cast hG
   rw [← div_div]
   refine lt_div_sqrt_of_sq_mul_lt (by norm_num) (by linarith) ?_
-  -- `p_t(j) = 2 X` with `X` a binomial probability of row `t + 1 = G - 3`.
   have hp : straddleWeight (G - 4) j ^ 2 ≤ 8 / (3 * G - 7) := by
     unfold straddleWeight
     split_ifs with hj
     · have hb := choose_div_two_pow_sq_le (G - 4 + 1) (2 * j.toNat + 1)
       have hcast : ((G - 4 + 1 : ℕ) : ℝ) = G - 3 := by
-        rw [Nat.cast_add, Nat.cast_sub (by omega)]; push_cast; ring
+        rw [Nat.cast_add, Nat.cast_sub (by omega)]
+        push_cast
+        ring
       rw [hcast, show (2 : ℝ) ^ (G - 4 + 1) = 2 * 2 ^ (G - 4) by rw [pow_succ']] at hb
       have hpos : (0 : ℝ) < 2 ^ (G - 4) := by positivity
       set c : ℝ := (((G - 4 + 1).choose (2 * j.toNat + 1) : ℕ) : ℝ)
       have heq : (c / 2 ^ (G - 4)) ^ 2 = 4 * (c / (2 * 2 ^ (G - 4))) ^ 2 := by
-        field_simp; ring
+        field_simp
+        ring
       rw [heq]
       calc 4 * (c / (2 * 2 ^ (G - 4))) ^ 2 ≤ 4 * (2 / (3 * (G - 3) + 2)) := by gcongr
         _ = 8 / (3 * G - 7) := by ring
@@ -86,18 +88,20 @@ theorem boundaryWeight_lt_of_le {G : ℕ} (hG : 1024 ≤ G) (j : ℤ) :
   have hGR : (1024 : ℝ) ≤ G := by exact_mod_cast hG
   rw [← div_div]
   refine lt_div_sqrt_of_sq_mul_lt (by norm_num) (by linarith) ?_
-  -- `e_t(j) = Y / 16` with `Y` a binomial probability of row `t - 1 = G - 5`.
   have he : boundaryWeight (G - 4) j ^ 2 ≤ 2 / (256 * (3 * G - 13)) := by
     by_cases hj : 1 ≤ j
     · rw [boundaryWeight_eq_div_sixteen (by omega) hj]
       have hb := choose_div_two_pow_sq_le (G - 4 - 1) (2 * j.toNat - 1)
       have hcast : ((G - 4 - 1 : ℕ) : ℝ) = G - 5 := by
-        rw [Nat.cast_sub (by omega), Nat.cast_sub (by omega)]; push_cast; ring
+        rw [Nat.cast_sub (by omega), Nat.cast_sub (by omega)]
+        push_cast
+        ring
       rw [hcast] at hb
       set c : ℝ := (((G - 4 - 1).choose (2 * j.toNat - 1) : ℕ) : ℝ)
       have hpos : (0 : ℝ) < 2 ^ (G - 4 - 1) := by positivity
       have heq : (c / 16 / 2 ^ (G - 4 - 1)) ^ 2 = (c / 2 ^ (G - 4 - 1)) ^ 2 / 256 := by
-        field_simp; ring
+        field_simp
+        ring
       rw [heq]
       calc (c / 2 ^ (G - 4 - 1)) ^ 2 / 256 ≤ (2 / (3 * (G - 5) + 2)) / 256 := by gcongr
         _ = 2 / (256 * (3 * G - 13)) := by
@@ -120,6 +124,8 @@ theorem straddleWeight_add_boundaryWeight_lt {G : ℕ} (hG : 1024 ≤ G) (j j' :
   calc straddleWeight (G - 4) j + boundaryWeight (G - 4) j'
       < 41 / (25 * Real.sqrt G) + 3 / (50 * Real.sqrt G) :=
         add_lt_add (straddleWeight_lt_of_le hG j) (boundaryWeight_lt_of_le hG j')
-    _ = 17 / (10 * Real.sqrt G) := by field_simp; ring
+    _ = 17 / (10 * Real.sqrt G) := by
+      field_simp
+      ring
 
 end CollatzPosDens

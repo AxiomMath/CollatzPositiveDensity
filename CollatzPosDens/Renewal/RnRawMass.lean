@@ -78,10 +78,12 @@ theorem rawMass_zero (t : ℤ) : rawMass 0 t = if t = 0 then 1 else 0 := by
   by_cases ht : t = 0
   · subst ht
     have : rawWords 0 0 = {Fin.elim0} := by
-      ext c; simp [mem_rawWords, Subsingleton.elim c Fin.elim0]
+      ext c
+      simp [mem_rawWords, Subsingleton.elim c Fin.elim0]
     simp [rawMass, this]
   · have : rawWords 0 t = ∅ := by
-      ext c; simp [mem_rawWords, Ne.symm ht]
+      ext c
+      simp [mem_rawWords, Ne.symm ht]
     simp [rawMass, this, ht]
 
 /-- The convolution recursion `𝖱(k + 1, t) = ∑_{2 ≤ a ≤ t} ϖ(a) 𝖱(k, t - a)`, splitting off the
@@ -90,26 +92,24 @@ theorem rawMass_succ (k : ℕ) (t : ℤ) :
     rawMass (k + 1) t = ∑ a ∈ Icc 2 t, varpi a * rawMass k (t - a) := by
   simp only [rawMass, mul_sum]
   rw [sum_sigma']
-  refine sum_nbij' (fun c ↦ ⟨c 0, Fin.tail c⟩) (fun x ↦ Fin.cons x.1 x.2) ?_ ?_ ?_ ?_ ?_
+  refine sum_nbij' (fun c ↦ ⟨c 0, Fin.tail c⟩) (fun x ↦ Fin.cons x.1 x.2) ?_ ?_
+    (fun _ _ ↦ by simp) ?_ (fun _ _ ↦ by simp [Fin.prod_univ_succ, Fin.tail])
   · intro c hc
     rw [mem_rawWords, Fin.sum_univ_succ] at hc
     simp only [mem_sigma, mem_Icc, mem_rawWords]
     refine ⟨⟨hc.1 0, ?_⟩, fun i ↦ hc.1 _, ?_⟩
     · have : 0 ≤ ∑ i : Fin k, c i.succ := sum_nonneg fun i _ ↦ by linarith [hc.1 i.succ]
       linarith [hc.2]
-    · simp only [Fin.tail]; linarith [hc.2]
+    · simp only [Fin.tail]
+      linarith [hc.2]
   · rintro ⟨a, d⟩ hx
     simp only [mem_sigma, mem_Icc, mem_rawWords] at hx
     rw [mem_rawWords, Fin.sum_univ_succ]
     refine ⟨fun i ↦ Fin.cases hx.1.1 (fun j ↦ hx.2.1 j) i, ?_⟩
     simp only [Fin.cons_zero, Fin.cons_succ]
     linarith [hx.2.2]
-  · intro c _
-    simp
   · rintro ⟨a, d⟩ _
     simp
-  · intro c _
-    simp [Fin.prod_univ_succ, Fin.tail]
 
 /-- The raw-prefix mass is nonnegative. -/
 theorem rawMass_nonneg (k : ℕ) (t : ℤ) : 0 ≤ rawMass k t :=

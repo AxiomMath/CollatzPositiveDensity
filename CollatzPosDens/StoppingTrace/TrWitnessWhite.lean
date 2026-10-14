@@ -57,7 +57,7 @@ theorem isBkWhite_add_of_bkBlack_trGap {n : ℕ} {ξ : ResidueGroup n} {v : ℤ 
     (hr₀ : 0 ≤ r) (hr : r ≤ (((5 * trGap n ξ (epsStar : ℝ) v + 16) / 16 : ℕ) : ℤ))
     (hO₁ : 1 ≤ O) (hO₄ : O ≤ 4) :
     IsBkWhite n ξ (epsStar : ℝ) (v + (r, (trGap n ξ (epsStar : ℝ) v : ℤ) + O)) := by
-  set s := trGap n ξ (epsStar : ℝ) v with hs
+  set s := trGap n ξ (epsStar : ℝ) v
   obtain ⟨hε, hε'⟩ := epsStar_mem_bkRange (K := ℝ)
   have hΔ := bkCanonTriangle_mem_bkFamily hv hb
   have hu := mem_bkCanonTriangle_self hξ hε hε' hv hb

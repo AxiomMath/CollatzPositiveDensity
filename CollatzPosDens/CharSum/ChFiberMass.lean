@@ -53,8 +53,10 @@ theorem norm_sum_chFiber_eq_filter_eq_image (b : ℕ) :
   ext ⟨x, y⟩
   simp only [mem_filter, mem_antidiagonal, mem_image, mem_Icc, Prod.mk.injEq]
   constructor
-  · rintro ⟨h, h1, h2⟩; exact ⟨y, ⟨by omega, by omega⟩, by omega, rfl⟩
-  · rintro ⟨t, ⟨h1, h2⟩, rfl, rfl⟩; omega
+  · rintro ⟨h, h₁, h₂⟩
+    exact ⟨y, ⟨by omega, by omega⟩, by omega, rfl⟩
+  · rintro ⟨t, ⟨h₁, h₂⟩, rfl, rfl⟩
+    omega
 
 /-- The fiber-mass identity: for `j`, `s` and `b`,
 `|∑_{a₁+a₂=b, a₁,a₂ ≥ 1} 2^{-b} e_n(-(2^{a₂}+3) px(j,s+b) ξ)| = ϖ(b) Fp(j,s,b)`. -/
@@ -68,11 +70,9 @@ theorem norm_sum_chFiber_eq (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : ℤ) 
     sum_image (fun t _ k _ h => (Prod.mk.inj h).2), ← mul_sum, norm_mul, norm_zpow,
     Complex.norm_ofNat]
   rcases le_or_gt 2 b with h2 | h2
-  · have h2' : (2 : ℤ) ≤ b := by exact_mod_cast h2
+  · have h2' : (2 : ℤ) ≤ b := mod_cast h2
     rw [varpi_of_two_le h2', chPairFactor_of_two_le _ _ _ _ h2', Int.toNat_natCast]
-    have hpos : ((b : ℤ) : ℝ) - 1 ≠ 0 := by
-      have : (2 : ℝ) ≤ ((b : ℤ) : ℝ) := by exact_mod_cast h2'
-      linarith
+    have hpos : ((b : ℤ) : ℝ) - 1 ≠ 0 := sub_ne_zero.2 (by norm_cast; omega)
     field_simp
   · rw [show b - 1 = 0 by omega, varpi_of_le_one (by omega)]
     simp

@@ -106,8 +106,6 @@ private theorem trKernel_succ_eq_tsum_trPassage (k : ℕ) (v : ℤ × ℤ) :
   set S := {p : List (List ℤ × ℤ) × List (List ℤ × ℤ) | p.1 ∈ trPassage s ∧
         p.2 ∈ trFirstStopSet n ξ (epsStar : ℝ) (trPath v p.1 p.1.length)}
   have hbij := trEntryWords_bijOn_append n ξ (epsStar : ℝ) v
-  have h1 : trKernel n ξ (k + 1) v = ∑' u : trEntryWords n ξ (epsStar : ℝ) v, F u.1 := by
-    rw [trKernel_succ]
   have h2 : ∑' u : trEntryWords n ξ (epsStar : ℝ) v, F u.1 = ∑' p : S, F (p.1.1 ++ p.1.2) :=
     ((hbij.equiv _).tsum_eq (fun u : trEntryWords n ξ (epsStar : ℝ) v ↦ F u.1)).symm
   have hfac : ∀ π b : List (List ℤ × ℤ), F (π ++ b) = A π * G π b := by
@@ -116,7 +114,7 @@ private theorem trKernel_succ_eq_tsum_trPassage (k : ℕ) (v : ℤ × ℤ) :
     rw [trCount_concat ξ v π b rfl, trPath_append_add v π b rfl, mul_add, Real.exp_add,
       ENNReal.ofReal_mul (trListWeight_nonneg _), ENNReal.ofReal_mul (Real.exp_pos _).le]
     ring
-  rw [h1, h2, tsum_subtype S (fun p ↦ F (p.1 ++ p.2)),
+  rw [trKernel_succ, h2, tsum_subtype S (fun p ↦ F (p.1 ++ p.2)),
     tsum_subtype (trPassage s) (fun π ↦ A π *
       ∑' b : trFirstStopSet n ξ (epsStar : ℝ) (trPath v π π.length), G π b.1)]
   refine (ENNReal.tsum_prod (f := fun a b ↦ S.indicator (fun p ↦ F (p.1 ++ p.2)) (a, b))).trans ?_
@@ -131,8 +129,7 @@ private theorem trKernel_succ_eq_tsum_trPassage (k : ℕ) (v : ℤ × ℤ) :
     · rw [Set.indicator_of_notMem (show (π, b) ∉ S from fun h ↦ hb h.2),
         Set.indicator_of_notMem hb]
   · rw [Set.indicator_of_notMem hπ]
-    refine ENNReal.tsum_eq_zero.2 fun b ↦ ?_
-    exact Set.indicator_of_notMem (show (π, b) ∉ S from fun h ↦ hπ h.1) _
+    exact ENNReal.tsum_eq_zero.2 fun b ↦ Set.indicator_of_notMem (fun h ↦ hπ h.1) _
 
 /-- At a point `y ∈ 𝒫` the bridge loss is a real number in `[0, 1 - d_*]`. -/
 theorem trKernel_two_le_trBridgeLoss_eq (hξ : IsResidueUnit ξ) {y : ℤ × ℤ} (hy : y ∈ bkPoints) :

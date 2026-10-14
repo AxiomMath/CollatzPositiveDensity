@@ -216,9 +216,7 @@ theorem le_of_trStopTime_eq_some {i t : ℕ} (h : trStopTime n ξ ε x (i + 1) =
   | zero => exact Nat.zero_le _
   | succ i ih =>
     obtain ⟨s, hs, hs'⟩ := Option.bind_eq_some_iff.1 h
-    have := (trNextStop_lt hs').1
-    have := ih hs
-    omega
+    exact (ih hs).trans_lt (trNextStop_lt hs').1
 
 /-- Once undefined (at an index `i ≥ 1`), the stopping time stays undefined. -/
 theorem trStopTime_succ_eq_none {i : ℕ} (h : trStopTime n ξ ε x (i + 1) = none) :
@@ -236,9 +234,7 @@ theorem trStopTime_eq_none_of_le {i k : ℕ} (h : trStopTime n ξ ε x (i + 1) =
 theorem trStopTime_div_two_succ : trStopTime n ξ ε x (n / 2 + 1) = none := by
   rcases hτ : trStopTime n ξ ε x (n / 2 + 1) with _ | t
   · rfl
-  · have h1 := le_of_trStopTime_eq_some hτ
-    have h2 := trStopTime_lt hτ
-    omega
+  · exact absurd (trStopTime_lt hτ) (le_of_trStopTime_eq_some hτ).not_gt
 
 /-- Some stopping time `τ_{i+1}(x)` is undefined. -/
 theorem exists_trStopTime_eq_none : ∃ i, trStopTime n ξ ε x (i + 1) = none :=

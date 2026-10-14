@@ -76,14 +76,17 @@ theorem mem_fcSurvivorSet {b i : ℕ} {s : ℤ} {x : Word} :
 
 /-- The set of surviving words is finite. -/
 theorem fcSurvivorSet_finite (b i : ℕ) (s : ℤ) : (fcSurvivorSet b i s).Finite :=
-  (Word.finite_setOf_valSum_le s.toNat).subset fun _ hx => by have := hx.2.1; simp; omega
+  (Word.finite_setOf_valSum_le s.toNat).subset fun _ hx => by
+    have := hx.2.1
+    simp only [Set.mem_ofPred_eq]
+    omega
 
 /-- For a negative total `s`, no word has valuation sum `s`, so `c_{b,i}(s) = 0`. -/
 theorem fcSurvivorCount_of_neg {b i : ℕ} {s : ℤ} (hs : s < 0) : fcSurvivorCount b i s = 0 := by
-  rw [fcSurvivorCount_def, Set.ncard_eq_zero (fcSurvivorSet_finite b i s)]
-  ext x
-  simp only [mem_fcSurvivorSet, Set.mem_empty_iff_false, iff_false, not_and]
-  intro _ h
+  rw [fcSurvivorCount_def, Set.ncard_eq_zero (fcSurvivorSet_finite b i s),
+    Set.eq_empty_iff_forall_notMem]
+  intro x hx
+  have := hx.2.1
   omega
 
 end CollatzPosDens

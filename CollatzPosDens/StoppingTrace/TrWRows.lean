@@ -69,8 +69,7 @@ private theorem rows_check : ∀ k ∈ Icc 1 255,
 @[collatz_pos_dens "lem_tr_W_rows"]
 theorem trW_rows {k : ℕ} (h1 : 1 ≤ k) (h2 : k ≤ 255) :
     trMu ≤ 3 / 16 * trDelta k + 1 / 8 * trDelta (k - 1) := by
-  have key := rows_check k (mem_Icc.mpr ⟨h1, h2⟩)
-  have key' := (Rat.cast_le (K := ℝ)).mpr key
+  have key' := (Rat.cast_le (K := ℝ)).mpr (rows_check k (mem_Icc.mpr ⟨h1, h2⟩))
   simp only [trMu, trDelta, p45_eq_p45Q, p3_eq_p3Q, E8_ratCast, gammaStar_eq, kappaStar_def]
   simp only [trDeltaMassQ, E8Q] at key'
   push_cast at key' ⊢

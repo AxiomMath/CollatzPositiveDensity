@@ -42,24 +42,27 @@ theorem sum_exp_two_pi_mul_I_mul_div {N : ℕ} (hN : N ≠ 0) (a : ℤ) :
   have hN' : (N : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hN
   set ζ : ℂ := exp (2 * π * I * a / N) with hζ
   have hterm : ∀ t : ℕ, exp (2 * π * I * a * t / N) = ζ ^ t := fun t => by
-    rw [hζ, ← Complex.exp_nat_mul]; congr 1; ring
+    rw [hζ, ← Complex.exp_nat_mul]
+    congr 1
+    ring
   simp_rw [hterm]
   split_ifs with h
   · obtain ⟨k, rfl⟩ := h
     have : ζ = 1 := by
       rw [hζ]
       convert exp_int_mul_two_pi_mul_I k using 2
-      push_cast; field_simp
+      push_cast
+      field_simp
     simp [this]
   · have hζ1 : ζ ≠ 1 := by
       intro h1
       obtain ⟨n, hn⟩ := exp_eq_one_iff.mp h1
-      apply h
-      refine ⟨n, ?_⟩
+      refine h ⟨n, ?_⟩
       have hpi : (2 * π * I : ℂ) ≠ 0 := by simp [Real.pi_ne_zero, I_ne_zero]
       have : (a : ℂ) = N * n := by
         have h2 : 2 * π * I * a = (N * n) * (2 * π * I) := by
-          rw [div_eq_iff hN'] at hn; linear_combination hn
+          rw [div_eq_iff hN'] at hn
+          linear_combination hn
         exact mul_left_cancel₀ hpi (by linear_combination h2)
       exact_mod_cast this
     have hζN : ζ ^ N = 1 := by

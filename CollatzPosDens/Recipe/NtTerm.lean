@@ -17,15 +17,14 @@ public import CollatzPosDens.Recipe.MomentTail
 /-!
 # The terminal tail after `N_t`
 
-Let `F` be the error prefactor, `ϱ = (100/101)^{5/8}` the error decay ratio and `N_t` the
+Let `F` be the error prefactor, `ϱ = 100/101` the error decay ratio and `N_t` the
 terminal threshold. Then
 $$F \sum_{j \ge N_{\mathrm t}} j^{9/2} \varrho^j < 2^{-30}.$$
 
-Since `ϱ = 𝗀^{-5/8} = 2^{-5δ/8}` and `5 δ N_t / 8 ≥ B_ph + 121 = 144 + log₂ F`
-(`le_terminalThreshold`), we get `ϱ^{N_t} ≤ 2^{-144} / F`. As `N_t = 9772294 ≥ 9200000`, the
-moment tail bound `moment_tail_lt` gives `F ∑_{j ≥ N_t} j^{9/2} ϱ^j < 162 N_t^{9/2} 2^{-144}`,
-and `162 N_t^{9/2} < 2^{114}` follows after squaring from the exact comparison
-`162² N_t⁹ < 2^{228}`.
+Since `ϱ = 𝗀^{-1} = 2^{-δ}` and `δ N_t ≥ B_ph + 121 = 144 + log₂ F` by the definition
+of `N_t`, we get `ϱ^{N_t} ≤ 2^{-144} / F`. As `N_t = 6107684 ≥ 6000000`, the whole-tail bound
+gives `F ∑_{j ≥ N_t} j^{9/2} ϱ^j < 162 N_t^{9/2} 2^{-144}`, and `162 N_t^{9/2} < 2^{114}` follows
+after squaring from the exact comparison `162² N_t⁹ < 2^{228}`.
 
 ## Main results
 
@@ -36,12 +35,12 @@ and `162 N_t^{9/2} < 2^{114}` follows after squaring from the exact comparison
 ## Implementation notes
 
 The tail is the sum over the subtype `Set.Ici N_t` of `ℕ`, and `j^{9/2}` is `Real.rpow`.
-Summability is part of the conclusion so that the bound on the `tsum` is not vacuous. Where
-[mazur2026] bounds `N_t ≤ 13 · 10^6`, we use the exact value `N_t = 9772294`.
+Summability is part of the conclusion so that the bound on the `tsum` is not vacuous. The source
+bounds `N_t ≤ 13 · 10^6`; we use the exact value `N_t = 6107684` instead.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §16.2.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -54,7 +53,7 @@ theorem errorDecayRatio_pow_terminalThreshold_le :
   have hδ := logGrowthRate_pos
   have hF := errorPrefactor_pos
   have hN := le_terminalThreshold
-  rw [div_le_iff₀ (by positivity : (0 : ℝ) < 5 * logGrowthRate)] at hN
+  rw [div_le_iff₀ (by positivity : (0 : ℝ) < logGrowthRate)] at hN
   rw [errorDecayRatio_pow_eq_rpow, ← rpow_logGrowthRate, ← Real.rpow_mul (by norm_num),
     show (2 : ℝ) ^ (-144 : ℝ) / errorPrefactor =
       (2 : ℝ) ^ (-144 - Real.logb 2 errorPrefactor) by
@@ -77,8 +76,9 @@ theorem errorPrefactor_mul_terminalTail_lt :
   have hF := errorPrefactor_pos
   have hρ := errorDecayRatio_pow_terminalThreshold_le
   set N : ℝ := (terminalThreshold : ℝ) with hNdef
-  have hN : N = 9772294 := by rw [hNdef, terminalThreshold_eq]; norm_num
+  have hN : N = 6107684 := by rw [hNdef, terminalThreshold_eq]; norm_num
   have hNp : 0 ≤ N ^ (9 / 2 : ℝ) := by rw [hN]; positivity
+  -- `162 N^{9/2} < 2^{114}`, by squaring.
   have hkey : 162 * N ^ (9 / 2 : ℝ) < 2 ^ (114 : ℝ) := by
     have h0 : 0 ≤ 162 * N ^ (9 / 2 : ℝ) := by positivity
     refine (pow_lt_pow_iff_left₀ h0 (by positivity) (n := 2) (by norm_num)).1 ?_

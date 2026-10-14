@@ -57,10 +57,7 @@ theorem trGap_eq_trGap_add_one_of_bkBlack_of_bkBlack {n : ℕ} {ξ : ResidueGrou
   set L := bkColTop n ξ ε (j, l + 1)
   obtain ⟨hlL, hblack, hwhite⟩ := (eq_bkColTop_iff hξ hε hp' hb' L).mp rfl
   have hL0 : L = bkColTop n ξ ε (j, l) := by
-    refine (eq_bkColTop_iff hξ hε hp hb L).mpr ⟨?_, ?_, hwhite⟩
-    · change l + 1 ≤ L at hlL
-      change l ≤ L
-      omega
+    refine (eq_bkColTop_iff hξ hε hp hb L).mpr ⟨by simp only [bkL] at hlL ⊢; omega, ?_, hwhite⟩
     intro l'' h1 h2
     simp only [bkL, bkJ] at h1 h2 hblack ⊢
     rcases h1.eq_or_lt with rfl | h1

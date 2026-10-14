@@ -58,12 +58,9 @@ theorem chQ_le_boundary_step (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {A : ℝ
   have hj : ((n / 2 - (m - 1) : ℕ) : ℤ) ≤ bkJ p := by
     rw [mem_bkPoints] at hp
     omega
-  have hdom := chQm_dominate n ξ ε hA (m - 1) hp hj
-  have hd : ((max ((m : ℤ) - r) 1 : ℤ) : ℝ) = (chDist n p : ℝ) := by
-    rw [← chQ_le_boundary_step_chDist_eq h]; push_cast; rfl
   have hpos : (0 : ℝ) < (chDist n p : ℝ) := by exact_mod_cast chDist_pos n p
-  rw [hd, Real.rpow_neg hpos.le, ← div_eq_inv_mul, le_div_iff₀ (Real.rpow_pos_of_pos hpos A),
-    mul_comm]
-  exact hdom
+  rw [← chQ_le_boundary_step_chDist_eq h, Int.cast_natCast, Real.rpow_neg hpos.le,
+    ← div_eq_inv_mul, le_div_iff₀ (Real.rpow_pos_of_pos hpos A), mul_comm]
+  exact chQm_dominate n ξ ε hA (m - 1) hp hj
 
 end CollatzPosDens

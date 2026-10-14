@@ -63,6 +63,125 @@ namespace CollatzPosDens
 
 open scoped ENNReal
 
+/-- From a black origin the first stop is at time `0`, so `𝒵_1(v, β) = 1`. -/
+theorem trMoment_one_of_bkBlack {n : ℕ} {ξ : ResidueGroup n} {v : ℤ × ℤ} (hv : v ∈ bkPoints)
+    (hvb : BkBlack n ξ (epsStar : ℝ) v) (β : List (List ℤ × ℤ)) : trMoment n ξ v β 1 = 1 := by
+  have hJ : 0 < n / 2 := by
+    have h1 := hvb.bkJ_le
+    have h2 : (1 : ℤ) ≤ bkJ v := hv
+    omega
+  have hτ : trStopTime n ξ (epsStar : ℝ) (trPath v β) 1 = some 0 :=
+    trStopTime_one_eq_some_iff.2 ⟨hJ, by simpa [isTrHit_iff] using hvb,
+      fun s hs => absurd hs (Nat.not_lt_zero s)⟩
+  rw [trMoment_eq_of_trStopTime_eq_some hτ, trCount_zero, mul_zero, neg_zero, Real.exp_zero]
+
+/-- Following a list of `u.length` blocks raises the `j`-coordinate by at least `u.length`. -/
+theorem bkJ_add_length_le_bkJ_trPath (v : ℤ × ℤ) (u : List (List ℤ × ℤ)) :
+    bkJ v + u.length ≤ bkJ (trPath v u u.length) := by
+  have hg := trPath_bkJ_sub_bkJ_ge v u (Nat.zero_le u.length)
+  simp only [min_self, Nat.zero_min, trPath_zero, CharP.cast_eq_zero, sub_zero] at hg
+  omega
+
+/-- A list that is not live has block-list weight zero. -/
+theorem trListWeight_eq_zero_of_not_trLive {β : List (List ℤ × ℤ)} (h : ¬TrLive β) :
+    trListWeight β = 0 := by
+  rw [trListWeight_def]
+  by_contra h'
+  exact h ((trLive_iff_prod_ne_zero β).2 h')
+
+/-- Every entry list from a black origin `v` with `j(v) + N > ⌊n/2⌋` is shorter than `N`. -/
+theorem length_lt_of_mem_trEntryWords {n : ℕ} {ξ : ResidueGroup n} {v : ℤ × ℤ} {N : ℕ}
+    {u : List (List ℤ × ℤ)} (hN : ((n / 2 : ℕ) : ℤ) < bkJ v + N)
+    (hu : u ∈ trEntryWords n ξ (epsStar : ℝ) v) : u.length < N := by
+  have := bkJ_add_length_le_bkJ_trPath v u
+  have := (trEntryWords_bkBlack hu).bkJ_le
+  omega
+
+/-- The `(k+2)`-nd weighted stop moment of a live list from a black origin, decomposed at the
+second stop over the entry lists `β_{[1,q]} ∈ 𝓔(v)`. -/
+theorem ofReal_trMoment_add_two_eq_sum {n : ℕ} {ξ : ResidueGroup n} {v : ℤ × ℤ}
+    (hv : v ∈ bkPoints) (hvb : BkBlack n ξ (epsStar : ℝ) v) (β : List (List ℤ × ℤ))
+    (hβ : ∀ b ∈ β, b.2 ∈ ({4, 5} : Set ℤ)) (hlive : TrLive β)
+    (hN : ((n / 2 : ℕ) : ℤ) < bkJ v + β.length) (k : ℕ) :
+    ENNReal.ofReal (trMoment n ξ v β (k + 1 + 1)) =
+      ∑ q ∈ Finset.range (β.length + 1), (trEntryWords n ξ (epsStar : ℝ) v).indicator
+        (fun u => ENNReal.ofReal (Real.exp (-((gammaStar : ℝ) * trCount n ξ v u q))) *
+          ENNReal.ofReal (trMoment n ξ (trPath v u q) (trSublist β (q + 1) β.length) (k + 1)))
+        (trSublist β 1 q) := by
+  have hpre := trStopTime_two_eq_some_iff_trSublist_mem_trEntryWords hv hvb β hβ hlive hN
+  have hstop : ∀ q ∈ Finset.range (β.length + 1),
+      trSublist β 1 q ∈ trEntryWords n ξ (epsStar : ℝ) v →
+        2 ≤ trNu n ξ (epsStar : ℝ) (trPath v β) ∧
+          trStopTime n ξ (epsStar : ℝ) (trPath v β) 2 = some q := by
+    intro q hq hu
+    have hqN : q ≤ β.length := Nat.lt_succ_iff.1 (Finset.mem_range.1 hq)
+    have hlen : (trSublist β 1 q).length = q := by simp [hqN]
+    exact (hpre q).2 ⟨hlen ▸ trEntryWords_length_pos hu, hqN, hu⟩
+  by_cases hex : ∃ q, 2 ≤ trNu n ξ (epsStar : ℝ) (trPath v β) ∧
+      trStopTime n ξ (epsStar : ℝ) (trPath v β) 2 = some q
+  · obtain ⟨q, hq⟩ := hex
+    obtain ⟨hq1, hqN, hu⟩ := (hpre q).1 hq
+    rw [Finset.sum_eq_single_of_mem q (Finset.mem_range.2 (by omega)) fun q' hq' hne =>
+      Set.indicator_of_notMem (fun hu' => hne (Option.some_inj.1
+        ((hstop q' hq' hu').2.symm.trans hq.2))) _, Set.indicator_of_mem hu]
+    obtain ⟨hres, -⟩ := trStopTime_trPath_restart hv hN hq.2
+    have hk := hres k
+    have happ : trSublist β 1 q ++ trSublist β (q + 1) β.length = β := by
+      rw [trSublist_append_trSublist β le_rfl (by omega) hqN, trSublist_one_length]
+    have hulen : (trSublist β 1 q).length = q := by simp [hqN]
+    have hx : trPath v (trSublist β 1 q) q = trPath v β q := by
+      conv_rhs => rw [← happ]
+      rw [trPath_concat v _ _ hulen.ge]
+    rw [hx, show k + 1 + 1 = 2 + k by omega]
+    cases hτ : trStopTime n ξ (epsStar : ℝ)
+        (trPath (trPath v β q) (trSublist β (q + 1) β.length)) (k + 1) with
+    | none =>
+      rw [hτ, Option.map_none] at hk
+      rw [trMoment_eq_zero_of_trStopTime_eq_none hk, trMoment_eq_zero_of_trStopTime_eq_none hτ]
+      simp
+    | some t =>
+      rw [hτ, Option.map_some] at hk
+      rw [trMoment_eq_of_trStopTime_eq_some hk, trMoment_eq_of_trStopTime_eq_some hτ]
+      have hc := trCount_concat ξ v (trSublist β 1 q) (trSublist β (q + 1) β.length) hulen t
+      rw [happ, hx] at hc
+      rw [hc, mul_add, neg_add, Real.exp_add, ENNReal.ofReal_mul (Real.exp_pos _).le]
+  · rw [Finset.sum_eq_zero fun q hq =>
+      Set.indicator_of_notMem (fun hu' => hex ⟨q, hstop q hq hu'⟩) _,
+      trMoment_eq_zero_of_not, ENNReal.ofReal_zero]
+    rintro ⟨-, h2⟩
+    obtain ⟨q, hq⟩ := Option.isSome_iff_exists.1
+      (isSome_trStopTime_iff (n := n) (ξ := ξ) (ε := (epsStar : ℝ)) (x := trPath v β)
+        (i := 2) |>.2 ⟨by norm_num, by omega⟩)
+    exact hex ⟨q, by omega, hq⟩
+
+/-- Summing an indicator of `E` over the lists of each length `q ≤ N` recovers the sum over `E`,
+when every list of `E` has length `< N` and closing letters in `{4, 5}`. -/
+theorem sum_range_tsum_indicator_eq_tsum {N : ℕ} (E : Set (List (List ℤ × ℤ)))
+    (F : List (List ℤ × ℤ) → ℝ≥0∞)
+    (hE : ∀ u ∈ E, u.length < N ∧ ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)) :
+    ∑ q ∈ Finset.range (N + 1),
+        ∑' u : {u : List (List ℤ × ℤ) // u.length = q ∧ ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)},
+          E.indicator F u.1 =
+      ∑' u : E, F u.1 := by
+  have hS : ∀ q, ∑' u : {u : List (List ℤ × ℤ) // u.length = q ∧
+      ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)}, E.indicator F u.1 =
+        ∑' u, if u.length = q then E.indicator F u else 0 := fun q =>
+    (tsum_subtype {u : List (List ℤ × ℤ) | u.length = q ∧ ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)}
+      (E.indicator F)).trans <| tsum_congr fun u => by
+        by_cases hu : u ∈ E
+        · by_cases hq : u.length = q
+          · rw [Set.indicator_of_mem (show u ∈ {u : List (List ℤ × ℤ) | u.length = q ∧
+              ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)} from ⟨hq, (hE u hu).2⟩), ite_eq_left hq]
+          · rw [Set.indicator_of_notMem (fun h => hq h.1), ite_eq_right hq]
+        · simp [hu]
+  rw [Finset.sum_congr rfl fun q _ => hS q,
+    ← Summable.tsum_finsetSum (fun _ _ => ENNReal.summable)]
+  refine (tsum_congr fun u => ?_).trans (tsum_subtype E F).symm
+  rw [Finset.sum_ite_eq]
+  by_cases hu : u ∈ E
+  · rw [ite_eq_left (Finset.mem_range.2 (by have := (hE u hu).1; omega))]
+  · simp [hu]
+
 /-- **The moment from a black origin.** Let `v ∈ 𝒫` be black for `(n, ξ, ε_*)`, and let `N ∈ ℕ`
 with `j(v) + N > ⌊n/2⌋`. Then for every `k ∈ ℕ`,
 `∑_{β ∈ 𝔅^N} bw^⊗(β) 𝒵_{k+1}(v, β) = m_k(v)`. -/
@@ -75,103 +194,15 @@ theorem tsum_trListWeight_mul_trMoment_eq_trKernel {n : ℕ} {ξ : ResidueGroup 
       trKernel n ξ k v := by
   induction k generalizing v N with
   | zero =>
-    have hJ : 0 < n / 2 := by
-      have h1 := hvb.bkJ_le
-      have h2 : (1 : ℤ) ≤ bkJ v := hv
-      omega
-    have h1 : ∀ β : List (List ℤ × ℤ), trMoment n ξ v β 1 = 1 := fun β => by
-      have hτ : trStopTime n ξ (epsStar : ℝ) (trPath v β) 1 = some 0 :=
-        trStopTime_one_eq_some_iff.2 ⟨hJ, by simpa [isTrHit_iff] using hvb,
-          fun s hs => absurd hs (Nat.not_lt_zero s)⟩
-      rw [trMoment_eq_of_trStopTime_eq_some hτ, trCount_zero, mul_zero, neg_zero, Real.exp_zero]
-    simp only [zero_add, h1, ENNReal.ofReal_one, mul_one, trKernel_zero]
+    simp only [zero_add, trMoment_one_of_bkBlack hv hvb, ENNReal.ofReal_one, mul_one,
+      trKernel_zero]
     exact tsum_ofReal_trListWeight_length_eq N
   | succ k ih =>
-    classical
-    set E := trEntryWords n ξ (epsStar : ℝ) v with hE
     obtain ⟨Ψ, hΨ⟩ : ∃ Ψ : ℕ → List (List ℤ × ℤ) → List (List ℤ × ℤ) → ℝ≥0∞, ∀ q u f,
-        Ψ q u f = if u ∈ E then
+        Ψ q u f = (trEntryWords n ξ (epsStar : ℝ) v).indicator (fun u =>
           ENNReal.ofReal (Real.exp (-((gammaStar : ℝ) * trCount n ξ v u q))) *
-            ENNReal.ofReal (trMoment n ξ (trPath v u q) f (k + 1)) else 0 :=
+            ENNReal.ofReal (trMoment n ξ (trPath v u q) f (k + 1))) u :=
       ⟨_, fun _ _ _ => rfl⟩
-    obtain ⟨H, hH⟩ : ∃ H : List (List ℤ × ℤ) → ℝ≥0∞, ∀ u,
-        H u = if u ∈ E then ENNReal.ofReal (trListWeight u) *
-          ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u u.length)) *
-            trKernel n ξ k (trPath v u u.length) else 0 :=
-      ⟨_, fun _ => rfl⟩
-    have hElen : ∀ u ∈ E, u.length < N := by
-      intro u hu
-      have hg := trPath_bkJ_sub_bkJ_ge v u (Nat.zero_le u.length)
-      simp only [min_self, Nat.zero_min, trPath_zero, CharP.cast_eq_zero, sub_zero] at hg
-      have hb := (trEntryWords_bkBlack hu).bkJ_le
-      omega
-    have hpt : ∀ β : List (List ℤ × ℤ), β.length = N → (∀ b ∈ β, b.2 ∈ ({4, 5} : Set ℤ)) →
-        ENNReal.ofReal (trListWeight β) * ENNReal.ofReal (trMoment n ξ v β (k + 1 + 1)) =
-          ∑ q ∈ Finset.range (N + 1), ENNReal.ofReal (trListWeight β) *
-            Ψ q (trSublist β 1 q) (trSublist β (q + 1) N) := by
-      intro β hlen hβ
-      rw [← Finset.mul_sum]
-      by_cases hlive : TrLive β
-      swap
-      · have : trListWeight β = 0 := by
-          rw [trListWeight_def]
-          by_contra h
-          exact hlive ((trLive_iff_prod_ne_zero β).2 h)
-        simp [this]
-      congr 1
-      subst hlen
-      have hpre := trStopTime_two_eq_some_iff_trSublist_mem_trEntryWords hv hvb β hβ hlive hN
-      by_cases hex : ∃ q, 2 ≤ trNu n ξ (epsStar : ℝ) (trPath v β) ∧
-          trStopTime n ξ (epsStar : ℝ) (trPath v β) 2 = some q
-      · obtain ⟨q, hq⟩ := hex
-        obtain ⟨hq1, hqN, hu⟩ := (hpre q).1 hq
-        rw [Finset.sum_eq_single_of_mem q (Finset.mem_range.2 (by omega))]
-        swap
-        · intro q' hq' hne
-          rw [hΨ, ite_eq_right]
-          intro hu'
-          have hq'N : q' ≤ β.length := by simp at hq'; omega
-          have hlen' : (trSublist β 1 q').length = q' := by simp [hq'N]
-          have hq'1 : 1 ≤ q' := hlen' ▸ trEntryWords_length_pos hu'
-          have := (hpre q').2 ⟨hq'1, hq'N, hu'⟩
-          exact hne (Option.some_inj.1 (this.2.symm.trans hq.2))
-        rw [hΨ, ite_eq_left hu]
-        obtain ⟨hres, -⟩ := trStopTime_trPath_restart hv hN hq.2
-        have hk := hres k
-        have happ : trSublist β 1 q ++ trSublist β (q + 1) β.length = β := by
-          rw [trSublist_append_trSublist β le_rfl (by omega) hqN, trSublist_one_length]
-        have hulen : (trSublist β 1 q).length = q := by simp [hqN]
-        have hx : trPath v (trSublist β 1 q) q = trPath v β q := by
-          conv_rhs => rw [← happ]
-          rw [trPath_concat v _ _ hulen.ge]
-        rw [hx, show k + 1 + 1 = 2 + k by omega]
-        cases hτ : trStopTime n ξ (epsStar : ℝ)
-            (trPath (trPath v β q) (trSublist β (q + 1) β.length)) (k + 1) with
-        | none =>
-          rw [hτ, Option.map_none] at hk
-          rw [trMoment_eq_zero_of_trStopTime_eq_none hk,
-            trMoment_eq_zero_of_trStopTime_eq_none hτ]
-          simp
-        | some t =>
-          rw [hτ, Option.map_some] at hk
-          rw [trMoment_eq_of_trStopTime_eq_some hk, trMoment_eq_of_trStopTime_eq_some hτ]
-          have hc := trCount_concat ξ v (trSublist β 1 q) (trSublist β (q + 1) β.length) hulen t
-          rw [happ, hx] at hc
-          rw [hc, mul_add, neg_add, Real.exp_add, ENNReal.ofReal_mul (Real.exp_pos _).le]
-      · rw [Finset.sum_eq_zero]
-        · rw [trMoment_eq_zero_of_not, ENNReal.ofReal_zero]
-          rintro ⟨-, h2⟩
-          obtain ⟨q, hq⟩ := Option.isSome_iff_exists.1
-            (isSome_trStopTime_iff (n := n) (ξ := ξ) (ε := (epsStar : ℝ)) (x := trPath v β)
-              (i := 2) |>.2 ⟨by norm_num, by omega⟩)
-          exact hex ⟨q, by omega, hq⟩
-        · intro q hq
-          rw [hΨ, ite_eq_right]
-          intro hu'
-          have hqN : q ≤ β.length := by simp at hq; omega
-          have hlen' : (trSublist β 1 q).length = q := by simp [hqN]
-          have hq1 : 1 ≤ q := hlen' ▸ trEntryWords_length_pos hu'
-          exact hex ⟨q, (hpre q).2 ⟨hq1, hqN, hu'⟩⟩
     have hL : ∑' β : {β : List (List ℤ × ℤ) // β.length = N ∧
           ∀ b ∈ β, b.2 ∈ ({4, 5} : Set ℤ)},
           ENNReal.ofReal (trListWeight β.1) * ENNReal.ofReal (trMoment n ξ v β.1 (k + 1 + 1)) =
@@ -180,77 +211,36 @@ theorem tsum_trListWeight_mul_trMoment_eq_trKernel {n : ℕ} {ξ : ResidueGroup 
           ENNReal.ofReal (trListWeight β.1) *
             Ψ q (trSublist β.1 1 q) (trSublist β.1 (q + 1) N) := by
       rw [← Summable.tsum_finsetSum (fun _ _ => ENNReal.summable)]
-      exact tsum_congr fun β => hpt β.1 β.2.1 β.2.2
+      refine tsum_congr fun β => ?_
+      obtain ⟨hlen, hβ⟩ := β.2
+      rw [← Finset.mul_sum]
+      by_cases hlive : TrLive β.1
+      · have h := ofReal_trMoment_add_two_eq_sum hv hvb β.1 hβ hlive (by rw [hlen]; exact hN) k
+        rw [hlen] at h
+        simp only [h, hΨ]
+      · simp [trListWeight_eq_zero_of_not_trLive hlive]
     have hG : ∀ q ∈ Finset.range (N + 1), ∑' β : {β : List (List ℤ × ℤ) // β.length = N ∧
           ∀ b ∈ β, b.2 ∈ ({4, 5} : Set ℤ)},
           ENNReal.ofReal (trListWeight β.1) * Ψ q (trSublist β.1 1 q) (trSublist β.1 (q + 1) N) =
         ∑' u : {u : List (List ℤ × ℤ) // u.length = q ∧ ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)},
-          H u.1 := by
+          (trEntryWords n ξ (epsStar : ℝ) v).indicator (fun u =>
+            ENNReal.ofReal (trListWeight u) *
+              ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u u.length)) *
+                trKernel n ξ k (trPath v u u.length)) u.1 := by
       intro q hq
-      obtain ⟨b, rfl⟩ : ∃ b, N = q + b := ⟨N - q, by simp at hq; omega⟩
-      have hsplit :=
-        tsum_trListWeight_trSublist {c : List ℤ × ℤ | c.2 ∈ ({4, 5} : Set ℤ)} q b (Ψ q)
-      refine hsplit.trans ?_
-      refine tsum_congr fun u => ?_
-      obtain ⟨u, hul, hu4⟩ := u
-      subst hul
-      rw [hH]
-      by_cases hu : u ∈ E
-      · simp only [hΨ, ite_eq_left hu]
-        calc ∑' f : {f : List (List ℤ × ℤ) // f.length = b ∧ ∀ x ∈ f, x.2 ∈ ({4, 5} : Set ℤ)},
-              ENNReal.ofReal (trListWeight u) * ENNReal.ofReal (trListWeight f.1) *
-                (ENNReal.ofReal (Real.exp (-((gammaStar : ℝ) * trCount n ξ v u u.length))) *
-                  ENNReal.ofReal (trMoment n ξ (trPath v u u.length) f.1 (k + 1)))
-            = ENNReal.ofReal (trListWeight u) *
-                ENNReal.ofReal (Real.exp (-((gammaStar : ℝ) * trCount n ξ v u u.length))) *
-                ∑' f : {f : List (List ℤ × ℤ) // f.length = b ∧
-                    ∀ x ∈ f, x.2 ∈ ({4, 5} : Set ℤ)},
-                  ENNReal.ofReal (trListWeight f.1) *
-                    ENNReal.ofReal (trMoment n ξ (trPath v u u.length) f.1 (k + 1)) := by
-              rw [← ENNReal.tsum_mul_left]
-              exact tsum_congr fun f => by ring
-          _ = _ := by
-              have hg := trPath_bkJ_sub_bkJ_ge v u (Nat.zero_le u.length)
-              simp only [min_self, Nat.zero_min, trPath_zero, CharP.cast_eq_zero,
-                sub_zero] at hg
-              rw [ih (hv := trPath_mem_bkPoints hv u _) (hvb := trEntryWords_bkBlack hu)
-                (hN := by push_cast at hN; omega), neg_mul]
-      · simp only [hΨ, ite_eq_right hu]
-        simp
-    have hS : ∀ q, ∑' u : {u : List (List ℤ × ℤ) // u.length = q ∧
-          ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)}, H u.1 =
-        ∑' u : List (List ℤ × ℤ), if u.length = q then H u else 0 := by
-      intro q
-      rw [show (∑' u : {u : List (List ℤ × ℤ) // u.length = q ∧
-          ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)}, H u.1) = ∑' u, Set.indicator
-            {u : List (List ℤ × ℤ) | u.length = q ∧ ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)} H u from
-        tsum_subtype {u : List (List ℤ × ℤ) | u.length = q ∧ ∀ b ∈ u, b.2 ∈ ({4, 5} : Set ℤ)} H]
-      refine tsum_congr fun u => ?_
-      simp only [Set.indicator_apply, Set.mem_ofPred_eq]
-      by_cases hq : u.length = q
-      · by_cases hu : u ∈ E
-        · rw [ite_eq_left ⟨hq, fun b hb => trEntryWords_closing_mem hu hb⟩, ite_eq_left hq]
-        · rw [hH, ite_eq_right hu]
-          simp
-      · rw [ite_eq_right (fun h => hq h.1), ite_eq_right hq]
-    rw [hL, Finset.sum_congr rfl hG]
-    simp_rw [hS]
-    rw [← Summable.tsum_finsetSum (fun _ _ => ENNReal.summable), trKernel_succ]
-    rw [show (∑' u : E, ENNReal.ofReal (trListWeight u.1) *
-          ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u.1 u.1.length)) *
-            trKernel n ξ k (trPath v u.1 u.1.length)) = ∑' u, Set.indicator E (fun u =>
-          ENNReal.ofReal (trListWeight u) *
-          ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u u.length)) *
-            trKernel n ξ k (trPath v u u.length)) u from tsum_subtype E (fun u =>
-          ENNReal.ofReal (trListWeight u) *
-          ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u u.length)) *
-            trKernel n ξ k (trPath v u u.length))]
-    refine tsum_congr fun u => ?_
-    rw [Finset.sum_ite_eq]
-    by_cases hu : u ∈ E
-    · rw [ite_eq_left (Finset.mem_range.2 (by have := hElen u hu; omega)), Set.indicator_of_mem hu,
-        hH, ite_eq_left hu]
-    · rw [Set.indicator_of_notMem hu, hH, ite_eq_right hu]
-      simp
+      obtain ⟨b, rfl⟩ : ∃ b, N = q + b := ⟨N - q, by have := Finset.mem_range.1 hq; omega⟩
+      refine (tsum_trListWeight_trSublist {c : List ℤ × ℤ | c.2 ∈ ({4, 5} : Set ℤ)} q b
+        (Ψ q)).trans (tsum_congr fun u => ?_)
+      obtain ⟨u, rfl, -⟩ := u
+      by_cases hu : u ∈ trEntryWords n ξ (epsStar : ℝ) v
+      · simp only [hΨ, Set.indicator_of_mem hu]
+        have := bkJ_add_length_le_bkJ_trPath v u
+        rw [← ih (v := trPath v u u.length) (N := b) (trPath_mem_bkPoints hv u _)
+          (trEntryWords_bkBlack hu) (by push_cast at hN; omega), ← ENNReal.tsum_mul_left]
+        exact tsum_congr fun f => by rw [neg_mul]; ring
+      · simp only [hΨ, Set.indicator_of_notMem hu, mul_zero, tsum_zero]
+    rw [hL, Finset.sum_congr rfl hG, sum_range_tsum_indicator_eq_tsum (N := N) _ _
+      fun u hu => ⟨length_lt_of_mem_trEntryWords hN hu, fun b hb => trEntryWords_closing_mem hu hb⟩,
+      trKernel_succ]
 
 end CollatzPosDens

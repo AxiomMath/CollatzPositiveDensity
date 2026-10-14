@@ -57,7 +57,7 @@ theorem off_le_three_halves_pow_sub_one (w : Word) :
     have hinv : ((2 : ℚ) ^ (a : ℕ))⁻¹ ≤ 2⁻¹ :=
       inv_anti₀ (by norm_num) (le_self_pow₀ (by norm_num) a.pos.ne')
     calc ((2 : ℚ) ^ (a : ℕ))⁻¹ * (1 + 3 * off w)
-        ≤ 2⁻¹ *(1 + 3 * ((3 / 2 : ℚ) ^ w.length - 1)) := by gcongr
+        ≤ 2⁻¹ * (1 + 3 * ((3 / 2 : ℚ) ^ w.length - 1)) := by gcongr
       _ = (3 / 2 : ℚ) ^ w.length * (3 / 2) - 1 := by ring
 
 /-- The offset of a word of length `d` is less than `(3/2)^d`. -/

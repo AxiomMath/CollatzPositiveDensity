@@ -27,16 +27,16 @@ Hence, for `ℓ = ℓ_b ≥ 1`,
 
 ## Implementation notes
 
-The statement assumes only `1 ≤ ℓ_b`, which holds for every `b ≥ 1`. The binomial coefficient
-`binom(s-1, ℓ-1)` is only used for `s ≥ ℓ ≥ 1`, where it is written with natural-number arguments
-`(s.toNat - 1).choose (ℓ - 1)`. The composition count is proved by Pascal's rule: a word of length
-`ℓ + 1` and sum `n + 1` either starts with the letter `1`, followed by a word of length `ℓ` and sum
-`n`, or starts with a letter `a + 1`, and lowering that letter gives a word of length `ℓ + 1` and
-sum `n`.
+[mazur2026] assumes `b ≥ 1` and `ℓ_b ≥ 1`; the statement here only assumes `1 ≤ ℓ_b` (which
+holds for every `b ≥ 1`). The binomial coefficient `binom(s-1, ℓ-1)` is only used for
+`s ≥ ℓ ≥ 1`, where it is written with natural-number arguments `(s.toNat - 1).choose (ℓ - 1)`.
+The composition count is proved by Pascal's rule: a word of length `ℓ + 1` and sum `n + 1`
+either starts with the letter `1`, followed by a word of length `ℓ` and sum `n`, or starts with a
+letter `a + 1`, and lowering that letter gives a word of length `ℓ + 1` and sum `n`.
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -59,7 +59,7 @@ private theorem words_succ_succ (ℓ n : ℕ) :
       by_cases ha : a = 1
       · subst ha
         refine Or.inl ⟨w, ⟨hlen, ?_⟩, rfl⟩
-        simp at hsum
+        simp only [PNat.val_ofNat] at hsum
         omega
       · obtain ⟨k, rfl⟩ := PNat.exists_eq_succ_of_ne_one ha
         refine Or.inr ⟨k :: w, ⟨by simp [hlen], ?_⟩, rfl⟩
@@ -140,8 +140,8 @@ theorem fcSurvivorCount_lb_ncard_words (ℓ n : ℕ) :
     | succ ℓ =>
       rw [ncard_words_succ_succ, ih ℓ, ih (ℓ + 1), Nat.choose_succ_succ]
 
-private theorem fcSurvivorSet_lb_eq {b ℓ : ℕ} (hℓeq : lb b = ℓ + 1) (n : ℕ) :
-    fcSurvivorSet b (lb b) n =
+private theorem fcSurvivorSet_lb_eq {b ℓ n : ℕ} (hℓeq : lb b = ℓ + 1) :
+    fcSurvivorSet b (lb b) (n : ℤ) =
       if (n : ℤ) < barrier b (rb b) (lb b) then words (ℓ + 1) n else ∅ := by
   ext x
   simp only [mem_fcSurvivorSet, words]
@@ -168,8 +168,7 @@ theorem fcSurvivorCount_lb {b : ℕ} (hℓ : 1 ≤ lb b) (s : ℤ) :
       else 0 := by
   rcases lt_or_ge s 0 with hs | hs
   · rw [fcSurvivorCount_of_neg hs, eq_comm, ite_eq_right_iff]
-    intro h
-    omega
+    exact fun h => by omega
   obtain ⟨n, rfl⟩ : ∃ n : ℕ, s = n := ⟨s.toNat, by omega⟩
   obtain ⟨ℓ, hℓeq⟩ : ∃ ℓ, lb b = ℓ + 1 := ⟨lb b - 1, by omega⟩
   rw [fcSurvivorCount_def, fcSurvivorSet_lb_eq hℓeq, Int.toNat_natCast, hℓeq]
@@ -178,8 +177,7 @@ theorem fcSurvivorCount_lb {b : ℕ} (hℓ : 1 ≤ lb b) (s : ℤ) :
   · simp only [h1, ↓reduceIte, and_true]
     rcases n with _ | m
     · rw [words_succ_zero, Set.ncard_empty, eq_comm, ite_eq_right_iff]
-      intro h
-      omega
+      exact fun h => by omega
     · rw [show (words (ℓ + 1) (m + 1)).ncard = _ from fcSurvivorCount_lb_ncard_words ℓ m]
       split_ifs with h2
       · simp

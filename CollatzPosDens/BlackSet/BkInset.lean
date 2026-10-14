@@ -40,7 +40,8 @@ theorem three_halves_lt_log_inv_div_log_nine {ε : ℝ} (hε_pos : 0 < ε) (hε_
     rw [lt_div_iff₀ hε_pos]
     linarith
   have h27' : Real.log 27 = 3 * Real.log 3 := by
-    rw [show (27 : ℝ) = 3 ^ 3 by norm_num, Real.log_pow]; norm_num
+    rw [show (27 : ℝ) = 3 ^ 3 by norm_num, Real.log_pow]
+    norm_num
   have h9 := log_nine_eq_two_mul_log_three
   have h3 : 0 < Real.log 3 := Real.log_pos (by norm_num)
   rw [lt_div_iff₀ (by rw [h9]; positivity)]

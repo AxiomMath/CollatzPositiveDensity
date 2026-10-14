@@ -77,11 +77,6 @@ private lemma horTail_hasSum_fiber {f : ℤ × ℤ → ℝ} (hf : Summable f) :
     HasSum (fun r : ℤ ↦ ∑' ℓ : ℤ, f (r, ℓ)) (∑' x, f x) :=
   hf.hasSum.prod_fiberwise fun b ↦ (hf.prod_factor b).hasSum
 
-/-- Shifting the index of a series on `ℤ`. -/
-private lemma horTail_hasSum_shift {φ : ℤ → ℝ} {a : ℝ} (h : HasSum φ a) (c : ℤ) :
-    HasSum (fun r : ℤ ↦ φ (r - c)) a :=
-  (Equiv.subRight c).hasSum_iff.2 h
-
 /-- The column masses `∑_ℓ F_s(r, ℓ)` have sum `1`. -/
 private lemma horTail_hasSum_col (s : ℕ) :
     HasSum (fun r : ℤ ↦ ∑' ℓ : ℤ, firstPassageLaw s (r, ℓ)) 1 := by
@@ -115,7 +110,8 @@ private lemma horTail_boundaryWeight_le (n : ℕ) (j : ℤ) :
     have hp : (0 : ℝ) < 2 ^ (m + 1) := by positivity
     rw [div_div, div_le_div_iff₀ (by positivity) hp]
     nlinarith [Nat.cast_nonneg (α := ℝ) (m.choose (2 * k + 1))]
-  · rw [boundaryWeight_of_not h]; exact straddleWeight_nonneg _ _
+  · rw [boundaryWeight_of_not h]
+    exact straddleWeight_nonneg _ _
 
 /-- The straddle weight `p_n(j)` vanishes for `j > n`. -/
 private lemma horTail_straddleWeight_eq_zero {n j : ℕ} (hj : n < j) : straddleWeight n j = 0 := by
@@ -144,8 +140,7 @@ private lemma horTail_sum_straddle_le (n : ℕ) (hn : 1 ≤ n) (P : ℕ → Prop
     ∑ j ∈ range (n + 1), (if P j then straddleWeight n j else 0) ≤
       2 * exp (-(2 * w ^ 2 / n)) := by
   set g : ℕ → ℝ := fun k ↦ if w ≤ |(k : ℝ) - n / 2| then (n.choose k : ℝ) / 2 ^ n else 0
-  have hg0 : ∀ k, 0 ≤ g k := fun k ↦ by
-    simp only [g]; split_ifs <;> positivity
+  have hg0 : ∀ k, 0 ≤ g k := fun k ↦ ite_nonneg (by positivity) le_rfl
   calc ∑ j ∈ range (n + 1), (if P j then straddleWeight n j else 0)
       ≤ ∑ j ∈ range (n + 1), (g (2 * j) + g (2 * j + 1)) := by
         refine sum_le_sum fun j _ ↦ ?_
@@ -162,6 +157,11 @@ private lemma horTail_sum_straddle_le (n : ℕ) (hn : 1 ≤ n) (P : ℕ → Prop
           (n.choose k : ℝ) / 2 ^ n := by rw [sum_filter]
     _ ≤ 2 * exp (-(2 * w ^ 2 / n)) := binomial_tail_hoeffding n hn w hw
 
+private lemma horTail_mgfNu45_le : mgfNu45 (1 / 16) ≤ ENNReal.ofReal (5 / 4) := by
+  refine mgfNu45_one_div_sixteen_le.trans (le_of_eq ?_)
+  rw [ENNReal.ofReal_div_of_pos (by norm_num)]
+  norm_num
+
 /-- `∑_{H} ν₄₅(H) e^{H/16} ≤ 5/4` as a real series. -/
 private lemma horTail_nu45_mgf :
     Summable (fun h : ℤ ↦ nu45 h * exp (1 / 16 * h)) ∧
@@ -169,9 +169,7 @@ private lemma horTail_nu45_mgf :
   refine horTail_summable_tsum_le (fun h ↦ mul_nonneg (nu45_nonneg h) (exp_pos _).le)
     (by norm_num) ?_
   rw [← mgfNu45_eq_tsum_int]
-  refine mgfNu45_one_div_sixteen_le.trans (le_of_eq ?_)
-  rw [ENNReal.ofReal_div_of_pos (by norm_num)]
-  norm_num
+  exact horTail_mgfNu45_le
 
 /-- The geometric tail `∑_{H ≥ v} ν₄₅(H) ≤ (5/4) e^{-v/16}`. -/
 private lemma horTail_nu45_tail (v : ℝ) :
@@ -186,10 +184,8 @@ private lemma horTail_nu45_tail (v : ℝ) :
         rw [← exp_add]; exact one_le_exp (by linarith)
       nlinarith [nu45_nonneg h]
     · exact mul_nonneg (exp_pos _).le (mul_nonneg (nu45_nonneg h) (exp_pos _).le)
-  have h0 : ∀ h : ℤ, 0 ≤ (if v ≤ (h : ℝ) then nu45 h else 0) := fun h ↦ by
-    split_ifs
-    · exact nu45_nonneg h
-    · exact le_rfl
+  have h0 : ∀ h : ℤ, 0 ≤ (if v ≤ (h : ℝ) then nu45 h else 0) := fun h ↦
+    ite_nonneg (nu45_nonneg h) le_rfl
   have hs' := Summable.of_nonneg_of_le h0 hpt (hs.mul_left _)
   refine ⟨hs', ?_⟩
   calc ∑' h : ℤ, (if v ≤ (h : ℝ) then nu45 h else 0)
@@ -222,15 +218,13 @@ private lemma horTail_one_le {u A : ℝ} (hu : u ≤ 4096) (hA : 0 ≤ A) :
 private lemma horTail_le_of_le_five {s : ℕ} (hs : s ≤ 5) {u : ℝ} (hu : 4096 < u) :
     ∑' r : {r : ℤ // u ≤ |(r : ℝ) - s / 4|}, ∑' ℓ : ℤ, firstPassageLaw s ((r : ℤ), ℓ) ≤
       4 * exp (-(u / 16)) := by
-  set g : ℤ × ℤ → ℝ := fun x ↦ firstPassageLaw s x * exp (1 / 16 * x.1) with hgdef
+  set g : ℤ × ℤ → ℝ := fun x ↦ firstPassageLaw s x * exp (1 / 16 * x.1)
   have hg0 : ∀ x, 0 ≤ g x := fun x ↦ mul_nonneg (firstPassageLaw_nonneg _ _) (exp_pos _).le
   obtain ⟨hgs, hgle⟩ := horTail_summable_tsum_le hg0 (by norm_num : (0 : ℝ) ≤ 4) (by
     refine (tsum_ofReal_firstPassageLaw_mul_exp_le s (by norm_num : (0 : ℝ) ≤ 1 / 16)).trans ?_
     calc mgfNu45 (1 / 16) ^ (s + 1) ≤ ENNReal.ofReal (5 / 4) ^ (s + 1) := by
           gcongr
-          refine mgfNu45_one_div_sixteen_le.trans (le_of_eq ?_)
-          rw [ENNReal.ofReal_div_of_pos (by norm_num)]
-          norm_num
+          exact horTail_mgfNu45_le
       _ = ENNReal.ofReal ((5 / 4) ^ (s + 1)) := (ENNReal.ofReal_pow (by norm_num) _).symm
       _ ≤ ENNReal.ofReal 4 := ENNReal.ofReal_le_ofReal
           (((pow_le_pow_right₀ (by norm_num) (by omega : s + 1 ≤ 6))).trans (by norm_num)))
@@ -245,9 +239,8 @@ private lemma horTail_le_of_le_five {s : ℕ} (hs : s ≤ 5) {u : ℝ} (hu : 409
     · rw [h0]; exact mul_nonneg (exp_pos _).le (hg0 _)
     · have h1 : (1 : ℝ) ≤ ((r : ℤ) : ℝ) := by exact_mod_cast (firstPassageLaw_support h0).1
       have hs' : (s : ℝ) ≤ 5 := by exact_mod_cast hs
-      have hr := r.2
       have hru : u ≤ ((r : ℤ) : ℝ) := by
-        rcases le_abs'.1 hr with h | h <;> linarith
+        rcases le_abs'.1 r.2 with h | h <;> linarith
       have he : 1 ≤ exp (-(u / 16)) * exp (1 / 16 * ((r : ℤ) : ℝ)) := by
         rw [← exp_add]; exact one_le_exp (by linarith)
       simp only [g]
@@ -266,7 +259,96 @@ private lemma horTail_le_of_le_five {s : ℕ} (hs : s ≤ 5) {u : ℝ} (hu : 409
 /-- Shifting the index of a series on `ℤ` by `1 + c`. -/
 private lemma horTail_hasSum_shift' {φ : ℤ → ℝ} {a : ℝ} (h : HasSum φ a) (c : ℤ) :
     HasSum (fun r : ℤ ↦ φ (r - 1 - c)) a := by
-  simpa [sub_sub] using horTail_hasSum_shift h (1 + c)
+  have h' : HasSum (fun r : ℤ ↦ φ (r - (1 + c))) a := (Equiv.subRight (1 + c)).hasSum_iff.2 h
+  simpa [sub_sub] using h'
+
+/-- The boundary part of a column mass of the crossing law. -/
+private lemma horTail_boundaryWeight_le_sum {n m : ℕ} {u : ℝ} (hu : 0 ≤ u)
+    (hmu : u ≤ |(m : ℝ) - n / 4|) :
+    boundaryWeight n m ≤ ∑ j ∈ range (n + 1),
+      (if u / 2 ≤ |(j : ℝ) - n / 4| then straddleWeight n j else 0) *
+        (if (m : ℤ) - j = 0 then (1 : ℝ) else 0) := by
+  by_cases hm : m ≤ n
+  · rw [sum_eq_single m]
+    · simp only [sub_self, ↓reduceIte, mul_one]
+      rw [ite_eq_left (by linarith)]
+      exact horTail_boundaryWeight_le n m
+    · intro b _ hb
+      rw [ite_eq_right (show ¬((m : ℤ) - b = 0) by omega), mul_zero]
+    · intro hm'
+      simp only [mem_range] at hm'
+      omega
+  · calc boundaryWeight n m ≤ straddleWeight n m := horTail_boundaryWeight_le n m
+      _ = 0 := horTail_straddleWeight_eq_zero (by omega)
+      _ ≤ _ := sum_nonneg fun j _ ↦
+        mul_nonneg (ite_nonneg (straddleWeight_nonneg _ _) le_rfl) (ite_nonneg zero_le_one le_rfl)
+
+/-- A straddle term is split into its far-column part and its geometric-tail part. -/
+private lemma horTail_straddle_nu45_le {n m j : ℕ} {u : ℝ} (hmu : u ≤ |(m : ℝ) - n / 4|) :
+    straddleWeight n j * nu45 ((m : ℤ) - j) ≤
+      (if u / 2 ≤ |(j : ℝ) - n / 4| then straddleWeight n j else 0) * nu45 ((m : ℤ) - j) +
+        straddleWeight n j *
+          (if u / 2 ≤ (((m : ℤ) - j : ℤ) : ℝ) then nu45 ((m : ℤ) - j) else 0) := by
+  have hνt0 : 0 ≤ (if u / 2 ≤ (((m : ℤ) - j : ℤ) : ℝ) then nu45 ((m : ℤ) - j) else 0) :=
+    ite_nonneg (nu45_nonneg _) le_rfl
+  by_cases hD : u / 2 ≤ |(j : ℝ) - n / 4|
+  · rw [ite_eq_left hD]
+    linarith [mul_nonneg (straddleWeight_nonneg n j) hνt0]
+  rw [ite_eq_right hD, zero_mul, zero_add]
+  by_cases hmj : (m : ℤ) - j ≤ 0
+  · simp [nu45_of_nonpos hmj]
+  have hle : u / 2 ≤ (((m : ℤ) - j : ℤ) : ℝ) := by
+    have hpos : (0 : ℝ) < (((m : ℤ) - j : ℤ) : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < m - j)
+    push_cast at hpos ⊢
+    obtain ⟨ha, hb⟩ := abs_lt.1 (not_le.1 hD)
+    rcases le_abs'.1 hmu with hc | hc <;> linarith
+  simp only [ite_eq_left hle, le_refl]
+
+/-- In the case `s = n + 4`, a column mass far from the drift is bounded through the crossing
+law by the far straddle weights and the geometric tail of `ν₄₅`. -/
+private lemma horTail_col_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 0 ≤ u) {r : ℤ}
+    (hr : u ≤ |(r : ℝ) - ((n + 4 : ℕ) : ℝ) / 4|) :
+    ∑' ℓ : ℤ, firstPassageLaw (n + 4 : ℕ) (r, ℓ) ≤ ∑ j ∈ range (n + 1),
+      ((if u / 2 ≤ |(j : ℝ) - n / 4| then straddleWeight n j else 0) *
+          ((if r - 1 - j = 0 then (1 : ℝ) else 0) + nu45 (r - 1 - j)) +
+        straddleWeight n j *
+          (if u / 2 ≤ ((r - 1 - j : ℤ) : ℝ) then nu45 (r - 1 - j) else 0)) := by
+  rcases le_or_gt r 0 with h | h
+  · have : ∀ ℓ, firstPassageLaw (n + 4 : ℕ) (r, ℓ) = 0 := fun ℓ ↦ by
+      by_contra hne
+      have := (firstPassageLaw_support hne).1
+      simp only at this
+      omega
+    rw [tsum_congr this, tsum_zero]
+    exact sum_nonneg fun j _ ↦ add_nonneg
+      (mul_nonneg (ite_nonneg (straddleWeight_nonneg _ _) le_rfl)
+        (add_nonneg (ite_nonneg zero_le_one le_rfl) (nu45_nonneg _)))
+      (mul_nonneg (straddleWeight_nonneg _ _) (ite_nonneg (nu45_nonneg _) le_rfl))
+  obtain ⟨m, rfl⟩ : ∃ m : ℕ, r = m + 1 := ⟨(r - 1).toNat, by omega⟩
+  have hcross := hasSum_firstPassageLaw_cross (G := n + 4) (r := m + 1) (by omega) (by omega)
+  rw [show (m : ℤ) + 1 = ((m + 1 : ℕ) : ℤ) by push_cast; rfl, hcross.tsum_eq]
+  simp only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right, Nat.add_sub_cancel]
+  push_cast at hr
+  have hmu : u ≤ |(m : ℝ) - n / 4| := by
+    convert hr using 2; ring
+  have h1 : ∑ j ∈ range m, (straddleWeight n j - boundaryWeight n j) * nu45 ((m : ℤ) - j) ≤
+      ∑ j ∈ range m, straddleWeight n j * nu45 ((m : ℤ) - j) := by
+    refine sum_le_sum fun j _ ↦ ?_
+    rw [sub_mul]
+    exact sub_le_self _ (mul_nonneg (boundaryWeight_nonneg _ _) (nu45_nonneg _))
+  have h2 : ∑ j ∈ range m, straddleWeight n j * nu45 ((m : ℤ) - j) =
+      ∑ j ∈ range (n + 1), straddleWeight n j * nu45 ((m : ℤ) - j) := by
+    rw [sum_subset (range_subset_range.2 (by omega : m ≤ m + n + 1)) fun j _ hj ↦ ?_,
+      sum_subset (range_subset_range.2 (by omega : n + 1 ≤ m + n + 1)) fun j _ hj ↦ ?_]
+    · simp only [mem_range, not_lt] at hj
+      rw [horTail_straddleWeight_eq_zero (by omega), zero_mul]
+    · simp only [mem_range, not_lt] at hj
+      rw [nu45_of_nonpos (by omega), mul_zero]
+  calc _ ≤ _ := add_le_add (horTail_boundaryWeight_le_sum hu hmu)
+        (h1.trans (h2.le.trans (sum_le_sum fun j _ ↦ horTail_straddle_nu45_le (j := j) hmu)))
+    _ = _ := by
+        rw [← sum_add_distrib]
+        exact sum_congr rfl fun j _ ↦ by ring
 
 /-- The case `s = n + 4 ≥ 6`, `u > 4096`. -/
 private lemma horTail_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 4096 < u) :
@@ -274,21 +356,14 @@ private lemma horTail_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 4096
         ∑' ℓ : ℤ, firstPassageLaw (n + 4 : ℕ) ((r : ℤ), ℓ) ≤
       2 * (2 * exp (-(2 * (u / 2) ^ 2 / n))) + 5 / 4 * exp (-(u / 2 / 16)) * 2 := by
   set c1 : ℕ → ℝ := fun j ↦ if u / 2 ≤ |(j : ℝ) - n / 4| then straddleWeight n j else 0
-    with hc1
-  set δ : ℤ → ℝ := fun h ↦ if h = 0 then 1 else 0 with hδ
-  set νt : ℤ → ℝ := fun h ↦ if u / 2 ≤ (h : ℝ) then nu45 h else 0 with hνt
+  set δ : ℤ → ℝ := fun h ↦ if h = 0 then 1 else 0
+  set νt : ℤ → ℝ := fun h ↦ if u / 2 ≤ (h : ℝ) then nu45 h else 0
   set B : ℤ → ℝ := fun r ↦ ∑ j ∈ range (n + 1),
-    (c1 j * (δ (r - 1 - j) + nu45 (r - 1 - j)) + straddleWeight n j * νt (r - 1 - j)) with hBdef
+    (c1 j * (δ (r - 1 - j) + nu45 (r - 1 - j)) + straddleWeight n j * νt (r - 1 - j))
   obtain ⟨hνts, hνtle⟩ := horTail_nu45_tail (u / 2)
-  have hc10 : ∀ j, 0 ≤ c1 j := fun j ↦ by
-    simp only [c1]; split_ifs
-    · exact straddleWeight_nonneg _ _
-    · exact le_rfl
-  have hδ0 : ∀ h, 0 ≤ δ h := fun h ↦ by simp only [δ]; split_ifs <;> norm_num
-  have hνt0 : ∀ h, 0 ≤ νt h := fun h ↦ by
-    simp only [νt]; split_ifs
-    · exact nu45_nonneg h
-    · exact le_rfl
+  have hc10 : ∀ j, 0 ≤ c1 j := fun j ↦ ite_nonneg (straddleWeight_nonneg _ _) le_rfl
+  have hδ0 : ∀ h, 0 ≤ δ h := fun _ ↦ ite_nonneg zero_le_one le_rfl
+  have hνt0 : ∀ h, 0 ≤ νt h := fun h ↦ ite_nonneg (nu45_nonneg h) le_rfl
   have hB0 : ∀ r, 0 ≤ B r := fun r ↦ sum_nonneg fun j _ ↦
     add_nonneg (mul_nonneg (hc10 j) (add_nonneg (hδ0 _) (nu45_nonneg _)))
       (mul_nonneg (straddleWeight_nonneg _ _) (hνt0 _))
@@ -299,79 +374,8 @@ private lemma horTail_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 4096
       (horTail_hasSum_shift' hasSum_nu45 j)).mul_left _ |>.add
       ((horTail_hasSum_shift' hνts.hasSum j).mul_left _)
   have hpt : ∀ r : {r : ℤ // u ≤ |(r : ℝ) - ((n + 4 : ℕ) : ℝ) / 4|},
-      ∑' ℓ : ℤ, firstPassageLaw (n + 4 : ℕ) ((r : ℤ), ℓ) ≤ B r := by
-    rintro ⟨r, hr⟩
-    rcases le_or_gt r 0 with h | h
-    · have : ∀ ℓ, firstPassageLaw (n + 4 : ℕ) (r, ℓ) = 0 := fun ℓ ↦ by
-        by_contra hne
-        have := (firstPassageLaw_support hne).1
-        simp only at this
-        omega
-      simp only
-      rw [tsum_congr this, tsum_zero]
-      exact hB0 r
-    obtain ⟨m, rfl⟩ : ∃ m : ℕ, r = m + 1 := ⟨(r - 1).toNat, by omega⟩
-    have hcross := hasSum_firstPassageLaw_cross (G := n + 4) (r := m + 1) (by omega) (by omega)
-    simp only
-    rw [show (m : ℤ) + 1 = ((m + 1 : ℕ) : ℤ) by push_cast; rfl, hcross.tsum_eq]
-    simp only [B, Nat.cast_add, Nat.cast_one, add_sub_cancel_right, Nat.add_sub_cancel]
-    push_cast at hr
-    have hmu : u ≤ |(m : ℝ) - n / 4| := by
-      convert hr using 2; ring
-    -- the `e`-part
-    have h3 : boundaryWeight n m ≤ ∑ j ∈ range (n + 1), c1 j * δ ((m : ℤ) - j) := by
-      by_cases hm : m ≤ n
-      · rw [sum_eq_single m]
-        · simp only [c1, δ, sub_self, ↓reduceIte, mul_one]
-          rw [ite_eq_left (by linarith)]
-          exact horTail_boundaryWeight_le n m
-        · intro b _ hb
-          simp only [δ]
-          rw [ite_eq_right (by omega), mul_zero]
-        · intro hm'; simp only [mem_range] at hm'; omega
-      · calc boundaryWeight n m ≤ straddleWeight n m := horTail_boundaryWeight_le n m
-          _ = 0 := horTail_straddleWeight_eq_zero (by omega)
-          _ ≤ _ := sum_nonneg fun j _ ↦ mul_nonneg (hc10 j) (hδ0 _)
-    -- the `p`-part
-    have h1 : ∑ j ∈ range m, (straddleWeight n j - boundaryWeight n j) * nu45 ((m : ℤ) - j) ≤
-        ∑ j ∈ range m, straddleWeight n j * nu45 ((m : ℤ) - j) := by
-      refine sum_le_sum fun j _ ↦ ?_
-      rw [sub_mul]
-      exact sub_le_self _ (mul_nonneg (boundaryWeight_nonneg _ _) (nu45_nonneg _))
-    have h2 : ∑ j ∈ range m, straddleWeight n j * nu45 ((m : ℤ) - j) =
-        ∑ j ∈ range (n + 1), straddleWeight n j * nu45 ((m : ℤ) - j) := by
-      rw [sum_subset (range_subset_range.2 (by omega : m ≤ m + n + 1)) fun j _ hj ↦ ?_,
-        sum_subset (range_subset_range.2 (by omega : n + 1 ≤ m + n + 1)) fun j _ hj ↦ ?_]
-      · simp only [mem_range, not_lt] at hj
-        rw [horTail_straddleWeight_eq_zero (by omega), zero_mul]
-      · simp only [mem_range, not_lt] at hj
-        rw [nu45_of_nonpos (by omega), mul_zero]
-    have h4 : ∀ j : ℕ, straddleWeight n j * nu45 ((m : ℤ) - j) ≤
-        c1 j * nu45 ((m : ℤ) - j) + straddleWeight n j * νt ((m : ℤ) - j) := by
-      intro j
-      by_cases hD : u / 2 ≤ |(j : ℝ) - n / 4|
-      · simp only [c1, ite_eq_left hD]
-        linarith [mul_nonneg (straddleWeight_nonneg n j) (hνt0 ((m : ℤ) - j))]
-      · simp only [c1, ite_eq_right hD, zero_mul, zero_add]
-        by_cases hmj : (m : ℤ) - j ≤ 0
-        · rw [nu45_of_nonpos hmj, mul_zero]
-          exact mul_nonneg (straddleWeight_nonneg n j) (hνt0 _)
-        · have hle : u / 2 ≤ (((m : ℤ) - j : ℤ) : ℝ) := by
-            have hpos' : (0 : ℤ) < (m : ℤ) - j := by omega
-            have hpos : (0 : ℝ) < (((m : ℤ) - j : ℤ) : ℝ) := by exact_mod_cast hpos'
-            push_cast at hpos ⊢
-            rw [not_le] at hD
-            obtain ⟨ha, hb⟩ := abs_lt.1 hD
-            rcases le_abs'.1 hmu with hc | hc <;> linarith
-          simp only [νt, ite_eq_left hle, le_refl]
-    calc boundaryWeight n m +
-          ∑ j ∈ range m, (straddleWeight n j - boundaryWeight n j) * nu45 ((m : ℤ) - j)
-        ≤ ∑ j ∈ range (n + 1), c1 j * δ ((m : ℤ) - j) + ∑ j ∈ range (n + 1),
-            (c1 j * nu45 ((m : ℤ) - j) + straddleWeight n j * νt ((m : ℤ) - j)) :=
-          add_le_add h3 (h1.trans (h2.le.trans (sum_le_sum fun j _ ↦ h4 j)))
-      _ = _ := by
-          rw [← sum_add_distrib]
-          exact sum_congr rfl fun j _ ↦ by ring
+      ∑' ℓ : ℤ, firstPassageLaw (n + 4 : ℕ) ((r : ℤ), ℓ) ≤ B r := fun r ↦
+    horTail_col_le_of_two_le n hn (by linarith) r.2
   have hn1 : 1 ≤ n := by omega
   have hD : ∑ j ∈ range (n + 1), c1 j ≤ 2 * exp (-(2 * (u / 2) ^ 2 / n)) := by
     refine horTail_sum_straddle_le n hn1 (fun j : ℕ ↦ u / 2 ≤ |(j : ℝ) - n / 4|) (by linarith)

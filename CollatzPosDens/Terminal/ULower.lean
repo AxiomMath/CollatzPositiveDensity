@@ -26,22 +26,22 @@ public import CollatzPosDens.Mixing.MxSubdensityDeficit
 # Lower bound for the unweighted mass
 
 Let `s ≥ 1`, let `M` be an `s`-good seed, `n ≥ J_*(s)`, and let `X` be admissible for
-generation `n`. Then the unweighted mass satisfies `Υ_{n,X}(M) > 2^{-28} m(s)^{-5633/2048}`,
+generation `n`. Then the unweighted mass satisfies `Υ_{n,X}(M) > 2^{-28} m(s)^{-4097/2048}`,
 where `m(s)` is the modulus exponent.
 
 Since `n ≥ N_* + N_t`, the marked mass satisfies `Θ_{n,X}(M) > 2^{-25}`; since
-`n ≥ 200 max(lg m(s) - 1, 0)`, the exponent satisfies `2^131072 ≤ m(s) ≤ k_n`. The census at
+`n ≥ 200 max(lg m(s) - 1, 0)`, the exponent satisfies `2^80000 ≤ m(s) ≤ k_n`. The census at
 `m' = m(s)`, the mixing lemma at `(m(s), k_n)` and the subdensity deficit at `m(s)` give
-`2^{-25} < (64/9) m(s)^{5633/2048} Υ + (88/3) M (C + 1) / m(s)^{9/8}`, and the error term is
-below `(11/6144) 2^{-24}` because `M < 𝓜(s)`, `C + 1 < 2C` and `m(s)^{9/8} > 2^39 𝓜(s) C`.
+`2^{-25} < (64/9) m(s)^{4097/2048} Υ + (88/3) M (C + 1) / m(s)^{3/2}`, and the error term is
+below `(11/6144) 2^{-24}` because `M < 𝓜(s)`, `C + 1 < 2C` and `m(s)^{3/2} > 2^39 𝓜(s) C`.
 
 ## Main results
 
-* `CollatzPosDens.lt_unweightedMass_of_goodSeed`: `2^{-28} m(s)^{-5633/2048} < Υ_{n,X}(M)`.
+* `CollatzPosDens.lt_unweightedMass_of_goodSeed`: `2^{-28} m(s)^{-4097/2048} < Υ_{n,X}(M)`.
 
 ## Implementation notes
 
-The power `m^{-5633/2048}` is the real power `(modulusExponent s : ℝ) ^ (-(5633 / 2048) : ℝ)`.
+The power `m^{-4097/2048}` is the real power `(modulusExponent s : ℝ) ^ (-(4097 / 2048) : ℝ)`.
 
 ## References
 
@@ -56,20 +56,20 @@ open Real
 
 /-- **Unweighted mass lower bound**. Let `s ≥ 1`, let `M` be an `s`-good seed,
 `n ≥ J_*(s)`, and let `X` be admissible for generation `n`. Then
-`Υ_{n,X}(M) > 2^{-28} m(s)^{-5633/2048}`. -/
+`Υ_{n,X}(M) > 2^{-28} m(s)^{-4097/2048}`. -/
 @[collatz_pos_dens "lem_U_lower"]
 theorem lt_unweightedMass_of_goodSeed {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
     {n : ℕ} (hn : finalGenerationThreshold s ≤ n) {X : ℝ} (hX : IsAdmissibleScale M n X) :
-    (2 : ℝ) ^ (-28 : ℤ) * (modulusExponent s : ℝ) ^ (-(5633 / 2048) : ℝ) <
+    (2 : ℝ) ^ (-28 : ℤ) * (modulusExponent s : ℝ) ^ (-(4097 / 2048) : ℝ) <
       unweightedMass n X M := by
   have hΘ :=
     two_zpow_neg_twentyFive_lt_markedMass hM hs ((add_le_finalGenerationThreshold s).trans hn) hX
   obtain ⟨-, hmk⟩ := modulusExponent_available s ((lg_sub_le_finalGenerationThreshold s).trans hn)
   have hgate := (two_pow_lt_modulusExponent hs).le
   have h16 : 16 ≤ modulusExponent s := by
-    have h4 : 4 ≤ (131072 : ℕ) := by norm_num
+    have h4 : 4 ≤ (80000 : ℕ) := by norm_num
     revert hgate h4
-    generalize (131072 : ℕ) = k
+    generalize (80000 : ℕ) = k
     intro hgate h4
     exact (Nat.pow_le_pow_right (n := 2) (by norm_num) h4).trans hgate
   have hcen := hM.markedMass_le_census hs hX h16 hmk
@@ -80,11 +80,11 @@ theorem lt_unweightedMass_of_goodSeed {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < 
   have hS0 : (0 : ℝ) < seedBound s := by exact_mod_cast seedBound_pos hs
   have hm0 : (0 : ℝ) < modulusExponent s :=
     Nat.cast_pos.mpr (lt_of_lt_of_le (by positivity) hgate)
-  set u : ℝ := (modulusExponent s : ℝ) ^ (9 / 8 : ℝ)
+  set u : ℝ := (modulusExponent s : ℝ) ^ (3 / 2 : ℝ)
   have hu0 : 0 < u := by positivity
-  set t : ℝ := (modulusExponent s : ℝ) ^ ((5633 : ℝ) / 2048) with ht
+  set t : ℝ := (modulusExponent s : ℝ) ^ ((4097 : ℝ) / 2048) with ht
   have ht0 : 0 < t := by positivity
-  have hneg : (modulusExponent s : ℝ) ^ (-(5633 / 2048) : ℝ) = t⁻¹ := by
+  have hneg : (modulusExponent s : ℝ) ^ (-(4097 / 2048) : ℝ) = t⁻¹ := by
     rw [ht, ← Real.rpow_neg hm0.le]
   rw [hneg]
   have e24 : (2 : ℝ) ^ (-24 : ℤ) = 1 / 2 ^ 24 := by norm_num

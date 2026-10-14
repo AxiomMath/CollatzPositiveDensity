@@ -62,8 +62,7 @@ theorem subMass_biUnion_finset (n : ℕ) {ι : Type*} (s : Finset ι) {V : ι �
   | insert a s ha ih =>
     rw [Finset.set_biUnion_insert, Finset.sum_insert ha, subMass_union,
       ih (hV.subset (by simp))]
-    rw [Set.disjoint_iUnion₂_right]
-    intro i hi
-    exact hV (by simp) (by simp [hi]) (fun h => ha (h ▸ hi))
+    exact Set.disjoint_iUnion₂_right.2 fun i hi =>
+      hV (by simp) (by simp [hi]) fun h => ha (h ▸ hi)
 
 end CollatzPosDens

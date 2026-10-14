@@ -49,9 +49,8 @@ private theorem le_of_mem_mxSliceGate_mxGateDisjoint {n k l k' l' : ℕ} {w : Wo
   have hlt' := (mem_mxHeadGate.mp hw.2).2.2.1.2.1
   have hle := (mem_mxHeadGate.mp hw'.2).2.2.1.1
   rw [List.take_take, Nat.min_eq_left (Nat.le_succ k')] at hle
-  have hpre : Word.valSum (w.take (k + 1)) ≤ Word.valSum (w.take k') :=
-    Word.valSum_le_of_isPrefix (List.take_prefix_take_left hlt)
-  have : (Word.valSum (w.take (k + 1)) : ℝ) ≤ Word.valSum (w.take k') := by exact_mod_cast hpre
+  have : (Word.valSum (w.take (k + 1)) : ℝ) ≤ Word.valSum (w.take k') := by
+    exact_mod_cast Word.valSum_le_of_isPrefix (List.take_prefix_take_left hlt)
   linarith
 
 /-- If the slice gates `Sl(n, k, l)` and `Sl(n, k', l')` meet, then `(k, l) = (k', l')`. -/
@@ -59,16 +58,14 @@ private theorem le_of_mem_mxSliceGate_mxGateDisjoint {n k l k' l' : ℕ} {w : Wo
 theorem eq_of_mxSliceGate_inter_nonempty {n k l k' l' : ℕ}
     (h : (mxSliceGate n k l ∩ mxSliceGate n k' l').Nonempty) : (k, l) = (k', l') := by
   obtain ⟨w, hw, hw'⟩ := h
-  have hk : k = k' := le_antisymm (le_of_mem_mxSliceGate_mxGateDisjoint hw' hw)
+  obtain rfl : k = k' := le_antisymm (le_of_mem_mxSliceGate_mxGateDisjoint hw' hw)
     (le_of_mem_mxSliceGate_mxGateDisjoint hw hw')
-  subst hk
   rw [← valSum_of_mem_mxHeadGate hw.2, ← valSum_of_mem_mxHeadGate hw'.2]
 
 /-- Slice gates `Sl(n, k, l)` and `Sl(n, k', l')` with `(k, l) ≠ (k', l')` are disjoint. -/
 theorem mxSliceGate_disjoint {n k l k' l' : ℕ} (h : (k, l) ≠ (k', l')) :
     Disjoint (mxSliceGate n k l) (mxSliceGate n k' l') :=
-  Set.disjoint_iff_inter_eq_empty.mpr <| Set.not_nonempty_iff_eq_empty.mp fun hne =>
-    h (eq_of_mxSliceGate_inter_nonempty hne)
+  Set.disjoint_left.mpr fun _ hw hw' => h (eq_of_mxSliceGate_inter_nonempty ⟨_, hw, hw'⟩)
 
 /-- The slice gates `Sl(n, k, l)`, indexed by pairs `(k, l)`, are pairwise disjoint. -/
 theorem pairwiseDisjoint_mxSliceGate (n : ℕ) (s : Set (ℕ × ℕ)) :

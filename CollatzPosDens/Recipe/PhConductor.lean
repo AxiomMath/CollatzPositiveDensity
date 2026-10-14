@@ -32,8 +32,8 @@ Taking `log₂` at `N = N_*` gives the claim.
 
 ## Implementation notes
 
-The bound on `conductorAt N` holds for every `N`, so the value `N_* = 9766262` is not needed;
-in particular the hypothesis `N_* ≥ 1` is not used.
+The bound on `conductorAt N` holds for every `N`, so the value `N_* = 6103914` is not needed;
+in particular the hypothesis `N_* ≥ 1` of the source proof is not used.
 
 ## References
 
@@ -76,7 +76,8 @@ theorem conductorAt_lt_two_pow_mul_growthRatio_pow (N : ℕ) :
   push_cast
   linarith
 
-/-- The conductor `q_*` satisfies `log₂ q_* + 1 < 16 + N_* δ`. -/
+/-- **The conductor is below the real endpoint**:
+`log₂ q_* + 1 < 16 + N_* δ`. -/
 @[collatz_pos_dens "lem_ph_conductor"]
 theorem logb_conductor_add_one_lt :
     Real.logb 2 conductor + 1 < 16 + generationThreshold * logGrowthRate := by

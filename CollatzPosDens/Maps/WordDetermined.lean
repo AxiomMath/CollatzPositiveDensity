@@ -53,16 +53,13 @@ theorem eq_and_eq_of_two_pow_mul_eq {a a' : ℕ} {x x' : ℤ} (hx : Odd x) (hx' 
     exact ⟨h1.symm, h2.symm⟩
   obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le hle
   have hx2 : x = 2 ^ k * x' := by
-    have h2 : (2 : ℤ) ^ a ≠ 0 := pow_ne_zero _ two_ne_zero
-    apply mul_left_cancel₀ h2
-    rw [h, pow_add]; ring
+    apply mul_left_cancel₀ (pow_ne_zero a two_ne_zero : (2 : ℤ) ^ a ≠ 0)
+    rw [h, pow_add, mul_assoc]
   rcases Nat.eq_zero_or_pos k with rfl | hk
   · simpa using hx2
-  · exfalso
-    have : Even x := by
-      rw [hx2]
-      exact (Int.even_pow.mpr ⟨even_two, hk.ne'⟩).mul_right x'
-    exact (Int.not_even_iff_odd.mpr hx) this
+  · rw [hx2] at hx
+    exact absurd ((Int.even_pow.mpr ⟨even_two, hk.ne'⟩).mul_right x')
+      (Int.not_even_iff_odd.mpr hx)
 
 /-- **Words are determined by their source.** If `R` is a positive odd integer and `u, u'` are
 words of the same length, both admissible from `R`, with `src(u, R) = src(u', R)`, then
@@ -85,10 +82,10 @@ theorem Admissible.eq_of_src_eq {R : ℤ} (hpos : 0 < R) (hodd : Odd R) {u u' : 
       rw [inverseOrbit, List.take_left] at hx hx'
       rw [src_concat, src_concat, hx, hx', invStep, invStep] at hsrc
       have hq : ((2 ^ (a : ℕ) * x : ℤ) : ℚ) = ((2 ^ (a' : ℕ) * x' : ℤ) : ℚ) := by
-        push_cast; linarith
+        push_cast
+        linarith
       obtain ⟨haa, hxx⟩ := eq_and_eq_of_two_pow_mul_eq hxodd hxodd' (by exact_mod_cast hq)
-      have hv : v = v' := ih hlen (admissible_append.1 hu).1 (admissible_append.1 hu').1 (by
-        rw [hx, hx', hxx])
-      rw [hv, PNat.coe_inj.mp haa]
+      rw [ih hlen (admissible_append.1 hu).1 (admissible_append.1 hu').1 (by rw [hx, hx', hxx]),
+        PNat.coe_inj.mp haa]
 
 end CollatzPosDens

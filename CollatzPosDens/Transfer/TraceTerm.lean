@@ -52,16 +52,21 @@ theorem rhoStar_le_exp_neg_bStar : (rhoStar : ℝ) ≤ Real.exp (-(bStar : ℝ))
   obtain ⟨h0, h1⟩ := rhoStar_pos_and_lt_one_cast (K := ℝ)
   set x : ℝ := 1 - rhoStar with hx
   have hx0 : 0 < x := sub_pos.mpr h1
-  have hx1 : |x| < 1 := (abs_of_pos hx0).trans_lt (by linarith)
+  have hx1 : |x| < 1 := by
+    rw [abs_of_pos hx0]
+    linarith
+  have hsum := Real.hasSum_pow_div_log_of_abs_lt_one hx1
   have hb : (bStar : ℝ) ≤ -Real.log (1 - x) := by
     have : (bStar : ℝ) = ∑ i ∈ Finset.range 12, x ^ (i + 1) / (i + 1) := by
       rw [bStar_eq_sum_range]
       push_cast
       rfl
     rw [this]
-    exact sum_le_hasSum _ (fun i _ => by positivity) (Real.hasSum_pow_div_log_of_abs_lt_one hx1)
-  rw [hx, sub_sub_cancel] at hb
-  exact (Real.log_le_iff_le_exp h0).mp (by linarith)
+    exact sum_le_hasSum _ (fun i _ => by positivity) hsum
+  have h1x : 1 - x = rhoStar := by rw [hx]; ring
+  rw [h1x] at hb
+  rw [← Real.exp_log h0]
+  exact Real.exp_le_exp.mpr (by linarith)
 
 /-- The exact numerical comparison `101 γ_* + L_* < 290 b_*`. -/
 theorem gammaStar_add_Lstar_lt_bStar : 101 * gammaStar + Lstar < 290 * bStar := by
@@ -81,8 +86,7 @@ theorem exp_gammaStar_mul_rhoStar_pow_lt :
         gcongr
         exact rhoStar_le_exp_neg_bStar
     _ = Real.exp (101 * gammaStar - 290 * bStar) := by
-        rw [← Real.exp_nat_mul, ← Real.exp_add]
-        ring_nf
+        rw [← Real.exp_nat_mul, ← Real.exp_add]; ring_nf
     _ < Real.exp (-Lstar) := Real.exp_lt_exp.mpr (by linarith)
     _ = 1 / Real.exp Lstar := by rw [Real.exp_neg, one_div]
     _ ≤ 1 / (PT : ℝ) := one_div_le_one_div_of_le (by exact_mod_cast PT_pos) PT_le_exp

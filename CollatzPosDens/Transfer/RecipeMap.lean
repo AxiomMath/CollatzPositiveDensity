@@ -57,11 +57,13 @@ theorem recipeMap_eq (q : ℕ) : recipeMap q = q + windowLength q + 102 := by
 
 /-- `q + 8192 + 102 ≤ 𝔤(q)`. -/
 theorem add_le_recipeMap (q : ℕ) : q + 8192 + 102 ≤ recipeMap q := by
-  rw [recipeMap_eq]; have := le_windowLength q; omega
+  have := le_windowLength q
+  rw [recipeMap_eq]
+  omega
 
 /-- The recipe map is strictly inflationary. -/
-theorem lt_recipeMap (q : ℕ) : q < recipeMap q := by
-  have := add_le_recipeMap q; omega
+theorem lt_recipeMap (q : ℕ) : q < recipeMap q :=
+  lt_of_lt_of_le (by omega) (add_le_recipeMap q)
 
 /-- The recipe map is strictly increasing. -/
 theorem recipeMap_strictMono : StrictMono recipeMap := by
@@ -75,6 +77,7 @@ theorem recipeMap_monotone : Monotone recipeMap := recipeMap_strictMono.monotone
 
 /-- `T_* < 𝔤(q)` for every `q`. -/
 theorem tStar_lt_recipeMap (q : ℕ) : tStar < recipeMap q := by
-  rw [recipeMap_def]; omega
+  rw [recipeMap_def]
+  omega
 
 end CollatzPosDens

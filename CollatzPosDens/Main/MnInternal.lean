@@ -32,7 +32,7 @@ public import CollatzPosDens.OrdinaryTime.CkAccelTime
 Fix an odd endpoint `s ≥ 1` with `3 ∤ s`. For every real `X ≥ X₀(s)`, at least `c_M(s) X` odd
 integers `1 ≤ n < X` reach `s` within `⌊(523/50) log(n/s)⌋₊` Collatz steps and within
 `⌊(34881/10000) log(n/s)⌋₊` accelerated Collatz steps. Here
-`c_M(s) = 1 / (2^33 𝓜(s) m(s)^{5633/2048})` and `X₀(s) = 32 (2^{B_ht(s)} 𝓜(s) + 1)` are the
+`c_M(s) = 1 / (2^33 𝓜(s) m(s)^{4097/2048})` and `X₀(s) = 32 (2^{B_ht(s)} 𝓜(s) + 1)` are the
 construction's own constants.
 
 The proof fixes an `s`-good seed `M`, puts `Z = X / 32`, chooses a generation `n ≥ J_*(s)` for
@@ -90,16 +90,16 @@ theorem densityConst_mul_le_ncard_reach {s : ℕ} (hs : 0 < s) (hso : Odd s) (hs
   have hU := lt_unweightedMass_of_goodSeed hM hs hn hZ
   have hch := hM.mul_unweightedMass_le hs hZ
   have hm : (0 : ℝ) < (modulusExponent s : ℝ) := by exact_mod_cast modulusExponent_pos s
-  have hr : (0 : ℝ) < (modulusExponent s : ℝ) ^ (5633 / 2048 : ℝ) := rpow_pos_of_pos hm _
+  have hr : (0 : ℝ) < (modulusExponent s : ℝ) ^ (4097 / 2048 : ℝ) := rpow_pos_of_pos hm _
   have hMB : (0 : ℝ) < seedBound s := by exact_mod_cast seedBound_pos hs
   have hMle : (M : ℝ) ≤ seedBound s := by exact_mod_cast hM.upper.le
   have hS0 : (0 : ℝ) ≤ (S.ncard : ℝ) := Nat.cast_nonneg _
   have hcount : densityConst s * X ≤ (S.ncard : ℝ) := by
-    have hc0 : (2 : ℝ) ^ (-28 : ℤ) * (modulusExponent s : ℝ) ^ (-(5633 / 2048) : ℝ) =
-        1 / (2 ^ 28 * (modulusExponent s : ℝ) ^ (5633 / 2048 : ℝ)) := by
+    have hc0 : (2 : ℝ) ^ (-28 : ℤ) * (modulusExponent s : ℝ) ^ (-(4097 / 2048) : ℝ) =
+        1 / (2 ^ 28 * (modulusExponent s : ℝ) ^ (4097 / 2048 : ℝ)) := by
       rw [rpow_neg hm.le, zpow_neg]; field_simp
     rw [hc0] at hU
-    have h1 : Z * (1 / (2 ^ 28 * (modulusExponent s : ℝ) ^ (5633 / 2048 : ℝ))) ≤
+    have h1 : Z * (1 / (2 ^ 28 * (modulusExponent s : ℝ) ^ (4097 / 2048 : ℝ))) ≤
         seedBound s * (S.ncard : ℝ) := by
       calc _ ≤ Z * unweightedMass n Z M := mul_le_mul_of_nonneg_left hU.le hZpos.le
         _ ≤ M * S.ncard := hch

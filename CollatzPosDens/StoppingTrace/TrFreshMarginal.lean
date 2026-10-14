@@ -64,11 +64,10 @@ private lemma trFreshMarginal_fiber {h : ℤ × ℤ} (hh : h ∈ bkPoints) :
       ENNReal.ofReal (chBlockWeight β.1) = ENNReal.ofReal (holdLaw h.1.toNat h.2) := by
   rw [holdLaw_eq_tsum_chBlockWeight hh]
   refine (ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ chBlockWeight_nonneg _) ?_).symm
-  have hs := (hasSum_prod_chBlockWeight_single).summable
-  refine hs.comp_injective (i := fun β : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧
-    chBlockPoint β = h} ↦ (⟨β.1, β.2.1⟩ : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ)})) ?_
-  intro x y hxy
-  exact Subtype.ext (congrArg Subtype.val hxy :)
+  exact hasSum_prod_chBlockWeight_single.summable.comp_injective
+    (i := fun β : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockPoint β = h} ↦
+      (⟨β.1, β.2.1⟩ : {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ)}))
+    fun _ _ hxy ↦ Subtype.ext (congrArg Subtype.val hxy :)
 
 /-- The tuples of blocks with prescribed block points `h`. -/
 private def trFreshMarginalFiberEquiv {v : ℕ}
@@ -80,7 +79,7 @@ private def trFreshMarginalFiberEquiv {v : ℕ}
       ∀ i, {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockPoint β = h.1 i} where
   toFun x i := ⟨(x.1 i).1, (x.1 i).2, by rw [← hg, x.2]⟩
   invFun y := ⟨fun i ↦ ⟨(y i).1, (y i).2.1⟩,
-    Subtype.ext (funext fun i ↦ by rw [hg]; exact (y i).2.2)⟩
+    Subtype.ext (funext fun i ↦ (hg _ i).trans (y i).2.2)⟩
   left_inv _ := rfl
   right_inv _ := rfl
 
@@ -188,14 +187,14 @@ theorem tsum_holdListLaw_bkPoints_mul_indicator_le {v : ℕ} (ψ : (Fin v → �
     intro a b hab
     apply Subtype.ext
     funext i
-    have h1 := congrFun hab i
-    simp only [g, Prod.mk.injEq] at h1
+    have h₁ := congrFun hab i
+    simp only [g, Prod.mk.injEq] at h₁
     have ha := a.2 i
     have hb := b.2 i
     simp only [mem_bkPoints, bkJ] at ha hb
     ext
     · omega
-    · exact h1.2
+    · exact h₁.2
   calc _ ≤ ∑' h, F (g h) := by
         refine ENNReal.tsum_le_tsum fun h ↦ ?_
         by_cases hh : ψ h.1
@@ -207,8 +206,7 @@ theorem tsum_holdListLaw_bkPoints_mul_indicator_le {v : ℕ} (ψ : (Fin v → �
             omega
           rw [Set.indicator_of_mem (show h.1 ∈ {h | ψ h} from hh), Pi.one_apply, mul_one, hF,
             Set.indicator_of_mem hmem]
-        · rw [Set.indicator_of_notMem (show h.1 ∉ {h | ψ h} from hh), mul_zero]
-          exact zero_le
+        · simp [Set.indicator_of_notMem (show h.1 ∉ {h | ψ h} from hh)]
     _ ≤ ∑' u, F u := ENNReal.tsum_comp_le_tsum_of_injective hinj F
     _ = _ := (tsum_subtype {u : Fin v → ℕ × ℤ | (∀ i, 1 ≤ (u i).1) ∧ Φ u}
         (fun u ↦ ENNReal.ofReal (holdListLaw u))).symm

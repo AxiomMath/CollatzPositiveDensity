@@ -54,19 +54,15 @@ theorem bkColTop_eq_of_mem_bkCanonTriangle {n : ℕ} {ξ : ResidueGroup n} {ε :
   have hcol : ∀ l'' : ℤ, bkL q ≤ l'' → l'' ≤ Δ.l → (bkJ q, l'') ∈ Δ := fun l'' h₁ h₂ =>
     BkTriangle.mem_of_mem_of_nw (q' := (bkJ q, l'')) hq hq.1 le_rfl h₁ h₂
   refine ((eq_bkColTop_iff hξ (by linarith) hqP hqb (bkColTop n ξ ε p)).2
-    ⟨?_, ?_, ?_⟩).symm
-  · exact BkTriangle.le_l_of_mem hq
-  · intro l'' h₁ h₂
-    exact bkBlack_of_mem_bkCanonTriangle hξ hε hε' hp hb (hcol l'' h₁ h₂)
-  · have hr₀ : (bkJ q, Δ.l) ∈ Δ := hcol Δ.l (BkTriangle.le_l_of_mem hq) le_rfl
-    have hy : (bkJ q, bkColTop n ξ ε p + 1) ∉ Δ := fun h => by
-      have := BkTriangle.le_l_of_mem h
-      simp only [bkL] at this
-      omega
-    have hdist : bkDist (bkJ q, bkColTop n ξ ε p + 1) (bkJ q, Δ.l) ≤ 1 :=
-      (bkDist_add_one_snd _ _).le
-    have hnb := not_bkBlack_of_bkDist_le_one (q := (bkJ q, bkColTop n ξ ε p + 1))
-      hξ hε hε' hp hb (mem_bkPoints.2 (mem_bkPoints.1 hqP)) hy hr₀ hdist
-    exact (isBkWhite_iff_not_bkBlack (p := (bkJ q, bkColTop n ξ ε p + 1)) hqb.bkJ_le).2 hnb
+    ⟨BkTriangle.le_l_of_mem hq, fun l'' h₁ h₂ =>
+      bkBlack_of_mem_bkCanonTriangle hξ hε hε' hp hb (hcol l'' h₁ h₂), ?_⟩).symm
+  have hy : (bkJ q, bkColTop n ξ ε p + 1) ∉ Δ := fun h => by
+    have := BkTriangle.le_l_of_mem h
+    simp only [bkL] at this
+    omega
+  exact (isBkWhite_iff_not_bkBlack (p := (bkJ q, bkColTop n ξ ε p + 1)) hqb.bkJ_le).2
+    (not_bkBlack_of_bkDist_le_one (q := (bkJ q, bkColTop n ξ ε p + 1)) hξ hε hε' hp hb
+      (mem_bkPoints.2 (mem_bkPoints.1 hqP)) hy (hcol Δ.l (BkTriangle.le_l_of_mem hq) le_rfl)
+      (bkDist_add_one_snd _ _).le)
 
 end CollatzPosDens

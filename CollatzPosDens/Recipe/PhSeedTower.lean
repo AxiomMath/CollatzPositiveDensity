@@ -16,28 +16,28 @@ public import CollatzPosDens.Recipe.PhEndpoint
 /-!
 # The seed allowance at `s = 1` is below the tower
 
-The seed allowance at endpoint `1` satisfies `2^33 𝓜(1)^4 < tow_3(140214)`.
+The seed allowance at endpoint `1` satisfies `2^33 𝓜(1)^4 < tow_3(87640)`.
 
 Write `q = q_*` for the conductor. Since `q ≥ 9 N_* ≥ 3`, and `log₂ q + 1 < 16 + N_* δ <
-140213 + 9/16`, the exact inequality `3^16 > 2^25` (that is, `log₂ (3/2) > 9/16`) gives
-`log₂ q < 140211 + log₂ 3`, i.e. `q < 3 · 2^140211`. Since `𝓜(1) = 2^{38 + 4·3^q}`, we have
+87639 + 9/16`, the exact inequality `3^16 > 2^25` (that is, `log₂ (3/2) > 9/16`) gives
+`log₂ q < 87637 + log₂ 3`, i.e. `q < 3 · 2^87637`. Since `𝓜(1) = 2^{38 + 4·3^q}`, we have
 `2^33 𝓜(1)^4 = 2^Y` with `Y = 185 + 16·3^q < 32·3^q < 2^{5 + 2q}`, and
-`5 + 2q < 8 · 2^140211 = 2^140214`. Monotonicity of `x ↦ 2^x` then gives the claim.
+`5 + 2q < 8 · 2^87637 = 2^87640`. Monotonicity of `x ↦ 2^x` then gives the claim.
 
 ## Main results
 
 * `CollatzPosDens.tower_three`: `tow_3(t) = 2^2^2^t`.
-* `CollatzPosDens.conductor_lt_three_mul_two_pow`: `q_* < 3 · 2^140211`.
+* `CollatzPosDens.conductor_lt_three_mul_two_pow`: `q_* < 3 · 2^87637`.
 * `CollatzPosDens.two_pow_mul_seedBound_one_pow_lt_of_conductor_lt`: if `q_* < 3 · 2^t`, then
   `2^33 𝓜(1)^4 < 2^2^2^(t + 3)`.
-* `CollatzPosDens.two_pow_mul_seedBound_one_pow_lt_tower`: `2^33 𝓜(1)^4 < tow_3(140214)`.
+* `CollatzPosDens.two_pow_mul_seedBound_one_pow_lt_tower`: `2^33 𝓜(1)^4 < tow_3(87640)`.
 * `CollatzPosDens.two_pow_mul_seedBound_one_pow_lt`: the same bound with the tower written out,
-  `2^33 𝓜(1)^4 < 2^2^2^140214`.
+  `2^33 𝓜(1)^4 < 2^2^2^87640`.
 
 ## Implementation notes
 
 The integer steps are proved for a symbolic exponent `t` and only then specialised to
-`t = 140211`, and `tow_3` is unfolded through `tower_three` at a variable top, so that no
+`t = 87637`, and `tow_3` is unfolded through `tower_three` at a variable top, so that no
 tower of literals is ever handed to the kernel for evaluation.
 
 ## References
@@ -60,19 +60,19 @@ theorem twentyFive_div_sixteen_lt_logb_two_three : (25 : ℝ) / 16 < Real.logb 2
   push_cast at h
   linarith
 
-/-- **Step 1 of the seed tower bound.** The conductor satisfies `q_* < 3 · 2^140211`. -/
-theorem conductor_lt_three_mul_two_pow : conductor < 3 * 2 ^ 140211 := by
+/-- **Step 1 of the seed tower bound.** The conductor satisfies `q_* < 3 · 2^87637`. -/
+theorem conductor_lt_three_mul_two_pow : conductor < 3 * 2 ^ 87637 := by
   have h1 := logb_conductor_add_one_lt
   have h2 := sixteen_add_generationThreshold_mul_logGrowthRate_lt
   have h3 := twentyFive_div_sixteen_lt_logb_two_three
   have hq : (0 : ℝ) < conductor := by exact_mod_cast conductor_pos
-  have hpos : (0 : ℝ) < 3 * 2 ^ (140211 : ℕ) := by positivity
-  have hlog : Real.logb 2 (3 * 2 ^ (140211 : ℕ) : ℝ) = Real.logb 2 3 + 140211 := by
+  have hpos : (0 : ℝ) < 3 * 2 ^ (87637 : ℕ) := by positivity
+  have hlog : Real.logb 2 (3 * 2 ^ (87637 : ℕ) : ℝ) = Real.logb 2 3 + 87637 := by
     rw [Real.logb_mul (by norm_num) (by positivity), Real.logb_pow,
       Real.logb_self_eq_one (by norm_num)]
     push_cast
     ring
-  have hlt : Real.logb 2 (conductor : ℝ) < Real.logb 2 (3 * 2 ^ (140211 : ℕ) : ℝ) := by
+  have hlt : Real.logb 2 (conductor : ℝ) < Real.logb 2 (3 * 2 ^ (87637 : ℕ) : ℝ) := by
     rw [hlog]; linarith
   have := (Real.logb_lt_logb_iff (by norm_num) hq hpos).1 hlt
   exact_mod_cast this
@@ -109,16 +109,16 @@ theorem two_pow_mul_seedBound_one_pow_lt_of_conductor_lt {t : ℕ}
   rw [hexp]
   exact Nat.pow_lt_pow_right (by norm_num) hY
 
-/-- The seed tower bound with the tower written out: `2^33 𝓜(1)^4 < 2^2^2^140214`. -/
+/-- The seed tower bound with the tower written out: `2^33 𝓜(1)^4 < 2^2^2^87640`. -/
 theorem two_pow_mul_seedBound_one_pow_lt :
-    2 ^ 33 * seedBound 1 ^ 4 < 2 ^ 2 ^ 2 ^ 140214 := by
+    2 ^ 33 * seedBound 1 ^ 4 < 2 ^ 2 ^ 2 ^ 87640 := by
   have h := two_pow_mul_seedBound_one_pow_lt_of_conductor_lt conductor_lt_three_mul_two_pow
-  rwa [show 140211 + 3 = 140214 from rfl] at h
+  rwa [show 87637 + 3 = 87640 from rfl] at h
 
-/-- **The seed allowance at `s = 1` is below the tower.** `2^33 𝓜(1)^4 < tow_3(140214)`. -/
+/-- **The seed allowance at `s = 1` is below the tower.** `2^33 𝓜(1)^4 < tow_3(87640)`. -/
 @[collatz_pos_dens "lem_ph_seed_tower"]
 theorem two_pow_mul_seedBound_one_pow_lt_tower :
-    2 ^ 33 * seedBound 1 ^ 4 < tower 3 140214 := by
+    2 ^ 33 * seedBound 1 ^ 4 < tower 3 87640 := by
   rw [tower_three]
   exact two_pow_mul_seedBound_one_pow_lt
 

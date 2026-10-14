@@ -66,8 +66,8 @@ private theorem norm_tsum_chPairProduct_le_one (n : ℕ) (ξ : ResidueGroup n) (
   refine (norm_tsum_le_tsum_norm (summable_norm_chPairProduct_series n ξ k j s)).trans
     (le_of_eq ?_)
   have h := congrArg ENNReal.toReal (geomMass_setOf_length_eq k)
-  rw [geomMass_def, ENNReal.tsum_toReal_eq (fun w => by simp [Word.massWeight])] at h
-  rw [ENNReal.toReal_one] at h
+  rw [geomMass_def, ENNReal.tsum_toReal_eq (fun w => by simp [Word.massWeight]),
+    ENNReal.toReal_one] at h
   rw [← h]
   refine tsum_congr fun w => ?_
   simp [norm_chPairProduct, Word.massWeight, ENNReal.toReal_pow, ENNReal.toReal_inv]
@@ -107,7 +107,6 @@ private theorem hasSum_tsum_chEnvelopeRhs_succ (n : ℕ) (ξ : ResidueGroup n) (
     (hasSum_varpi.summable.comp_injective Nat.cast_injective).of_nonneg_of_le
       (fun b => hu0 b) (fun b => hu1 b)
   refine hsum.hasSum_iff.mpr ?_
-  -- Split `β ∈ ℤ^{m+1}` as `Fin.cons b b'`.
   have hsplit (b : ℤ) (b' : Fin m → ℤ) :
       (∏ i, varpi ((Fin.cons b b' : Fin (m + 1) → ℤ) i)) *
         ∏ i : Fin (m + 1), chPairFactor n ξ (j + i)
@@ -118,7 +117,9 @@ private theorem hasSum_tsum_chEnvelopeRhs_succ (n : ℕ) (ξ : ResidueGroup n) (
     rw [Fin.prod_univ_succ, Fin.prod_univ_succ]
     simp only [Fin.cons_zero, Fin.cons_succ, sum_Iio_succ_cons, Fin.val_succ,
       Fin.val_zero, add_zero]
-    have h0 : (Iio (0 : Fin (m + 1))) = ∅ := by ext l; simp
+    have h0 : (Iio (0 : Fin (m + 1))) = ∅ := by
+      ext l
+      simp
     rw [h0, sum_empty, add_zero]
     have h1 : ∀ i : Fin m, j + (i + 1 : ℕ) = j + 1 + i := fun i => by omega
     simp only [h1, add_assoc]
@@ -134,7 +135,30 @@ private theorem hasSum_tsum_chEnvelopeRhs_succ (n : ℕ) (ξ : ResidueGroup n) (
   have : 2 ≤ b := by
     by_contra h
     exact hb (by simp [hu, varpi_of_le_one (show b ≤ 1 by omega)])
-  exact ⟨b.toNat, by simp; omega⟩
+  exact ⟨b.toNat, Int.toNat_of_nonneg (by omega)⟩
+
+/-- A series over `ℕ+ × ℕ+`, extended by zero to `ℕ × ℕ`, regroups along antidiagonals. -/
+theorem tsum_pnat_prod_eq_tsum_antidiagonal (G : ℕ × ℕ → ℂ)
+    (hG : ∀ q : ℕ × ℕ, ¬(1 ≤ q.1 ∧ 1 ≤ q.2) → G q = 0)
+    (hs : Summable fun p : ℕ+ × ℕ+ => G (Prod.map PNat.val PNat.val p)) :
+    ∑' p : ℕ+ × ℕ+, G (Prod.map PNat.val PNat.val p) =
+      ∑' b : ℕ, ∑ q ∈ (antidiagonal b).filter (fun q => 1 ≤ q.1 ∧ 1 ≤ q.2), G q := by
+  have hφ : Function.Injective (Prod.map PNat.val PNat.val) :=
+    Function.Injective.prodMap PNat.coe_injective PNat.coe_injective
+  have hsupp : ∀ q ∉ Set.range (Prod.map PNat.val PNat.val), G q = 0 := fun q hq =>
+    hG q fun h => hq ⟨(⟨q.1, h.1⟩, ⟨q.2, h.2⟩), rfl⟩
+  have hGs : Summable G := (hφ.summable_iff hsupp).mp hs
+  rw [hφ.tsum_eq (fun q hq => by_contra fun h => hq (hsupp q h)),
+    ← HasAntidiagonal.sigmaAntidiagonalEquivProd.tsum_eq]
+  refine (Summable.tsum_sigma (f := fun c => G (HasAntidiagonal.sigmaAntidiagonalEquivProd c))
+    (hGs.comp_injective (Equiv.injective _))).trans ?_
+  refine tsum_congr fun b => ?_
+  simp only [HasAntidiagonal.sigmaAntidiagonalEquivProd, Equiv.coe_fn_mk]
+  rw [Finset.tsum_subtype (antidiagonal b) G, sum_filter]
+  refine sum_congr rfl fun q _ => ?_
+  split_ifs with h
+  · rfl
+  · exact hG q h
 
 /-- Peeling off the first two letters of the paired character series and grouping by their
 sum `b = a₁ + a₂`. -/
@@ -163,7 +187,8 @@ private theorem tsum_chPairProduct_length_add_two (n : ℕ) (ξ : ResidueGroup n
           chPairProduct n ξ (j + 1) (s + (((a₁ : ℕ) + a₂ : ℕ) : ℤ)) w) := by
     rw [he, chPairProduct_cons_cons, Word.valSum_cons, Word.valSum_cons]
     have hs : s + ((a₁ : ℕ) : ℤ) + ((a₂ : ℕ) : ℤ) = s + (((a₁ : ℕ) + a₂ : ℕ) : ℤ) := by
-      push_cast; ring
+      push_cast
+      ring
     simp only [hc, hs, neg_mul, zpow_neg, zpow_natCast, inv_pow, pow_add]
     ring
   have hT := (summable_norm_chPairProduct_series n ξ (k + 2) j s).of_norm
@@ -178,33 +203,19 @@ private theorem tsum_chPairProduct_length_add_two (n : ℕ) (ξ : ResidueGroup n
     rfl
   have hFs := hT.prod
   simp only [Function.comp_apply, hF] at hFs ⊢
-  -- Extend from `ℕ+ × ℕ+` to `ℕ × ℕ` by zero.
   set G : ℕ × ℕ → ℂ := fun q =>
     if 1 ≤ q.1 ∧ 1 ≤ q.2 then c (q.1 + q.2) q.2 * L (s + (q.1 + q.2 : ℕ)) else 0 with hG
   have hGφ (p : ℕ+ × ℕ+) : G (Prod.map PNat.val PNat.val p) =
       c ((p.1 : ℕ) + p.2) p.2 * L (s + (((p.1 : ℕ) + p.2 : ℕ) : ℤ)) := by
     simp [hG, Nat.one_le_iff_ne_zero, PNat.ne_zero]
-  have hφ : Function.Injective (Prod.map PNat.val PNat.val) :=
-    Function.Injective.prodMap PNat.coe_injective PNat.coe_injective
-  have hsupp : ∀ q ∉ Set.range (Prod.map PNat.val PNat.val), G q = 0 := by
-    intro q hq
-    simp only [hG]
-    split_ifs with h
-    · exact absurd ⟨(⟨q.1, h.1⟩, ⟨q.2, h.2⟩), rfl⟩ hq
-    · rfl
   simp only [← hGφ] at hFs ⊢
-  have hGs : Summable G := (hφ.summable_iff hsupp).mp hFs
-  rw [hφ.tsum_eq (fun q hq => by_contra fun h => hq (hsupp q h)),
-    ← HasAntidiagonal.sigmaAntidiagonalEquivProd.tsum_eq]
-  refine (Summable.tsum_sigma (f := fun c => G (HasAntidiagonal.sigmaAntidiagonalEquivProd c))
-    (hGs.comp_injective (Equiv.injective _))).trans ?_
+  rw [tsum_pnat_prod_eq_tsum_antidiagonal G (fun _ h => ite_eq_right h) hFs]
   refine tsum_congr fun b => ?_
-  simp only [HasAntidiagonal.sigmaAntidiagonalEquivProd, Equiv.coe_fn_mk]
-  rw [Finset.tsum_subtype (antidiagonal b) G, sum_mul, sum_filter]
+  rw [sum_mul]
   refine sum_congr rfl fun q hq => ?_
-  rw [mem_antidiagonal] at hq
-  simp only [hG, hq]
-  split_ifs <;> simp [hc, hL]
+  rw [mem_filter, mem_antidiagonal] at hq
+  simp only [hG, hq.1, ite_eq_left hq.2]
+  simp [hc, hL]
 
 /-- **The envelope bound.** For all `k`, `j` and `s`, writing `k' = ⌊k / 2⌋`,
 `|∑_{w ∈ ℤ_{≥1}^k} 2^{-A(w)} Ep(j, s; w)|

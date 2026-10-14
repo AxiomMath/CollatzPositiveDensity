@@ -46,10 +46,10 @@ theorem two_mul_bkTheta_eq_of_east_of_south (n : ℕ) (ξ : ResidueGroup n) {j l
     2 * bkTheta n ξ (j, l) = bkTheta n ξ (j, l - 1) := by
   rw [mem_bkPoints_mk] at hp
   have hq₁ : (j + 1, l) ∈ bkPoints := mem_bkPoints_mk.2 (by omega)
-  have hq₂ : (j, l - 1) ∈ bkPoints := mem_bkPoints_mk.2 hp
   have hr₁ := bkThetaResidue_shift n ξ (a := (j, l)) (mem_bkPoints_mk.2 hp) hq₁
     (by dsimp [bkJ, bkL]; omega) (by dsimp [bkJ, bkL]; omega)
-  have hr₂ := bkThetaResidue_shift n ξ (a := (j, l)) (mem_bkPoints_mk.2 hp) hq₂
+  have hr₂ := bkThetaResidue_shift n ξ (a := (j, l)) (q := (j, l - 1)) (mem_bkPoints_mk.2 hp)
+    (mem_bkPoints_mk.2 hp)
     (by dsimp [bkJ, bkL]; omega) (by dsimp [bkJ, bkL]; omega)
   simp only [bkJ, bkL, add_sub_cancel_left, sub_self, sub_sub_cancel, Int.toNat_one,
     Int.toNat_zero, pow_one, pow_zero, mul_one, one_mul] at hr₁ hr₂

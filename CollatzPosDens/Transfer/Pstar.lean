@@ -72,18 +72,19 @@ theorem pStar_def : pStar = schedule rStar + 1 := by
 
 /-- `P_*` is positive. -/
 theorem pStar_pos : 0 < pStar := by
-  rw [pStar_def]; omega
+  rw [pStar_def]
+  omega
 
 /-- `P_*` is at least `1`. -/
 theorem one_le_pStar : 1 ≤ pStar := pStar_pos
 
 /-- `P_*` exceeds every schedule position `p_i` with `i ≤ r_*`. -/
 theorem schedule_lt_pStar {i : ℕ} (hi : i ≤ rStar) : schedule i < pStar := by
-  rw [pStar_def]; have := schedule_monotone hi; omega
+  rw [pStar_def]
+  exact Nat.lt_add_one_of_le (schedule_monotone hi)
 
 /-- `P_*` exceeds the initial time `p_init`. -/
 theorem pInit_lt_pStar : pInit < pStar := by
-  have := schedule_lt_pStar (Nat.zero_le rStar)
-  rwa [schedule_zero] at this
+  simpa [schedule_zero] using schedule_lt_pStar (Nat.zero_le rStar)
 
 end CollatzPosDens

@@ -70,14 +70,18 @@ theorem chQ_le_mul_tsum_hasSum_blocks (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ)
       (∑' h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε (p + h)) := by
   set B := {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}
   set g : B → ℝ := fun β ↦ chBlockWeight β * chQ n ξ ε (p + chBlockPoint β)
-  have hg : Summable g := hasSum_prod_chBlockWeight_single.summable.of_nonneg_of_le
+  have hbw : Summable fun β : B ↦ chBlockWeight β := hasSum_prod_chBlockWeight_single.summable
+  have hg : Summable g := hbw.of_nonneg_of_le
     (fun _ ↦ mul_nonneg (chBlockWeight_nonneg _) (chQ_nonneg _ _ _ _))
     fun _ ↦ mul_le_of_le_one_right (chBlockWeight_nonneg _) (chQ_le_one _ _ _ _)
   let bpt : B → bkPoints := fun β ↦ ⟨chBlockPoint β, chBlockPoint_mem_bkPoints _⟩
+  have hfib := hg.hasSum.tsum_fiberwise bpt
   suffices hfun : (fun c ↦ ∑' b : ↥(bpt ⁻¹' {c}), g b) =
       fun h : bkPoints ↦ holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε (p + h) by
-    exact (hfun ▸ hg.hasSum.tsum_fiberwise bpt).tsum_eq ▸ hg.hasSum
+    rw [hfun] at hfib
+    exact hfib.tsum_eq ▸ hg.hasSum
   funext h
+  -- the fibre over `h` is the set of blocks with block point `h`
   let e : ↥(bpt ⁻¹' {h}) ≃
       {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockPoint β = h} :=
     { toFun := fun β ↦ ⟨β.1.1, β.1.2, congrArg Subtype.val β.2⟩
@@ -85,7 +89,8 @@ theorem chQ_le_mul_tsum_hasSum_blocks (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ)
       left_inv := fun _ ↦ rfl
       right_inv := fun _ ↦ rfl }
   have hg' (β : ↥(bpt ⁻¹' {h})) : g β = chBlockWeight (e β).1 * chQ n ξ ε (p + h) := by
-    simp only [g, e, Equiv.coe_fn_mk, show chBlockPoint β.1.1 = h from congrArg Subtype.val β.2]
+    have : chBlockPoint β.1.1 = h := congrArg Subtype.val β.2
+    simp only [g, e, Equiv.coe_fn_mk, this]
   rw [tsum_congr hg', e.tsum_eq (fun β ↦ chBlockWeight β.1 * chQ n ξ ε (p + h)), tsum_mul_right,
     holdLaw_eq_tsum_chBlockWeight h.2]
 

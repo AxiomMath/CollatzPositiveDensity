@@ -42,7 +42,6 @@ namespace CollatzPosDens
 noncomputable def Xstar : ℚ := 3200 * Dstar
 
 /-- The defining formula of `X_*`. -/
-@[simp]
 theorem Xstar_def : Xstar = 3200 * Dstar := rfl
 
 /-- The defining formula of `X_*`, cast into a division ring of characteristic zero. -/
@@ -51,15 +50,14 @@ theorem cast_Xstar {K : Type*} [DivisionRing K] [CharZero K] :
   rw [Xstar_def, Rat.cast_mul, Rat.cast_ofNat]
 
 /-- `X_*` is positive. -/
-theorem Xstar_pos : 0 < Xstar := by
-  rw [Xstar_def]; exact mul_pos (by norm_num) Dstar_pos
+theorem Xstar_pos : 0 < Xstar := mul_pos (by norm_num) Dstar_pos
 
 /-- `D_* ≤ X_*`. -/
 theorem Dstar_le_Xstar : Dstar ≤ Xstar := by
-  rw [Xstar_def]; linarith [Dstar_pos]
+  linarith [Dstar_pos, Xstar_def]
 
 /-- `6400 ≤ X_*`. -/
 theorem le_Xstar : 6400 ≤ Xstar := by
-  rw [Xstar_def]; linarith [two_le_Dstar]
+  linarith [two_le_Dstar, Xstar_def]
 
 end CollatzPosDens

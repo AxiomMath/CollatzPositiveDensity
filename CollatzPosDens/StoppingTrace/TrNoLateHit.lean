@@ -45,10 +45,6 @@ theorem bkJ_add_le_of_bkJ_trPath_le {J : ℤ} (o : ℤ × ℤ) (β : List (List 
     (hN : J < bkJ o + β.length) (ht : bkJ (trPath o β t) ≤ J) : bkJ o + t ≤ J := by
   have h := trPath_bkJ_sub_bkJ_ge o β (Nat.zero_le t)
   simp only [trPath_zero, Nat.zero_min, Nat.cast_zero, sub_zero] at h
-  rcases le_total t β.length with h' | h'
-  · rw [min_eq_left h'] at h
-    omega
-  · rw [min_eq_right h'] at h
-    omega
+  omega
 
 end CollatzPosDens

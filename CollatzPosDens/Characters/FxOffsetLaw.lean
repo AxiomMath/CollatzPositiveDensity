@@ -69,7 +69,8 @@ private theorem ofReal_transfer_refDensity_zero (w : Word) {t : ℕ} (ht : t = 0
       ENNReal.div_eq_inv_mul]
     norm_num
     ring
-  split_ifs <;> simp [hw]
+  split_ifs <;> simp only [hw, pow_zero, mul_one, refLaw_zero_apply, sum_const, card_singleton,
+    card_empty, one_smul, zero_nsmul, mul_zero]
   ring
 
 /-- **Offset law of the reference law.** For every `n ∈ ℕ` and `y ∈ G_n`,

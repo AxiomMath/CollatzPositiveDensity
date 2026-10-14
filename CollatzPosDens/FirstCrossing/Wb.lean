@@ -54,20 +54,19 @@ theorem wb_def (b : ℕ) : wb b = 3 * b / 5 := rfl
 theorem wb_eq_floor {K : Type*} [Semifield K] [LinearOrder K] [IsStrictOrderedRing K]
     [FloorSemiring K] (b : ℕ) : wb b = ⌊(3 * b : K) / 5⌋₊ := by
   rw [wb_def, ← Nat.floor_div_eq_div (K := K)]
-  push_cast
-  rfl
+  norm_cast
 
 /-- The lower defining inequality `5 w_b ≤ 3b`. -/
 theorem five_mul_wb_le (b : ℕ) : 5 * wb b ≤ 3 * b := by
-  rw [wb_def]; omega
+  grind [wb_def]
 
 /-- The upper defining inequality `3b < 5 (w_b + 1)`. -/
 theorem lt_five_mul_wb_add_one (b : ℕ) : 3 * b < 5 * (wb b + 1) := by
-  rw [wb_def]; omega
+  grind [wb_def]
 
 /-- `w_b ≤ b`. -/
 theorem wb_le_self (b : ℕ) : wb b ≤ b := by
-  rw [wb_def]; omega
+  grind [wb_def]
 
 /-- `w_b` is monotone in `b`. -/
 theorem wb_mono : Monotone wb := fun _ _ h => Nat.div_le_div_right (by omega)

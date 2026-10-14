@@ -88,7 +88,9 @@ theorem off_eq_sum (w : Word) :
 theorem off_nonneg (w : Word) : 0 ≤ off w := by
   induction w with
   | nil => simp
-  | cons a w ih => rw [off_cons]; positivity
+  | cons a w ih =>
+    rw [off_cons]
+    positivity
 
 /-- The offset is a cocycle for the weight: `off(uv) = off(u) + ω(u) off(v)`, where
 `ω(u) = 3^{|u|} 2^{-A(u)}`. -/

@@ -56,8 +56,8 @@ theorem scale_add_ge_growthRatio_pow_mul (i j : ℕ) :
   | succ j ih =>
     calc (growthRatio : ℝ) ^ (j + 1) * scale i
         = (growthRatio : ℝ) * ((growthRatio : ℝ) ^ j * scale i) := by ring
-      _ ≤ (growthRatio : ℝ) * scale (i + j) := by
-          gcongr; exact growthRatio_cast_pos.le
+      _ ≤ (growthRatio : ℝ) * scale (i + j) :=
+          mul_le_mul_of_nonneg_left ih growthRatio_cast_pos.le
       _ ≤ scale (i + j + 1) := scale_succ_ge_growthRatio_mul (i + j)
 
 end CollatzPosDens

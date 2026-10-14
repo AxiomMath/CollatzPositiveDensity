@@ -210,7 +210,6 @@ private lemma trClearMass_geom_lt :
     exp (-32) * (1 - exp (-32))⁻¹ < (2 : ℝ) ^ (-43 : ℤ) := by
   set r := exp (-32) with hr
   have hr0 : 0 < r := exp_pos _
-  -- `2^44 < e^32`, since `44 log 2 < 32`.
   have h44 : (2 : ℝ) ^ 44 < exp 32 := by
     have h2 : (2 : ℝ) ^ 44 = exp (44 * Real.log 2) := by
       rw [show ((44 : ℝ)) = ((44 : ℕ) : ℝ) by norm_num, Real.exp_nat_mul, Real.exp_log two_pos]
@@ -226,7 +225,8 @@ private lemma trClearMass_geom_lt :
   have h1r : 0 < 1 - r := by linarith
   rw [zpow_neg, ← div_eq_mul_inv, div_lt_iff₀ h1r]
   have key : r * 2 ^ 43 < 1 - r := by linarith [show r * 2 ^ 44 = 2 * (r * 2 ^ 43) by ring]
-  rwa [show (2 : ℝ) ^ (43 : ℤ) = 2 ^ 43 by norm_num, inv_mul_eq_div, lt_div_iff₀ (by positivity)]
+  rwa [show (2 : ℝ) ^ (43 : ℤ) = 2 ^ 43 by norm_num, inv_mul_eq_div,
+    lt_div_iff₀ (by positivity)]
 
 /-- **Failed clearing is rare.** If `P_* ≤ ⌊n/2⌋`, the failed clearing event has fresh-law mass
 `∑_{a ∈ Clr} μ_{e,g}(a) < 2^{-43}`, as a sum in `[0, ∞]`. -/
@@ -265,8 +265,10 @@ theorem tsum_trFreshLaw_trClear_lt (n : ℕ) (e : ℤ × ℤ) (g : ℕ) (hP : pS
         (ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ pow_nonneg hr0 _) hsum).symm
     _ < ENNReal.ofReal ((2 : ℝ) ^ (-43 : ℤ)) := by
         rw [ENNReal.ofReal_lt_ofReal_iff (by positivity)]
-        simp_rw [pow_succ']
-        rw [tsum_mul_left, tsum_geometric_of_lt_one hr0 hr1]
+        have : ∑' q : ℕ, r ^ (q + 1) = r * (1 - r)⁻¹ := by
+          simp_rw [pow_succ']
+          rw [tsum_mul_left, tsum_geometric_of_lt_one hr0 hr1]
+        rw [this]
         exact trClearMass_geom_lt
 
 /-- The fresh law is summable on the failed clearing event, when `P_* ≤ ⌊n/2⌋`. -/

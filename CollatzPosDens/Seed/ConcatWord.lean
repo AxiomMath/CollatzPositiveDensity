@@ -72,8 +72,7 @@ theorem concatWord_succ' (t : Fin (n + 1) → Word) :
 /-- Flattening one more block of a tuple of words appends that block. -/
 theorem flatten_take_succ_ofFn (t : Fin n → Word) {j : ℕ} (hj : j < n) :
     ((List.ofFn t).take (j + 1)).flatten = ((List.ofFn t).take j).flatten ++ t ⟨j, hj⟩ := by
-  rw [List.take_add_one, List.getElem?_ofFn, List.flatten_append]
-  simp [hj]
+  simp [List.take_add_one, hj]
 
 /-- Prepending a block: `ŵ(w, w₀, …, w_{n-1}) = w ŵ(w₀, …, w_{n-1})`. -/
 @[simp] theorem concatWord_cons (w : Word) (t : Fin n → Word) :
@@ -103,8 +102,7 @@ theorem infix_concatWord (t : Fin n → Word) (j : Fin n) : t j <:+: concatWord 
 /-- The concatenation of the first `n` blocks is a prefix of the concatenation of all
 `n + 1`. -/
 theorem concatWord_castSucc_prefix (t : Fin (n + 1) → Word) :
-    concatWord (fun i : Fin n => t i.castSucc) <+: concatWord t := by
-  rw [concatWord_succ t]
-  exact List.prefix_append _ _
+    concatWord (fun i : Fin n => t i.castSucc) <+: concatWord t :=
+  concatWord_succ t ▸ List.prefix_append _ _
 
 end CollatzPosDens

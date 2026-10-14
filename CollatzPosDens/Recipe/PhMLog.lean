@@ -17,18 +17,18 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Base
 # The modulus is below the seed allowance
 
 For every endpoint `s ≥ 1`, the modulus exponent
-`m(s) = ⌊(2^39 𝓜(s) C)^{8/9}⌋₊ + 1` is smaller than the seed bound `𝓜(s)`.
+`m(s) = ⌊(2^39 𝓜(s) C)^{2/3}⌋₊ + 1` is smaller than the seed bound `𝓜(s)`.
 
-Put `y = (2^39 𝓜(s) C)^{8/9}`. Since `𝓜(s) ≥ 1` and `C ≥ 1`, we have `y ≥ 1`, hence
+Put `y = (2^39 𝓜(s) C)^{2/3}`. Since `𝓜(s) ≥ 1` and `C ≥ 1`, we have `y ≥ 1`, hence
 `m(s) ≤ y + 1 ≤ 2 y` and
-`log₂ m(s) ≤ 1 + 8/9 (39 + log₂ 𝓜(s) + log₂ C) < 8/9 log₂ 𝓜(s) + log₂ C + 92`.
+`log₂ m(s) ≤ 1 + 2/3 (39 + log₂ 𝓜(s) + log₂ C) < 2/3 log₂ 𝓜(s) + log₂ C + 92`.
 As `log₂ C < 87533` and `log₂ 𝓜(s) > 10 ^ 12`, the right-hand side is below `log₂ 𝓜(s)`,
 so `m(s) < 𝓜(s)`.
 
 ## Main results
 
 * `CollatzPosDens.logb_two_modulusExponent_lt`:
-  `log₂ m(s) < 8/9 log₂ 𝓜(s) + log₂ C + 92`.
+  `log₂ m(s) < 2/3 log₂ 𝓜(s) + log₂ C + 92`.
 * `CollatzPosDens.modulusExponent_lt_seedBound`: `m(s) < 𝓜(s)`.
 
 ## References
@@ -42,10 +42,10 @@ namespace CollatzPosDens
 
 open Real
 
-/-- `log₂ m(s) < 8/9 · log₂ 𝓜(s) + log₂ C + 92` for `s ≥ 1`. -/
+/-- `log₂ m(s) < 2/3 · log₂ 𝓜(s) + log₂ C + 92` for `s ≥ 1`. -/
 theorem logb_two_modulusExponent_lt {s : ℕ} (hs : 0 < s) :
     logb 2 (modulusExponent s : ℝ) <
-      8 / 9 * logb 2 (seedBound s : ℝ) + logb 2 mixingConst + 92 := by
+      2 / 3 * logb 2 (seedBound s : ℝ) + logb 2 mixingConst + 92 := by
   have hM : (1 : ℝ) ≤ seedBound s := by exact_mod_cast seedBound_pos hs
   have hC : (1 : ℝ) ≤ mixingConst := one_le_mixingConst
   set x : ℝ := (2 : ℝ) ^ 39 * seedBound s * mixingConst with hx
@@ -53,8 +53,8 @@ theorem logb_two_modulusExponent_lt {s : ℕ} (hs : 0 < s) :
     rw [hx]
     have : (1 : ℝ) ≤ 2 ^ 39 := one_le_pow₀ (by norm_num)
     nlinarith [mul_le_mul this hM zero_le_one (by positivity)]
-  have hy1 : 1 ≤ x ^ (8 / 9 : ℝ) := one_le_rpow hx1 (by norm_num)
-  have hm : (modulusExponent s : ℝ) ≤ 2 * x ^ (8 / 9 : ℝ) := by
+  have hy1 : 1 ≤ x ^ (2 / 3 : ℝ) := one_le_rpow hx1 (by norm_num)
+  have hm : (modulusExponent s : ℝ) ≤ 2 * x ^ (2 / 3 : ℝ) := by
     have h := modulusExponent_sub_one_le s
     have h1 := one_le_modulusExponent s
     rw [Nat.cast_sub h1, Nat.cast_one, ← hx] at h

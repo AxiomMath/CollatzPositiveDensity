@@ -75,28 +75,16 @@ theorem fcLowerTail_geomMass_le {H : ℕ} (hH : 1 ≤ H) {v : ℝ} (hv : 0 < v)
   set t := 4 * v / (9 * H) with ht
   have hHpos : (0 : ℝ) < H := by exact_mod_cast hH
   have htpos : 0 < t := by positivity
-  have habs : |-t| ≤ 1 / 32 := by rw [abs_neg, abs_of_pos htpos]; exact hvH
-  have hexp : exp (-t) < 2 := by
-    have := exp_le_one_iff.mpr (neg_nonpos.mpr htpos.le)
-    linarith
-  set φ := ∑' a : ℕ, (1 / 2 : ℝ) ^ (a + 1) * exp (-t * (((a + 1 : ℕ) : ℝ) - 2)) with hφ
-  have hφb := fcMgf_bounds habs
-  have hφ0 : 0 ≤ φ := by linarith [hφb.1]
+  have hexp : exp (-t) < 2 := by linarith [exp_le_one_iff.mpr (neg_nonpos.mpr htpos.le)]
+  set φ := ∑' a : ℕ, (1 / 2 : ℝ) ^ (a + 1) * exp (-t * (((a + 1 : ℕ) : ℝ) - 2))
+  have hφb := fcMgf_bounds (show |-t| ≤ 1 / 32 by rwa [abs_neg, abs_of_pos htpos])
   have hpt : ∀ x : {x : Word | x.length = H ∧ (x.valSum : ℝ) - 2 * H ≤ -v},
       (x : Word).massWeight ≤
         ENNReal.ofReal (exp (-t * v)) * fcLowerTailTilt (-t) x := by
     rintro ⟨x, hxl, hxv⟩
     simp only [Word.massWeight, fcLowerTailTilt, hxl]
     rw [mul_left_comm, ← ENNReal.ofReal_mul (exp_pos _).le, ← exp_add]
-    have : 1 ≤ exp (-t * v + -t * ((x.valSum : ℝ) - 2 * H)) := by
-      apply one_le_exp
-      nlinarith
-    calc (2⁻¹ : ℝ≥0∞) ^ x.valSum = 2⁻¹ ^ x.valSum * 1 := (mul_one _).symm
-      _ ≤ 2⁻¹ ^ x.valSum *
-          ENNReal.ofReal (exp (-t * v + -t * ((x.valSum : ℝ) - 2 * H))) := by
-        gcongr
-        rw [← ENNReal.ofReal_one]
-        exact ENNReal.ofReal_le_ofReal this
+    exact le_mul_of_one_le_right' (ENNReal.one_le_ofReal.mpr (one_le_exp (by nlinarith)))
   calc geomMass {x : Word | x.length = H ∧ (x.valSum : ℝ) - 2 * H ≤ -v}
       ≤ ∑' x : {x : Word | x.length = H ∧ (x.valSum : ℝ) - 2 * H ≤ -v},
           ENNReal.ofReal (exp (-t * v)) * fcLowerTailTilt (-t) x :=
@@ -111,7 +99,7 @@ theorem fcLowerTail_geomMass_le {H : ℕ} (hH : 1 ≤ H) {v : ℝ} (hv : 0 < v)
     _ = ENNReal.ofReal (exp (-t * v)) * ENNReal.ofReal φ ^ H := by
         rw [fcLowerTail_tsum_tilt hexp]
     _ = ENNReal.ofReal (exp (-t * v) * φ ^ H) := by
-        rw [ENNReal.ofReal_mul (exp_pos _).le, ENNReal.ofReal_pow hφ0]
+        rw [ENNReal.ofReal_mul (exp_pos _).le, ENNReal.ofReal_pow (by linarith [hφb.1])]
     _ ≤ ENNReal.ofReal (exp (-t * v) * exp (9 * (-t) ^ 2 / 8) ^ H) := by
         gcongr
         exact hφb.2

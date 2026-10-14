@@ -65,8 +65,8 @@ theorem schedule_succ (i : ℕ) : schedule (i + 1) = recipeMap (schedule i) :=
 theorem schedule_zero_add_one : schedule 0 + 1 = 1025 := rfl
 
 /-- Consecutive schedule positions strictly increase: `p_i < p_{i+1}`. -/
-theorem schedule_lt_schedule_succ (i : ℕ) : schedule i < schedule (i + 1) := by
-  rw [schedule_succ]; exact lt_recipeMap _
+theorem schedule_lt_schedule_succ (i : ℕ) : schedule i < schedule (i + 1) :=
+  (lt_recipeMap _).trans_eq (schedule_succ i).symm
 
 /-- The schedule `i ↦ p_i` is strictly increasing. -/
 theorem schedule_strictMono : StrictMono schedule :=

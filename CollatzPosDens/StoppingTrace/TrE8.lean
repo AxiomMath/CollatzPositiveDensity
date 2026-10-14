@@ -61,7 +61,9 @@ noncomputable def E8 (t : ℝ) : ℝ :=
 theorem E8_eq (t : ℝ) :
     E8 t = t - t ^ 2 / 2 + t ^ 3 / 6 - t ^ 4 / 24 + t ^ 5 / 120 - t ^ 6 / 720
       + t ^ 7 / 5040 - t ^ 8 / 40320 := by
-  simp [E8, Finset.sum_Icc_succ_top, Nat.factorial]
+  simp only [E8, Nat.reduceAdd, Nat.one_le_ofNat, sum_Icc_succ_top, Icc_self, sum_singleton,
+    even_two, Even.neg_pow, one_pow, pow_one, one_mul, Nat.factorial, Nat.succ_eq_add_one,
+    zero_add, mul_one, Nat.cast_one, div_one, Nat.cast_ofNat, Nat.reduceMul]
   ring
 
 /-- `E₈` vanishes at `0`. -/
@@ -71,7 +73,10 @@ theorem E8_eq (t : ℝ) :
 /-- `1 - E₈(t)` is the degree-eight Taylor polynomial of `e^{-t}`. -/
 theorem one_sub_E8 (t : ℝ) :
     1 - E8 t = ∑ j ∈ range 9, (-t) ^ j / (j.factorial : ℝ) := by
-  simp [E8_eq, Finset.sum_range_succ, Nat.factorial]
+  simp only [E8_eq, sum_range_succ, range_one, sum_singleton, pow_zero, Nat.factorial,
+    Nat.cast_one, ne_eq, one_ne_zero, not_false_eq_true, div_self, pow_one,
+    Nat.succ_eq_add_one, zero_add, mul_one, div_one, even_two, Even.neg_pow, Nat.reduceAdd,
+    Nat.cast_ofNat, Nat.reduceMul]
   ring
 
 /-- `E₈` as a polynomial over `ℚ`. -/

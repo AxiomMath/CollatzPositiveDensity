@@ -61,12 +61,9 @@ def bkAnchors (T : Set BkTriangle) (Δ₀ : BkTriangle) (s b : ℝ) : Set ℤ :=
 @[simp]
 theorem mem_bkAnchors :
     z ∈ bkAnchors T Δ₀ s b ↔
-      ∃ Δ ∈ T, s ≤ Δ.s ∧ (Δ₀.l : ℝ) ≤ Δ.tip ∧ Δ.tip ≤ Δ₀.l + b ∧ Δ.j = z := by
-  constructor
-  · rintro ⟨Δ, ⟨hΔ, hs, h₁, h₂⟩, rfl⟩
-    exact ⟨Δ, hΔ, hs, h₁, h₂, rfl⟩
-  · rintro ⟨Δ, hΔ, hs, h₁, h₂, rfl⟩
-    exact ⟨Δ, ⟨hΔ, hs, h₁, h₂⟩, rfl⟩
+      ∃ Δ ∈ T, s ≤ Δ.s ∧ (Δ₀.l : ℝ) ≤ Δ.tip ∧ Δ.tip ≤ Δ₀.l + b ∧ Δ.j = z :=
+  ⟨fun ⟨Δ, ⟨hΔ, hs, h₁, h₂⟩, h⟩ => ⟨Δ, hΔ, hs, h₁, h₂, h⟩,
+    fun ⟨Δ, hΔ, hs, h₁, h₂, h⟩ => ⟨Δ, ⟨hΔ, hs, h₁, h₂⟩, h⟩⟩
 
 /-- The anchor of a qualifying triangle lies in the anchor set. -/
 theorem j_mem_bkAnchors {Δ : BkTriangle} (hΔ : Δ ∈ T) (hs : s ≤ Δ.s)

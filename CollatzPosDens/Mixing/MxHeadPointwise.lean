@@ -56,8 +56,6 @@ theorem mxHeadMass_le_two_inv_pow (n k l : ℕ) (y : ResidueGroup n) :
     rw [hs, Finset.mem_filter, Set.Finite.mem_toFinset] at ha hb
     exact eq_of_dyadicRed_off_eq_of_mem_mxHeadGate ha.1 hb.1 (ha.2.trans hb.2.symm)
   rw [Finset.sum_congr rfl hval, Finset.sum_const, nsmul_eq_mul]
-  calc (s.card : ℝ) * (2⁻¹ : ℝ) ^ l ≤ 1 * (2⁻¹ : ℝ) ^ l := by
-        gcongr; exact_mod_cast hcard
-    _ = (2⁻¹ : ℝ) ^ l := one_mul _
+  exact mul_le_of_le_one_left (by positivity) (by exact_mod_cast hcard)
 
 end CollatzPosDens

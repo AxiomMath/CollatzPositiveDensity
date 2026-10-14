@@ -90,9 +90,7 @@ private lemma c3BadMass_advance (e : ℤ × ℤ) (a : (ℕ × ℤ) × List (List
 private lemma c3BadMass_le_of_log {G m : ℝ} (hm : 0 ≤ m) (hG : G * log 2 ≤ m * log 9) :
     G ≤ 158497 / 50000 * m := by
   have h2 : 0 < log 2 := log_pos (by norm_num)
-  have h9 : log 9 < 158497 / 50000 * log 2 := by
-    have := log_nine_div_log_two_lt
-    rwa [div_lt_iff₀ h2] at this
+  have h9 : log 9 < 158497 / 50000 * log 2 := (div_lt_iff₀ h2).1 log_nine_div_log_two_lt
   nlinarith
 
 /-- The `F_G`-mass of the columns `200000 r ≥ 158499 m` is at most `2^{55} e^{-m/2^{51}}`. -/
@@ -103,8 +101,8 @@ private lemma c3BadMass_tsum_fp_le {G m : ℕ} (hm : 1 ≤ m) (hGm : (G : ℝ) �
   have hm1 : (1 : ℝ) ≤ m := by exact_mod_cast hm
   set T : Set (ℤ × ℤ) := {y | t ≤ |(y.1 : ℝ) - G / 4|} with hT
   have hinj := natCast_prod_injective
-  have hF := (hasSum_firstPassageLaw G).summable
-  have hFT : Summable (T.indicator fun y ↦ firstPassageLaw G y) := hF.indicator _
+  have hFT : Summable (T.indicator fun y ↦ firstPassageLaw G y) :=
+    (hasSum_firstPassageLaw G).summable.indicator _
   have hFT0 : ∀ y, 0 ≤ T.indicator (fun y ↦ firstPassageLaw G y) y :=
     fun y ↦ Set.indicator_nonneg (fun _ _ ↦ firstPassageLaw_nonneg _ _) y
   -- the columns `200000 r ≥ 158499 m` lie in the tail `|r - G/4| ≥ t`
@@ -138,7 +136,6 @@ private lemma c3BadMass_tsum_fp_le {G m : ℕ} (hm : 1 ≤ m) (hGm : (G : ℝ) �
       exact tsum_congr fun ℓ ↦ Set.indicator_of_mem (by exact hr) _
     · rw [Set.indicator_of_notMem (by exact hr)]
       exact (tsum_congr fun ℓ ↦ Set.indicator_of_notMem (by exact hr) _).trans tsum_zero
-  have h3 := tsum_firstPassageLaw_hor_tail_le G t
   -- both exponents are at least `m / 2^51`
   have hg1 : 1 + (G : ℝ) ≤ 21 / 5 * m := by linarith
   have hA : -(t ^ 2 / (2 ^ 15 * (1 + G))) ≤ -m / 2 ^ 51 := by
@@ -150,7 +147,7 @@ private lemma c3BadMass_tsum_fp_le {G m : ℕ} (hm : 1 ≤ m) (hGm : (G : ℝ) �
     linarith [(m.cast_nonneg : (0 : ℝ) ≤ m)]
   calc _ ≤ _ := h1
     _ = _ := h2
-    _ ≤ _ := h3
+    _ ≤ _ := tsum_firstPassageLaw_hor_tail_le G t
     _ ≤ 2 ^ 54 * (exp (-m / 2 ^ 51) + exp (-m / 2 ^ 51)) := by
         gcongr
     _ = 2 ^ 55 * exp (-m / 2 ^ 51) := by ring
@@ -208,9 +205,8 @@ private lemma c3BadMass_tsum_le_marginal {n : ℕ} (e : ℤ × ℤ) (G m : ℕ) 
             have hlen : pStar ≤ b.1.2.length := by
               have := (mem_trAtoms.1 b.2).1
               omega
-            have hadv := c3BadMass_advance e b.1 hlen
             have hb2 := (mem_trBad.1 hb).2
-            rw [hadv] at hb2
+            rw [c3BadMass_advance e b.1 hlen] at hb2
             have : Gt b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
                 have := (mem_trAtoms.1 b.2).1; omega))) = 1 := by
               simp only [hGt, hb2, ↓reduceIte]
@@ -295,9 +291,9 @@ theorem c3_bad_mass_tsum_le {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : 1 ≤ m
 /-- The fresh law is summable on `Bad^e_m`, under the hypotheses of `c3_bad_mass_tsum_le`. -/
 theorem c3_bad_mass_summable {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : 1 ≤ m) (hP : pStar ≤ n / 2)
     (hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
-    Summable fun a : trBad n e m ↦ trFreshLaw n e G a := by
-  have h := (c3_bad_mass_tsum_le e hm hP hGm).trans_lt ENNReal.ofReal_lt_top
-  exact summable_trFreshLaw_of_tsum_ofReal_ne_top h.ne
+    Summable fun a : trBad n e m ↦ trFreshLaw n e G a :=
+  summable_trFreshLaw_of_tsum_ofReal_ne_top
+    ((c3_bad_mass_tsum_le e hm hP hGm).trans_lt ENNReal.ofReal_lt_top).ne
 
 /-- **Outer horizontal tail**. Let `G ∈ ℕ` and `m ∈ ℕ` with `m ≥ D_bad`, `P_* ≤ ⌊n/2⌋` and
 `G log 2 ≤ m log 9`. Then `m^{A_*} μ_{e,G}(Bad^e_m) < 1/8000`. -/
@@ -306,12 +302,9 @@ theorem c3_bad_mass {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : (Dbad : ℝ) �
     (hG : (G : ℝ) * log 2 ≤ m * log 9) :
     (m : ℝ) ^ (Aexp : ℝ) * ∑' a : trBad n e m, trFreshLaw n e G a < 1 / 8000 := by
   have hm1 : 1 ≤ m := by
-    have h := two_pow_mul_pStar_add_le_Dbad
-    have h' : (2 ^ 53 * ((pStar : ℝ) + 65)) ≤ (Dbad : ℝ) := by exact_mod_cast h
-    have : (1 : ℝ) ≤ m := by
-      have : (0 : ℝ) ≤ pStar := Nat.cast_nonneg _
-      linarith
-    exact_mod_cast this
+    have h' : (2 ^ 53 * ((pStar : ℝ) + 65)) ≤ (Dbad : ℝ) := by
+      exact_mod_cast two_pow_mul_pStar_add_le_Dbad
+    exact_mod_cast (show (1 : ℝ) ≤ m by linarith [(pStar.cast_nonneg : (0 : ℝ) ≤ pStar)])
   have hGm := c3BadMass_le_of_log (Nat.cast_nonneg m) hG
   have hB := c3_bad_mass_tsum_le e hm1 hP hGm
   rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ trFreshLaw_nonneg _ _ _ _)

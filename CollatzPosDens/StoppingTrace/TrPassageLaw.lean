@@ -90,11 +90,8 @@ private lemma tsum_ofReal_chBlockWeight_fiber {p : ℤ × ℤ} (hp : p ∈ bkPoi
       hasSum_prod_chBlockWeight_single.summable
     have hi : Function.Injective fun b : {b : List ℤ × ℤ //
         b.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockPoint b = p} ↦
-        (⟨b.1, b.2.1⟩ : {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}) := by
-      rintro ⟨a, ha⟩ ⟨b, hb⟩ h
-      simp only [Subtype.mk.injEq] at h
-      subst h
-      rfl
+        (⟨b.1, b.2.1⟩ : {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}) :=
+      fun _ _ h ↦ Subtype.ext (congrArg Subtype.val h :)
     simpa only [Function.comp_def] using Summable.comp_injective (α := ℝ) h1 hi
   rw [holdLaw_eq_tsum_chBlockWeight hp,
     ENNReal.ofReal_tsum_of_nonneg (fun b ↦ chBlockWeight_nonneg _) hs]
@@ -141,76 +138,82 @@ theorem tsum_chBlockPoint_fiber_trListWeight (h : List (ℤ × ℤ)) (hh : ∀ p
       firstPassageLawWeight_cons, ENNReal.ofReal_mul (holdLaw_nonneg _ _)]
 
 open Classical in
+/-- The passage lists of level `s`, weighted by `bw^⊗`, push forward to the first-passage words
+weighted by `η^⊗`. -/
+theorem tsum_trPassage_eq_tsum_firstPassageWord (s : ℕ) (G : ℤ × ℤ → ℝ≥0∞) :
+    ∑' π : trPassage s, ENNReal.ofReal (trListWeight π.1) * G (chBlockPath π.1 π.1.length) =
+      ∑' h : List (ℤ × ℤ), ENNReal.ofReal (firstPassageLawWeight h) *
+        if IsFirstPassageWord s h then G h.sum else 0 := by
+  rw [tsum_subtype (trPassage s)
+    (fun π ↦ ENNReal.ofReal (trListWeight π) * G (chBlockPath π π.length))]
+  have hpt : ∀ π : List (List ℤ × ℤ), (trPassage s).indicator
+      (fun π ↦ ENNReal.ofReal (trListWeight π) * G (chBlockPath π π.length)) π =
+      ∑' h : List (ℤ × ℤ), (if (∀ b ∈ π, b.2 ∈ ({4, 5} : Set ℤ)) ∧ π.map chBlockPoint = h
+        then ENNReal.ofReal (trListWeight π) else 0) *
+          if IsFirstPassageWord s h then G h.sum else 0 := by
+    intro π
+    rw [tsum_eq_single (π.map chBlockPoint) (fun h hne ↦ by simp [Ne.symm hne])]
+    by_cases hπ : π ∈ trPassage s
+    · obtain ⟨hc, -, hfp⟩ := mem_trPassage_iff_isFirstPassageWord.mp hπ
+      rw [Set.indicator_of_mem hπ, ite_eq_left ⟨hc, rfl⟩]
+      simp only [ite_eq_left hfp, (chBlockPath_of_length_le π le_rfl).symm]
+    · rw [Set.indicator_of_notMem hπ]
+      by_cases hc : ∀ b ∈ π, b.2 ∈ ({4, 5} : Set ℤ)
+      · by_cases hfp : IsFirstPassageWord s (π.map chBlockPoint)
+        · have hl : ¬ TrLive π := fun hl ↦
+            hπ (mem_trPassage_iff_isFirstPassageWord.mpr ⟨hc, hl, hfp⟩)
+          have h0 : trListWeight π = 0 := by
+            rw [trListWeight_eq_zero_iff]
+            simpa [TrLive] using hl
+          simp [h0]
+        · simp only [ite_eq_right hfp, mul_zero]
+      · rw [ite_eq_right fun h ↦ hc h.1, zero_mul]
+  simp_rw [hpt]
+  rw [ENNReal.tsum_comm]
+  refine tsum_congr fun h ↦ ?_
+  rw [ENNReal.tsum_mul_right]
+  by_cases hfp : IsFirstPassageWord s h
+  · congr 1
+    rw [← tsum_chBlockPoint_fiber_trListWeight h fun p hp ↦ hfp.mem_bkPoints hp]
+    refine Eq.trans ?_ (tsum_subtype {π : List (List ℤ × ℤ) |
+      (∀ b ∈ π, b.2 ∈ ({4, 5} : Set ℤ)) ∧ π.map chBlockPoint = h}
+      (fun π ↦ ENNReal.ofReal (trListWeight π))).symm
+    refine tsum_congr fun π ↦ ?_
+    simp only [Set.indicator_apply, Set.mem_ofPred_eq]
+  · simp [hfp]
+
+open Classical in
+/-- The first-passage law of level `s` is the push-forward of `η^⊗` on first-passage words
+under the sum map. -/
+theorem tsum_firstPassageLaw_eq_tsum_firstPassageWord (s : ℕ) (G : ℤ × ℤ → ℝ≥0∞) :
+    ∑' x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) * G x =
+      ∑' h : List (ℤ × ℤ), ENNReal.ofReal (firstPassageLawWeight h) *
+        if IsFirstPassageWord s h then G h.sum else 0 := by
+  have hF : ∀ x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) =
+      ∑' h : List (ℤ × ℤ), if IsFirstPassageWord s h ∧ h.sum = x
+        then ENNReal.ofReal (firstPassageLawWeight h) else 0 := by
+    intro x
+    rw [firstPassageLaw, ENNReal.ofReal_tsum_of_nonneg
+      (fun h ↦ firstPassageLawWeight_nonneg _)
+      (summable_of_hasFiniteSupport (firstPassageLaw_finite_support s x))]
+    refine Eq.trans (tsum_subtype {h : List (ℤ × ℤ) | IsFirstPassageWord s h ∧ h.sum = x}
+      (fun h ↦ ENNReal.ofReal (firstPassageLawWeight h))) ?_
+    refine tsum_congr fun h ↦ ?_
+    simp only [Set.indicator_apply, Set.mem_ofPred_eq]
+  simp_rw [hF, ← ENNReal.tsum_mul_right]
+  rw [ENNReal.tsum_comm]
+  refine tsum_congr fun h ↦ ?_
+  rw [tsum_eq_single h.sum (fun x hx ↦ by simp [Ne.symm hx])]
+  by_cases hfp : IsFirstPassageWord s h <;> simp [hfp]
+
 /-- **The passage lists carry the first-passage law.** For `s : ℕ` and `G : ℤ × ℤ → ℝ≥0∞`, the
 sum over `π ∈ trPassage s` of `trListWeight π * G (chBlockPath π π.length)` equals the sum over
 `x : ℤ × ℤ` of `firstPassageLaw s x * G x`. -/
 @[collatz_pos_dens "lem_tr_passage_law"]
 theorem tsum_trPassage_eq_tsum_firstPassageLaw (s : ℕ) (G : ℤ × ℤ → ℝ≥0∞) :
     ∑' π : trPassage s, ENNReal.ofReal (trListWeight π.1) * G (chBlockPath π.1 π.1.length) =
-      ∑' x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) * G x := by
-  set K : List (ℤ × ℤ) → ℝ≥0∞ := fun h ↦
-    if IsFirstPassageWord s h then G h.sum else 0 with hK
-  have hL : ∑' π : trPassage s, ENNReal.ofReal (trListWeight π.1) *
-        G (chBlockPath π.1 π.1.length) =
-      ∑' h : List (ℤ × ℤ), ENNReal.ofReal (firstPassageLawWeight h) * K h := by
-    rw [tsum_subtype (trPassage s)
-      (fun π ↦ ENNReal.ofReal (trListWeight π) * G (chBlockPath π π.length))]
-    have hpt : ∀ π : List (List ℤ × ℤ), (trPassage s).indicator
-        (fun π ↦ ENNReal.ofReal (trListWeight π) * G (chBlockPath π π.length)) π =
-        ∑' h : List (ℤ × ℤ), (if (∀ b ∈ π, b.2 ∈ ({4, 5} : Set ℤ)) ∧ π.map chBlockPoint = h
-          then ENNReal.ofReal (trListWeight π) else 0) * K h := by
-      intro π
-      rw [tsum_eq_single (π.map chBlockPoint) (fun h hne ↦ by simp [Ne.symm hne])]
-      have hend : (π.map chBlockPoint).sum = chBlockPath π π.length :=
-        (chBlockPath_of_length_le π le_rfl).symm
-      by_cases hπ : π ∈ trPassage s
-      · obtain ⟨hc, -, hfp⟩ := mem_trPassage_iff_isFirstPassageWord.mp hπ
-        rw [Set.indicator_of_mem hπ, ite_eq_left ⟨hc, rfl⟩, hK]
-        simp only [ite_eq_left hfp, hend]
-      · rw [Set.indicator_of_notMem hπ]
-        by_cases hc : ∀ b ∈ π, b.2 ∈ ({4, 5} : Set ℤ)
-        · by_cases hfp : IsFirstPassageWord s (π.map chBlockPoint)
-          · have hl : ¬ TrLive π := fun hl ↦
-              hπ (mem_trPassage_iff_isFirstPassageWord.mpr ⟨hc, hl, hfp⟩)
-            have h0 : trListWeight π = 0 := by
-              rw [trListWeight_eq_zero_iff]
-              simpa [TrLive] using hl
-            rw [h0, ENNReal.ofReal_zero]
-            simp
-          · rw [hK]
-            simp only [ite_eq_right hfp, mul_zero]
-        · rw [ite_eq_right fun h ↦ hc h.1, zero_mul]
-    simp_rw [hpt]
-    rw [ENNReal.tsum_comm]
-    refine tsum_congr fun h ↦ ?_
-    rw [ENNReal.tsum_mul_right]
-    by_cases hfp : IsFirstPassageWord s h
-    · congr 1
-      rw [← tsum_chBlockPoint_fiber_trListWeight h fun p hp ↦ hfp.mem_bkPoints hp]
-      refine Eq.trans ?_ (tsum_subtype {π : List (List ℤ × ℤ) |
-        (∀ b ∈ π, b.2 ∈ ({4, 5} : Set ℤ)) ∧ π.map chBlockPoint = h}
-        (fun π ↦ ENNReal.ofReal (trListWeight π))).symm
-      refine tsum_congr fun π ↦ ?_
-      simp only [Set.indicator_apply, Set.mem_ofPred_eq]
-    · simp [hK, hfp]
-  have hR : ∑' x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) * G x =
-      ∑' h : List (ℤ × ℤ), ENNReal.ofReal (firstPassageLawWeight h) * K h := by
-    have hF : ∀ x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) =
-        ∑' h : List (ℤ × ℤ), if IsFirstPassageWord s h ∧ h.sum = x
-          then ENNReal.ofReal (firstPassageLawWeight h) else 0 := by
-      intro x
-      rw [firstPassageLaw, ENNReal.ofReal_tsum_of_nonneg
-        (fun h ↦ firstPassageLawWeight_nonneg _)
-        (summable_of_hasFiniteSupport (firstPassageLaw_finite_support s x))]
-      refine Eq.trans (tsum_subtype {h : List (ℤ × ℤ) | IsFirstPassageWord s h ∧ h.sum = x}
-        (fun h ↦ ENNReal.ofReal (firstPassageLawWeight h))) ?_
-      refine tsum_congr fun h ↦ ?_
-      simp only [Set.indicator_apply, Set.mem_ofPred_eq]
-    simp_rw [hF, ← ENNReal.tsum_mul_right]
-    rw [ENNReal.tsum_comm]
-    refine tsum_congr fun h ↦ ?_
-    rw [tsum_eq_single h.sum (fun x hx ↦ by simp [Ne.symm hx])]
-    by_cases hfp : IsFirstPassageWord s h <;> simp [hK, hfp]
-  rw [hL, hR]
+      ∑' x : ℤ × ℤ, ENNReal.ofReal (firstPassageLaw s x) * G x :=
+  (tsum_trPassage_eq_tsum_firstPassageWord s G).trans
+    (tsum_firstPassageLaw_eq_tsum_firstPassageWord s G).symm
 
 end CollatzPosDens

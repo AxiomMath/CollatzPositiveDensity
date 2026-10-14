@@ -39,8 +39,7 @@ theorem betaStar_block_gap (k p : ℕ) :
   have hk : 1 ≤ 2 ^ k := Nat.one_le_two_pow
   have hβ := Kstar_mul_le_betaStar (2 ^ k - 1)
   rw [Nat.sub_add_cancel hk, Kstar_eq] at hβ
-  have hmin : min p (2 ^ (k + 1) - 2) + 1 < 2 * 2 ^ k := by
-    rw [pow_succ]; omega
+  rw [pow_succ]
   omega
 
 end CollatzPosDens

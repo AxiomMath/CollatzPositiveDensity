@@ -190,7 +190,9 @@ theorem exists_bkBlack_trFreshPath_bkColTop_lt {n : ℕ} {ξ : ResidueGroup n}
       BkBlack n ξ (epsStar : ℝ) (trFreshPath e a c) ∧
       bkColTop n ξ (epsStar : ℝ) (trFreshPath e a q) < bkL (trFreshPath e a c) := by
   have ha : a ∈ trAtoms n := hlow.1
-  have hqP : q < pStar := by have := lt_recipeMap q; omega
+  have hqP : q < pStar := by
+    have := lt_recipeMap q
+    omega
   have hgdef : recipeMap q = q + windowLength q + tStar + 1 := recipeMap_def q
   obtain ⟨c, hqc, hcg, hcw⟩ := exists_not_isBkWhite_trFreshPath hP hlow hg
   have hjc : bkJ (trFreshPath e a c) ≤ ((n / 2 : ℕ) : ℤ) :=

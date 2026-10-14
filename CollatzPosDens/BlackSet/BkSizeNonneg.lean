@@ -45,11 +45,8 @@ theorem bkCanonTriangle_s_nonneg (hξ : IsResidueUnit ξ) (hε : 0 < ε)
     (hp : p ∈ bkPoints) (hb : BkBlack n ξ ε p) :
     0 ≤ (bkCanonTriangle n ξ ε p hp).s := by
   have hle := (bkBlack_bkCanonTriangle_corner hp hb).abs_bkTheta_le
-  rw [abs_bkTheta_bkCanonTriangle_corner hξ hε hp hb] at hle
-  have h1 : Real.exp (-(bkCanonTriangle n ξ ε p hp).s) ≤ 1 := by
-    by_contra h
-    nlinarith [not_le.1 h]
-  have := Real.exp_le_one_iff.1 h1
+  rw [abs_bkTheta_bkCanonTriangle_corner hξ hε hp hb, mul_le_iff_le_one_right hε,
+    Real.exp_le_one_iff] at hle
   linarith
 
 end CollatzPosDens

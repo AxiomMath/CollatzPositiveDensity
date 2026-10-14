@@ -37,7 +37,7 @@ set `𝒫 = ℤ_{≥1} × ℤ`, which may diverge.
 The value `𝖵(y) ∈ [0, ∞]` is the `ENNReal`-valued sum of the terms `η(j, l) y^l`, each embedded
 by `ENNReal.ofReal`. For `y > 0` these terms are nonnegative, so the embedding is faithful; the
 definition is made for all real `y`, and only its values at `y > 0` carry meaning. The power
-`y^l` with `l ∈ ℤ` is the integer power. A point `p ∈ 𝒫 ⊆ ℤ × ℤ` is evaluated as
+`y^l` with `l ∈ ℤ` is the integer power. As elsewhere, a point `p ∈ 𝒫 ⊆ ℤ × ℤ` is evaluated as
 `η(p.1.toNat, p.2)`, which is faithful since `p.1 ≥ 1`.
 
 ## References
@@ -56,7 +56,7 @@ open scoped ENNReal
 noncomputable def holdVpgf (y : ℝ) : ℝ≥0∞ :=
   ∑' p : bkPoints, ENNReal.ofReal (holdLaw p.1.1.toNat p.1.2 * y ^ p.1.2)
 
-/-- `𝖵(y)` is the sum over `p ∈ 𝒫` of `ENNReal.ofReal (η(p.1.toNat, p.2) * y ^ p.2)`. -/
+/-- `𝖵(y)` is the sum over `p ∈ 𝒫` of `ENNReal.ofReal (η(p.1.toNat, p.2) y^{p.2})`. -/
 theorem holdVpgf_def (y : ℝ) :
     holdVpgf y = ∑' p : bkPoints, ENNReal.ofReal (holdLaw p.1.1.toNat p.1.2 * y ^ p.1.2) :=
   rfl

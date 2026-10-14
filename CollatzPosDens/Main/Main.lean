@@ -12,9 +12,9 @@ public import CollatzPosDens.Main.MainJoint
 /-!
 # The explicit density theorem
 
-For every natural number `N ≥ collatzDensityThreshold = 2^2^2^2^140214`, at least
-`collatzDensity · N` of the integers `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊`
-Collatz steps, where `collatzDensity = 1 / 2^2^2^140214`.
+For every natural number `N ≥ X_ch = 2^2^2^2^87640`, at least `c_ch · N` of the integers
+`n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps, where
+`c_ch = 1 / 2^2^2^87640`.
 
 This is a corollary of the joint density theorem
 `positive_density_collatz_and_collatzAccel_reaches_one`: the set counted there is contained in
@@ -23,8 +23,7 @@ the set counted here, since each of its elements satisfies the conjunct
 
 ## Main results
 
-* `positive_density_collatz_reaches_one`: for every `N ≥ collatzDensityThreshold`, at least
-  `collatzDensity · N` of the `n < N` reach `1` within `⌊10.46 log n⌋₊` Collatz steps.
+* `positive_density_collatz_reaches_one`: the challenge statement.
 
 ## References
 
@@ -36,8 +35,8 @@ the set counted here, since each of its elements satisfies the conjunct
 
 open Finset
 
-/-- **The explicit density theorem**. For every `N ≥ collatzDensityThreshold`, at least
-`collatzDensity · N` of the `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps. -/
+/-- **The explicit density theorem.** For every `N ≥ X_ch`, at least `c_ch · N` of
+the `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps. -/
 @[collatz_pos_dens "thm_main"]
 theorem positive_density_collatz_reaches_one {N : ℕ} (hN : collatzDensityThreshold ≤ N) :
     collatzDensity * N ≤ #{n ∈ range N | ReachWithin collatz 1 n ⌊(10.46 : ℝ) * Real.log n⌋₊} :=

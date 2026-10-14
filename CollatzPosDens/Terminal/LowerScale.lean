@@ -57,17 +57,18 @@ theorem lowerScale_denom_pos (b : ℕ) : 0 < 4 * (2 : ℝ) ^ rb b * 3 ^ b := by
 
 /-- `L_b(R) = L_b(1) · R`. -/
 theorem lowerScale_eq_mul (b : ℕ) (R : ℝ) : lowerScale b R = lowerScale b 1 * R := by
-  simp only [lowerScale_def]; ring
+  rw [lowerScale_def, lowerScale_def]
+  ring
 
 /-- The lower scale is positive for a positive argument. -/
 theorem lowerScale_pos (b : ℕ) {R : ℝ} (hR : 0 < R) : 0 < lowerScale b R := by
-  rw [lowerScale_def]; positivity
+  rw [lowerScale_def]
+  positivity
 
 /-- The lower scale is monotone in `R`. -/
 theorem lowerScale_mono (b : ℕ) : Monotone (lowerScale b) := by
   intro R S h
   rw [lowerScale_def, lowerScale_def]
-  have := lowerScale_denom_pos b
   gcongr
 
 end CollatzPosDens

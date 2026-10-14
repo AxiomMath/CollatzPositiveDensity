@@ -29,7 +29,7 @@ empty list is the only first-stop list, and no first-stop list is a proper prefi
 
 * `CollatzPosDens.mem_trFirstStopSet`: the defining characterisation of `u ∈ 𝒰(o)`.
 * `CollatzPosDens.nil_mem_trFirstStopSet_iff`: `[] ∈ 𝒰(o)` iff `o` is black.
-* `CollatzPosDens.trFirstStopSet_eq_singleton_nil_of_bkBlack`: if `o` is black then `𝒰(o) = {[]}`.
+* `CollatzPosDens.trFirstStopSet_of_bkBlack`: if `o` is black then `𝒰(o) = {[]}`.
 * `CollatzPosDens.isPrefixFree_trFirstStopSet`: `𝒰(o)` is prefix-free.
 
 ## Implementation notes
@@ -88,9 +88,8 @@ lemma trFirstStopSet_not_bkBlack (hu : u ∈ trFirstStopSet n ξ ε o) {t : ℕ}
 
 /-- The path of a first-stop list is black from its length on. -/
 lemma trFirstStopSet_bkBlack_of_length_le (hu : u ∈ trFirstStopSet n ξ ε o) {t : ℕ}
-    (ht : u.length ≤ t) : BkBlack n ξ ε (trPath o u t) := by
-  rw [trPath_of_length_le o u ht]
-  exact trFirstStopSet_bkBlack hu
+    (ht : u.length ≤ t) : BkBlack n ξ ε (trPath o u t) :=
+  trPath_of_length_le o u ht ▸ trFirstStopSet_bkBlack hu
 
 /-- The empty list is a first-stop list iff the base point is black. -/
 @[simp]
@@ -103,18 +102,14 @@ lemma trFirstStopSet_not_bkBlack_of_ne_nil (hu : u ∈ trFirstStopSet n ξ ε o)
   simpa only [trPath_zero] using trFirstStopSet_not_bkBlack hu (List.length_pos_iff.mpr hne)
 
 /-- If the base point is black, the empty list is the only first-stop list. -/
-lemma trFirstStopSet_eq_singleton_nil_of_bkBlack (ho : BkBlack n ξ ε o) :
-    trFirstStopSet n ξ ε o = {[]} := by
-  ext u
-  simp only [Set.mem_singleton_iff]
-  exact ⟨fun hu ↦ by_contra fun hne ↦ trFirstStopSet_not_bkBlack_of_ne_nil hu hne ho,
-    fun h ↦ h ▸ nil_mem_trFirstStopSet_iff.mpr ho⟩
+lemma trFirstStopSet_of_bkBlack (ho : BkBlack n ξ ε o) : trFirstStopSet n ξ ε o = {[]} :=
+  Set.eq_singleton_iff_unique_mem.mpr ⟨nil_mem_trFirstStopSet_iff.mpr ho,
+    fun _ hu ↦ by_contra fun hne ↦ trFirstStopSet_not_bkBlack_of_ne_nil hu hne ho⟩
 
 /-- The set of first-stop lists is prefix-free: a first-stop list that is a prefix of another
 first-stop list is equal to it. -/
 lemma isPrefixFree_trFirstStopSet : InformationTheory.IsPrefixFree (trFirstStopSet n ξ ε o) := by
-  intro u hu u' hu' h
-  obtain ⟨γ, rfl⟩ := h
+  rintro u hu _ hu' ⟨γ, rfl⟩
   rcases eq_or_ne γ [] with rfl | hγ
   · simp
   · refine absurd ?_ (trFirstStopSet_not_bkBlack hu' (t := u.length)

@@ -28,15 +28,15 @@ def collatz (n : ℕ) : ℕ :=
 def ReachWithin {α : Type*} (f : α → α) (target n : α) (steps : ℕ) : Prop :=
   ∃ r ≤ steps, f^[r] n = target
 
-/-- The density constant `c = 1 / 2^2^2^140214`. -/
+/-- The density constant `c = 1 / 2^2^2^87640`. -/
 @[collatz_pos_dens "def_challenge_density"]
 def collatzDensity : ℚ :=
-  1 / 2 ^ 2 ^ 2 ^ 140214
+  1 / 2 ^ 2 ^ 2 ^ 87640
 
-/-- The cutoff `X₀ = 2^2^2^2^140214`. -/
+/-- The cutoff `X₀ = 2^2^2^2^87640`. -/
 @[collatz_pos_dens "def_challenge_threshold"]
 def collatzDensityThreshold : ℕ :=
-  2 ^ 2 ^ 2 ^ 2 ^ 140214
+  2 ^ 2 ^ 2 ^ 2 ^ 87640
 
 section with_accel
 
@@ -50,14 +50,14 @@ end with_accel
 
 section generalized
 
-/-- The density constant `c = 1 / (s^4 * 2^2^2^140214)`. -/
+/-- The density constant `c = 1 / (t^4 * 2^2^2^87640)`. -/
 @[collatz_pos_dens "def_endpoint_density"]
-def collatzDensityDep (s : ℕ) : ℚ :=
-  1 / (s ^ 4 * 2 ^ 2 ^ 2 ^ 140214)
+def collatzDensityDep (t : ℕ) : ℚ :=
+  1 / (t ^ 4 * 2 ^ 2 ^ 2 ^ 87640)
 
-/-- The cutoff `X₀ = 2^(s^3 * 2^2^2^140214)`. -/
+/-- The cutoff `X₀ = 2^(s^3 * 2^2^2^87640)`. -/
 @[collatz_pos_dens "def_endpoint_threshold"]
-def collatzDensityThresholdDep (s : ℕ) : ℕ :=
-  2 ^ (s ^ 3 * 2 ^ 2 ^ 2 ^ 140214)
+def collatzDensityThresholdDep (t : ℕ) : ℕ :=
+  2 ^ (t ^ 3 * 2 ^ 2 ^ 2 ^ 87640)
 
 end generalized

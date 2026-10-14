@@ -62,7 +62,9 @@ theorem bkJ_add_le_of_mem_bkFamily (hξ : IsResidueUnit ξ) (hε : 0 < ε)
   have hedge := bkCanonTriangle_j_add_s_div_log_nine_le hξ hε hp hb
   have hw := BkTriangle.weight_le_of_mem hu
   have hls : ((T.l - bkL u : ℤ) : ℝ) = s := by
-    rw [← hs]; push_cast; ring
+    rw [← hs]
+    push_cast
+    ring
   rw [hls] at hw
   have h3 : 0 < Real.log 3 := Real.log_pos (by norm_num)
   have h9 := log_nine_eq_two_mul_log_three

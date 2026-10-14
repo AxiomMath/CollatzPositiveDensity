@@ -238,6 +238,7 @@ public import CollatzPosDens.FourierDecay.ChQmThreshold
 public import CollatzPosDens.FourierDecay.ChRealMoment
 public import CollatzPosDens.Main.CountSuperset
 public import CollatzPosDens.Main.EndpointJoint
+public import CollatzPosDens.Main.EndpointNotThreeDvd
 public import CollatzPosDens.Main.Main
 public import CollatzPosDens.Main.MainJoint
 public import CollatzPosDens.Main.MnInternal
@@ -264,9 +265,9 @@ public import CollatzPosDens.Mixing.Mixing
 public import CollatzPosDens.Mixing.MxAvgContraction
 public import CollatzPosDens.Mixing.MxBlockMarginal
 public import CollatzPosDens.Mixing.MxChainRatio
-public import CollatzPosDens.Mixing.MxClearedBound
 public import CollatzPosDens.Mixing.MxCollisionOsc
 public import CollatzPosDens.Mixing.MxCoverDeficit
+public import CollatzPosDens.Mixing.MxCrossingOffsetTail
 public import CollatzPosDens.Mixing.MxDftConvolution
 public import CollatzPosDens.Mixing.MxDftFiber
 public import CollatzPosDens.Mixing.MxDftReduction
@@ -286,16 +287,15 @@ public import CollatzPosDens.Mixing.MxHeadIndex
 public import CollatzPosDens.Mixing.MxHeadInjective
 public import CollatzPosDens.Mixing.MxHeadMass
 public import CollatzPosDens.Mixing.MxHeadPointwise
-public import CollatzPosDens.Mixing.MxHeadWindow
+public import CollatzPosDens.Mixing.MxHeadSumBound
 public import CollatzPosDens.Mixing.MxHighRegime
+public import CollatzPosDens.Mixing.MxJointSum
 public import CollatzPosDens.Mixing.MxLargeScale
 public import CollatzPosDens.Mixing.MxLevel
 public import CollatzPosDens.Mixing.MxLevelNonneg
 public import CollatzPosDens.Mixing.MxLog2Bounds
 public import CollatzPosDens.Mixing.MxLogBudget
-public import CollatzPosDens.Mixing.MxMomentDenominator
 public import CollatzPosDens.Mixing.MxOffsetInjective
-public import CollatzPosDens.Mixing.MxOffsetMoment
 public import CollatzPosDens.Mixing.MxOffsetTail
 public import CollatzPosDens.Mixing.MxOrthogonality
 public import CollatzPosDens.Mixing.MxOsc
@@ -303,9 +303,9 @@ public import CollatzPosDens.Mixing.MxOscForm
 public import CollatzPosDens.Mixing.MxOscPerturb
 public import CollatzPosDens.Mixing.MxOscSubadditive
 public import CollatzPosDens.Mixing.MxOscTelescope
-public import CollatzPosDens.Mixing.MxOvershootTail
 public import CollatzPosDens.Mixing.MxParseval
 public import CollatzPosDens.Mixing.MxProbeTail
+public import CollatzPosDens.Mixing.MxProductTail
 public import CollatzPosDens.Mixing.MxPushforward
 public import CollatzPosDens.Mixing.MxRootSum
 public import CollatzPosDens.Mixing.MxRootVsLog
@@ -322,6 +322,7 @@ public import CollatzPosDens.Mixing.MxSubmassTotal
 public import CollatzPosDens.Mixing.MxSubmassUnion
 public import CollatzPosDens.Mixing.MxTailDecay
 public import CollatzPosDens.Mixing.MxTailLaw
+public import CollatzPosDens.Mixing.MxTailStep
 public import CollatzPosDens.Mixing.MxWindowCount
 public import CollatzPosDens.Mixing.MxWindowHigh
 public import CollatzPosDens.Mixing.MxWindowHighBound

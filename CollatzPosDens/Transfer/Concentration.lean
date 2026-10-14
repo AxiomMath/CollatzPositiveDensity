@@ -91,11 +91,9 @@ theorem tsum_massWeight_mul_exp_valSum (θ : ℝ) (t : ℕ) :
             ((2⁻¹ : ℝ≥0∞) ^ (w : Word).valSum *
               ENNReal.ofReal (exp (θ * ((w : Word).valSum - 2 * t : ℝ)))) := by
       intro a w
-      have : θ * ((((a : ℕ) + (w : Word).valSum : ℕ) : ℝ) - 2 * ((t + 1 : ℕ) : ℝ)) =
-          θ * ((a : ℕ) - 2 : ℝ) + θ * ((w : Word).valSum - 2 * t : ℝ) := by
-        push_cast
-        ring
-      rw [this, exp_add, ENNReal.ofReal_mul (exp_pos _).le, pow_add]
+      rw [show θ * ((((a : ℕ) + (w : Word).valSum : ℕ) : ℝ) - 2 * ((t + 1 : ℕ) : ℝ)) =
+          θ * ((a : ℕ) - 2 : ℝ) + θ * ((w : Word).valSum - 2 * t : ℝ) by push_cast; ring,
+        exp_add, ENNReal.ofReal_mul (exp_pos _).le, pow_add]
       ring
     simp_rw [key]
     rw [ENNReal.tsum_prod (f := fun (a : ℕ+) (w : {w : Word | w.length = t}) =>
@@ -119,11 +117,9 @@ theorem concentrationMgf_le (θ : ℝ) (hθ : |θ| ≤ 1 / 4) :
   set f : ℕ → ℝ := fun n => (2 : ℝ)⁻¹ ^ (n + 1) * exp (θ * (((n + 1 : ℕ) : ℝ) - 2)) with hf
   have hterm : ∀ n : ℕ, f n = exp (-θ) / 2 * (exp θ / 2) ^ n := by
     intro n
-    have : θ * (((n + 1 : ℕ) : ℝ) - 2) = n * θ + -θ := by
-      push_cast
-      ring
     simp only [hf]
-    rw [this, exp_add, exp_nat_mul, div_pow, pow_succ, inv_pow]
+    rw [show θ * (((n + 1 : ℕ) : ℝ) - 2) = n * θ + -θ by push_cast; ring, exp_add,
+      exp_nat_mul, div_pow, pow_succ, inv_pow]
     field_simp
   have hsum : Summable f :=
     ((summable_geometric_of_lt_one (by positivity) (by linarith)).mul_left
@@ -199,8 +195,7 @@ private lemma concentration_exponent_le (t : ℕ) (v : ℝ) (hv : 0 ≤ v) :
       rw [le_div_iff₀ (by positivity)]
       linarith
     rw [min_eq_right hθ]
-    have := min_le_right (v ^ 2 / (32 * t)) (v / 8)
-    nlinarith
+    nlinarith [min_le_right (v ^ 2 / (32 * t)) (v / 8)]
 
 /-- The words of length `t` whose valuation sum deviates from `2t` by at least `v`: the event of
 the concentration bound `geomMass_abs_valSum_sub_ge_le`. -/

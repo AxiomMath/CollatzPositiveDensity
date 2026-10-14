@@ -21,13 +21,13 @@ def collatz (n : ℕ) : ℕ :=
 def ReachWithin {α : Type*} (f : α → α) (target n : α) (steps : ℕ) : Prop :=
   ∃ r ≤ steps, f^[r] n = target
 
-/-- The density constant `c = 1 / 2^2^2^140214`. -/
+/-- The density constant `c = 1 / 2^2^2^87640`. -/
 def collatzDensity : ℚ :=
-  1 / 2 ^ 2 ^ 2 ^ 140214
+  1 / 2 ^ 2 ^ 2 ^ 87640
 
-/-- The cutoff `X₀ = 2^2^2^2^140214`. -/
+/-- The cutoff `X₀ = 2^2^2^2^87640`. -/
 def collatzDensityThreshold : ℕ :=
-  2 ^ 2 ^ 2 ^ 2 ^ 140214
+  2 ^ 2 ^ 2 ^ 2 ^ 87640
 
 /-- **The explicit density theorem**, ordinary clock: for every `N ≥ X₀`, at least `c N` of the
 `n < N` reach `1` in at most `⌊10.46 log n⌋` Collatz steps. A direct corollary of the joint theorem
@@ -57,23 +57,35 @@ end with_accel
 
 section generalized
 
-/-- The density constant `c = 1 / (s^4 * 2^2^2^140214)`. -/
-def collatzDensityDep (s : ℕ) : ℚ :=
-  1 / (s ^ 4 * 2 ^ 2 ^ 2 ^ 140214)
+/-- The density constant `c = 1 / (t^4 * 2^2^2^87640)`. -/
+def collatzDensityDep (t : ℕ) : ℚ :=
+  1 / (t ^ 4 * 2 ^ 2 ^ 2 ^ 87640)
 
-/-- The cutoff `X₀ = 2^(s^3 * 2^2^2^140214)`. -/
-def collatzDensityThresholdDep (s : ℕ) : ℕ :=
-  2 ^ (s ^ 3 * 2 ^ 2 ^ 2 ^ 140214)
+/-- The cutoff `X₀ = 2^(s^3 * 2^2^2^87640)`. -/
+def collatzDensityThresholdDep (t : ℕ) : ℕ :=
+  2 ^ (t ^ 3 * 2 ^ 2 ^ 2 ^ 87640)
 
 /-- **The generalized explicit density theorem**, both clocks at once:
-for any `s` coprime to `6`, for every `N ≥ X₀(s)`, at least `c(s) N` of odd starting values `n < N`
-reach `s` in at most `⌊10.46 log (n/s)⌋` Collatz steps and
+for any `t` coprime to `6`, for every `N ≥ X₀(t)`, at least `c(t) N` of odd starting values `n < N`
+reach `t` in at most `⌊10.46 log (n/t)⌋` Collatz steps and
 in at most `⌊3.4881 log (n/s)⌋` accelerated Collatz steps. -/
 theorem positive_density_collatz_and_collatzAccel_reaches_of_coprime_six
-    {s : ℕ} (hs : s.Coprime 6) {N : ℕ} (hN : collatzDensityThresholdDep s ≤ N) :
-    collatzDensityDep s * N ≤
-    #{n ∈ range N | Odd n ∧ ReachWithin collatz s n ⌊(10.46 : ℝ) * Real.log (n / s)⌋₊ ∧
-      ReachWithin collatzAccel s n ⌊(3.4881 : ℝ) * Real.log (n / s)⌋₊} :=
+    {t : ℕ} (ht : t.Coprime 6) {N : ℕ} (hN : collatzDensityThresholdDep t ≤ N) :
+    collatzDensityDep t * N ≤
+    #{n ∈ range N | Odd n ∧ ReachWithin collatz t n ⌊(10.46 : ℝ) * Real.log (n / t)⌋₊ ∧
+      ReachWithin collatzAccel t n ⌊(3.4881 : ℝ) * Real.log (n / t)⌋₊} :=
+  sorry
+
+/-- **The generalized explicit density theorem**, even targets permitted:
+for any `t` not divisible by `3`, for every `N ≥ X₀(t)`,
+at least `c(t) N` of odd starting values `n < N`
+reach `t` in at most `⌊10.46 log (n/t)⌋` Collatz steps and
+reach the odd part of `t` in at most `⌊3.4881 log (n/t)⌋` accelerated Collatz steps. -/
+theorem positive_density_collatz_and_collatzAccel_reaches_of_not_three_dvd
+    {t : ℕ} (ht : ¬3 ∣ t) {N : ℕ} (hN : collatzDensityThresholdDep t ≤ N) :
+    collatzDensityDep t * N ≤
+    #{n ∈ range N | Odd n ∧ ReachWithin collatz t n ⌊(10.46 : ℝ) * Real.log (n / t)⌋₊ ∧
+      ReachWithin collatzAccel (t / 2 ^ padicValNat 2 t) n ⌊(3.4881 : ℝ) * Real.log (n / t)⌋₊} :=
   sorry
 
 end generalized

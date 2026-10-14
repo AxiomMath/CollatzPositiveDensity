@@ -51,10 +51,9 @@ open Complex Real
 /-- The pair factor with `b = 3` is `cos (π |ϑ_{n,ξ}(j, s + 3)|)`. -/
 private theorem chPairFactor_three_eq_cos (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : ℤ) :
     chPairFactor n ξ j s 3 = Real.cos (π * |bkTheta n ξ ((j : ℤ), s + 3)|) := by
-  rw [chPairFactor_eq_norm_sum_exp_bkTheta n ξ j s (by norm_num : (2 : ℤ) ≤ 3)]
+  rw [chPairFactor_eq_norm_sum_exp_bkTheta n ξ j s (by norm_num : (2 : ℤ) ≤ 3),
+    show Finset.Icc 1 ((3 : ℤ).toNat - 1) = {1, 2} by decide, Finset.sum_pair (by norm_num)]
   set θ := bkTheta n ξ ((j : ℤ), s + 3)
-  have hI : Finset.Icc 1 ((3 : ℤ).toNat - 1) = {1, 2} := by decide
-  rw [hI, Finset.sum_pair (by norm_num)]
   set φ := π * θ
   have hkey : Complex.exp (-2 * π * I * ((2 : ℂ) ^ (1 - 1) - 1) * (θ : ℂ)) +
       Complex.exp (-2 * π * I * ((2 : ℂ) ^ (2 - 1) - 1) * (θ : ℂ)) =
@@ -62,7 +61,9 @@ private theorem chPairFactor_three_eq_cos (n : ℕ) (ξ : ResidueGroup n) (j : �
     have h1 : Complex.exp (-(φ * I)) * Complex.exp (φ * I) = 1 := by
       rw [← Complex.exp_add, neg_add_cancel, Complex.exp_zero]
     have harg : -2 * π * I * ((2 : ℂ) ^ (2 - 1) - 1) * (θ : ℂ) = -(φ * I) + -(φ * I) := by
-      simp only [φ]; push_cast; ring
+      simp only [φ]
+      push_cast
+      ring
     rw [harg, ofReal_cos, Complex.cos, Complex.exp_add, neg_mul (φ : ℂ) I]
     norm_num
     linear_combination (-1 : ℂ) * h1

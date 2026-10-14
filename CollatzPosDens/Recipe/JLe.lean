@@ -24,7 +24,7 @@ For an endpoint `s ≥ 1`, the final generation threshold
 with the binary logarithm `H = log₂ 𝓜(s)` of the seed bound: `J_*(s) < 200 log₂ 𝓜(s)`.
 
 Indeed `H > 10 ^ 12`, so `N_* + N_t < 200 · 10 ^ 12 < 200 H` and `20 · 10 ^ 9 < 200 H`; moreover
-`max (lg m - 1, 0) ≤ log₂ m < 8/9 H + log₂ C + 92 < H`, so the middle term is less than `200 H`.
+`max (lg m - 1, 0) ≤ log₂ m < 2/3 H + log₂ C + 92 < H`, so the middle term is less than `200 H`.
 
 ## Main results
 

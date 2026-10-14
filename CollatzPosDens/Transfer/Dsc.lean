@@ -59,17 +59,21 @@ noncomputable def Dsc : ℕ := DscAux pStar Dcap sStar
 
 /-- The defining formula of `D_sc`. -/
 theorem Dsc_def : Dsc = 2 + pStar + Dcap + (100 * sStar) ^ 2 := by
-  delta Dsc; exact DscAux_def pStar Dcap sStar
+  delta Dsc
+  exact DscAux_def pStar Dcap sStar
 
 /-- The defining formula of `D_sc`, cast into a semiring. -/
 @[simp, norm_cast]
 theorem cast_Dsc {R : Type*} [Semiring R] :
     (Dsc : R) = 2 + (pStar : R) + (Dcap : R) + (100 * (sStar : R)) ^ 2 := by
-  rw [Dsc_def]; push_cast; rfl
+  rw [Dsc_def]
+  push_cast
+  rfl
 
 /-- `2 ≤ D_sc`. -/
 theorem two_le_Dsc : 2 ≤ Dsc := by
-  rw [Dsc_def]; omega
+  rw [Dsc_def]
+  omega
 
 /-- `D_sc` is positive. -/
 theorem Dsc_pos : 0 < Dsc := lt_of_lt_of_le two_pos two_le_Dsc
@@ -79,14 +83,17 @@ theorem Dsc_ne_zero : Dsc ≠ 0 := Dsc_pos.ne'
 
 /-- `P_* ≤ D_sc`. -/
 theorem pStar_le_Dsc : pStar ≤ Dsc := by
-  rw [Dsc_def]; omega
+  rw [Dsc_def]
+  omega
 
 /-- `D_cap < D_sc`. -/
 theorem Dcap_lt_Dsc : Dcap < Dsc := by
-  rw [Dsc_def]; omega
+  rw [Dsc_def]
+  omega
 
 /-- `(100 S_*)^2 ≤ D_sc`. -/
 theorem sq_hundred_sStar_le_Dsc : (100 * sStar) ^ 2 ≤ Dsc := by
-  rw [Dsc_def]; omega
+  rw [Dsc_def]
+  omega
 
 end CollatzPosDens

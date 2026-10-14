@@ -43,16 +43,20 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_c3_hor_small"]
 theorem c3HorSmall {G : ℝ} (hG : (2 : ℝ) ^ 160 ≤ G) :
     (2 : ℝ) ^ 55 * Real.exp (-G ^ (1 / 5 : ℝ) / 65536) < (2 * G) ^ (-1 / 2 : ℝ) := by
-  have hG0 : 0 < G := lt_of_lt_of_le (by positivity) hG
+  have hG0 : 0 < G := (by positivity : (0 : ℝ) < 2 ^ 160).trans_le hG
   set z : ℝ := G ^ (1 / 20 : ℝ) with hz_def
   have hz0 : 0 < z := Real.rpow_pos_of_pos hG0 _
   have hzG : z ^ 20 = G := by
-    rw [hz_def, ← Real.rpow_natCast, ← Real.rpow_mul hG0.le]; norm_num
+    rw [hz_def, ← Real.rpow_natCast, ← Real.rpow_mul hG0.le]
+    norm_num
   have hy : G ^ (1 / 5 : ℝ) = z ^ 4 := by
-    rw [hz_def, ← Real.rpow_natCast, ← Real.rpow_mul hG0.le]; norm_num
+    rw [hz_def, ← Real.rpow_natCast, ← Real.rpow_mul hG0.le]
+    norm_num
   have hz8 : (256 : ℝ) ≤ z := by
-    have h : (256 : ℝ) ^ 20 ≤ z ^ 20 := by rw [hzG]; norm_num at hG ⊢; linarith
-    exact (pow_le_pow_iff_left₀ (by norm_num) hz0.le (by norm_num)).1 h
+    refine (pow_le_pow_iff_left₀ (by norm_num) hz0.le (by norm_num : 20 ≠ 0)).1 ?_
+    rw [hzG]
+    norm_num at hG ⊢
+    linarith
   rw [hy, Real.rpow_def_of_pos (by positivity), ← hzG]
   have h2 : (2 : ℝ) ^ 55 = Real.exp (55 * Real.log 2) := by
     rw [show (55 : ℝ) * Real.log 2 = Real.log (2 ^ 55) by rw [Real.log_pow]; norm_num,

@@ -84,8 +84,7 @@ theorem mem_trEStar_iff_exists_black :
 `𝔗_{n,ξ,ε_*}` of size `s_Δ < β_*(q)`. -/
 theorem s_lt_betaStar_of_notMem_trEStar (ha : a ∈ trAtoms n) (h : a ∉ trEStar n ξ e) {q : ℕ}
     (hq : q < pStar) {Δ : BkTriangle} (hΔ : Δ ∈ bkFamily n ξ (epsStar : ℝ))
-    (hmem : trFreshPath e a q ∈ Δ) : Δ.s < betaStar q := by
-  by_contra hs
-  exact h ⟨ha, q, hq, Δ, hΔ, hmem, not_lt.1 hs⟩
+    (hmem : trFreshPath e a q ∈ Δ) : Δ.s < betaStar q :=
+  not_le.1 fun hs => h ⟨ha, q, hq, Δ, hΔ, hmem, hs⟩
 
 end CollatzPosDens

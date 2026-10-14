@@ -6,9 +6,10 @@ This is a Lean formalization of an explicit positive-density theorem for Collatz
 
 ## Main Results
 
-* For every `N ≥ 2^2^2^2^140214`, at least a fraction `1/2^2^2^140214` of the `n < N` reach `1` within `⌊10.46 log n⌋` Collatz steps.
-* For every `N ≥ 2^2^2^2^140214`, at least a fraction `1/2^2^2^140214` of the `n < N` are odd and reach `1` within `⌊10.46 log n⌋` Collatz steps and within `⌊3.4881 log n⌋` accelerated Collatz steps.
-* For every `s` coprime to `6` and every `N ≥ 2^(s^3 · 2^2^2^140214)`, at least a fraction `1/(s^4 · 2^2^2^140214)` of the `n < N` are odd and reach `s` within `⌊10.46 log(n/s)⌋` Collatz steps and within `⌊3.4881 log(n/s)⌋` accelerated Collatz steps.
+* For every `N ≥ 2^2^2^2^87640`, at least a fraction `1/2^2^2^87640` of the `n < N` reach `1` within `⌊10.46 log n⌋` Collatz steps.
+* For every `N ≥ 2^2^2^2^87640`, at least a fraction `1/2^2^2^87640` of the `n < N` are odd and reach `1` within `⌊10.46 log n⌋` Collatz steps and within `⌊3.4881 log n⌋` accelerated Collatz steps.
+* For every `s` coprime to `6` and every `N ≥ 2^(s^3 · 2^2^2^87640)`, at least a fraction `1/(s^4 · 2^2^2^87640)` of the `n < N` are odd and reach `s` within `⌊10.46 log(n/s)⌋` Collatz steps and within `⌊3.4881 log(n/s)⌋` accelerated Collatz steps.
+* For every `t` not divisible by `3` and every `N ≥ 2^(t^3 · 2^2^2^87640)`, at least a fraction `1/(t^4 · 2^2^2^87640)` of the `n < N` are odd and reach `t` within `⌊10.46 log(n/t)⌋` Collatz steps and reach the odd part of `t` within `⌊3.4881 log(n/t)⌋` accelerated Collatz steps.
 
 See [§Formal Challenge](#formal-challenge) for a formal certificate.
 

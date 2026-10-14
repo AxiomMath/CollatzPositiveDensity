@@ -52,11 +52,13 @@ theorem le_hb (b : ℕ) : b ≤ hb b := Nat.le_add_right b _
 /-- `h_b ≤ 2b`. -/
 theorem hb_le_two_mul (b : ℕ) : hb b ≤ 2 * b := by
   have := wb_le_self b
-  rw [hb_def]; omega
+  rw [hb_def]
+  omega
 
 /-- `b < h_b` as soon as `w_b > 0`, i.e. for `b ≥ 2`. -/
 theorem lt_hb {b : ℕ} (hb2 : 2 ≤ b) : b < hb b := by
-  rw [hb_eq]; omega
+  rw [hb_eq]
+  omega
 
 /-- `h_b` is monotone in `b`. -/
 theorem hb_mono : Monotone hb := fun _ _ h => Nat.add_le_add h (wb_mono h)

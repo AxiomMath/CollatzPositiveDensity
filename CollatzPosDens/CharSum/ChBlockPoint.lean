@@ -78,7 +78,7 @@ lemma chBlockPoint_nil (e : ℤ) : chBlockPoint ([], e) = (1, e) := by
 /-- Prepending a nonclosing letter `a` adds `(1, a)` to the block point. -/
 lemma chBlockPoint_cons (a : ℤ) (c : List ℤ) (e : ℤ) :
     chBlockPoint (a :: c, e) = chBlockPoint (c, e) + (1, a) := by
-  ext <;> simp [chBlockPoint]; ring
+  simp [chBlockPoint, add_comm, add_left_comm]
 
 /-- Prepending a word `c` of nonclosing letters adds `(|c|, ∑ c)` to the block point, where `∑ c`
 is the sum of the letters of `c`. -/

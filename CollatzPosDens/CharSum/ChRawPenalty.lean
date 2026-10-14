@@ -76,9 +76,7 @@ private theorem chPenaltyFrom_eq_chInternalWeight (n : ℕ) (ξ : ResidueGroup n
   induction c generalizing j s with
   | nil => simp
   | cons a c ih =>
-    have ha : a ∉ ({4, 5} : Finset ℤ) := by
-      have := hc a List.mem_cons_self
-      simpa using this
+    have ha : a ∉ ({4, 5} : Finset ℤ) := by simpa using hc a List.mem_cons_self
     rw [chPenaltyFrom_cons, chInternalWeight_cons, ite_eq_right ha, one_mul,
       ih (fun b hb => hc b (List.mem_cons_of_mem _ hb))]
     rfl
@@ -96,11 +94,10 @@ theorem chPenalty_chRaw_chPenaltyFrom_flatMap (n : ℕ) (ξ : ResidueGroup n) (�
   | nil => simp
   | cons b β ih =>
     obtain ⟨c, e⟩ := b
-    have he' : e ∈ ({4, 5} : Finset ℤ) := by
-      have := he _ List.mem_cons_self
-      simpa using this
+    have he' : e ∈ ({4, 5} : Finset ℤ) := by simpa using he _ List.mem_cons_self
     have he3 : e ≠ 3 := by
-      intro h; subst h; simp at he'
+      rintro rfl
+      simp at he'
     have hpt : ((j, s) + chBlockPoint (c, e) : ℤ × ℤ) =
         (j + c.length + 1, s + c.sum + e) := by
       ext <;> simp [chBlockPoint] <;> ring
@@ -111,11 +108,10 @@ theorem chPenalty_chRaw_chPenaltyFrom_flatMap (n : ℕ) (ξ : ResidueGroup n) (�
     simp only [List.length_cons, Fin.prod_univ_succ, Fin.val_zero, Fin.val_succ,
       chBlockPath_cons_succ, chBlockPath_zero,
       add_zero, chPenaltyFrom_cons, chPenaltyFrom_nil, ite_eq_left he', ite_eq_right he3, mul_one,
-      List.length_append, List.length_cons, List.length_nil, List.sum_append, List.sum_cons,
+      List.length_append, List.length_nil, List.sum_append, List.sum_cons,
       List.sum_nil]
     have hx : ∀ p : ℤ × ℤ, (j, s) + (chBlockPoint (c, e) + p) =
-        (j + (c.length : ℤ) + 1, s + c.sum + e) + p := by
-      intro p; rw [← add_assoc, hpt]
+        (j + (c.length : ℤ) + 1, s + c.sum + e) + p := fun p => by rw [← add_assoc, hpt]
     have hg0 : ((c, e) :: β)[(0 : Fin (β.length + 1))] = (c, e) := rfl
     have hgs : ∀ x : Fin β.length, ((c, e) :: β)[x.succ] = β[x] := fun _ => rfl
     simp only [hx, hg0, hgs, hpt]

@@ -38,13 +38,8 @@ namespace CollatzPosDens
 @[collatz_pos_dens "lem_bk_sfr_rep"]
 theorem sfr_eq_of_abs_lt {N : ℕ} {z : ZMod N} {m : ℤ} (hm : (m : ZMod N) = z)
     (habs : |(m : ℝ)| < N / 2) : sfr z = (m : ℝ) / N := by
-  have h2 : |(m : ℝ)| * 2 < N := by linarith
-  have h2' : |m| * 2 < (N : ℤ) := by exact_mod_cast h2
-  have hN : N ≠ 0 := by
-    rintro rfl
-    have := abs_nonneg m
-    omega
-  have : NeZero N := ⟨hN⟩
+  have h₂ : |m| * 2 < (N : ℤ) := by exact_mod_cast (by linarith : |(m : ℝ)| * 2 < N)
+  have : NeZero N := ⟨by grind [abs_nonneg m]⟩
   exact sfr_eq_of_spec hm (by linarith [neg_abs_le m]) (by linarith [le_abs_self m])
 
 end CollatzPosDens

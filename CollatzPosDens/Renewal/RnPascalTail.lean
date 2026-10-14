@@ -50,21 +50,16 @@ theorem hasSum_varpi_indicator_Ioi (m : ℕ) :
       · simp [hb, varpi_of_le_one (by omega : b ≤ 1)]
     · simp
   | succ m ih =>
-    have hs := ih.sub (hasSum_pi_single ((m : ℤ) + 1) (varpi ((m : ℤ) + 1)))
-    convert hs using 1
+    convert ih.sub (hasSum_pi_single ((m : ℤ) + 1) (varpi ((m : ℤ) + 1))) using 1
     · ext b
       by_cases hb : b = (m : ℤ) + 1
-      · subst hb; simp
-      · by_cases hb' : ((m : ℤ) + 1) < b
-        · simp [hb, hb', show (m : ℤ) < b by omega]
-        · simp [hb, hb', show ¬ (m : ℤ) < b by omega]
+      · simp [hb]
+      · simp only [Set.indicator, Set.mem_Ioi, Pi.single_apply, hb, ite_false, sub_zero]
+        grind
     · rcases Nat.eq_zero_or_pos m with rfl | hm
       · norm_num [varpi_of_le_one]
-      · have h2 : (2 : ℤ) ≤ (m : ℤ) + 1 := by omega
-        rw [varpi_of_two_le h2]
-        have e1 : (-(((m + 1 : ℕ)) : ℤ)) = -(m : ℤ) - 1 := by push_cast; ring
-        have e2 : (-((m : ℤ) + 1)) = -(m : ℤ) - 1 := by ring
-        rw [e1, e2, zpow_sub₀ (by norm_num : (2 : ℝ) ≠ 0)]
+      · rw [varpi_of_two_le (by omega), show -(((m + 1 : ℕ) : ℤ)) = -(m : ℤ) - 1 by push_cast; ring,
+          show -((m : ℤ) + 1) = -(m : ℤ) - 1 by ring, zpow_sub₀ two_ne_zero]
         push_cast
         field_simp
         ring
@@ -72,7 +67,7 @@ theorem hasSum_varpi_indicator_Ioi (m : ℕ) :
 /-- Tails of the Pascal weights, indexed by the subtype `{b : ℤ // m < b}`. -/
 theorem hasSum_varpi_Ioi (m : ℕ) :
     HasSum (fun b : Set.Ioi (m : ℤ) ↦ varpi b) (((m : ℝ) + 1) * (2 : ℝ) ^ (-(m : ℤ))) :=
-  (hasSum_subtype_iff_indicator).mpr (hasSum_varpi_indicator_Ioi m)
+  hasSum_subtype_iff_indicator.mpr (hasSum_varpi_indicator_Ioi m)
 
 /-- `∑_{b > m} ϖ(b) = (m + 1) 2^{-m}`, as a `tsum`. -/
 theorem tsum_varpi_Ioi (m : ℕ) :

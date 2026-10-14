@@ -103,11 +103,7 @@ theorem c3Big_eq_biUnion :
   ext a
   simp only [mem_c3Big, Set.mem_iUnion, Finset.mem_range, Set.mem_ofPred_eq, exists_prop,
     Nat.lt_succ_iff]
-  constructor
-  · rintro ⟨ha, u, hu, h⟩
-    exact ⟨u, hu, ha, h⟩
-  · rintro ⟨u, hu, ha, h⟩
-    exact ⟨ha, u, hu, h⟩
+  exact ⟨fun ⟨ha, u, hu, h⟩ => ⟨u, hu, ha, h⟩, fun ⟨u, hu, ha, h⟩ => ⟨ha, u, hu, h⟩⟩
 
 /-- For `v ≥ ⌊n/2⌋`, the large-triangle event `Big_{e,G,v,s}` equals `Big_{e,G,⌊n/2⌋,s}`. -/
 theorem c3Big_eq_of_div_two_le (hv : n / 2 ≤ v) :

@@ -65,15 +65,14 @@ theorem two_mul_bkTheta_eq_of_exit_left (n : ℕ) (ξ : ResidueGroup n) {k₀ l 
       have hpk : (k₀ + (k : ℤ), l) ∈ bkPoints := mem_bkPoints_mk.2 (by omega)
       have heast : k₀ + (k : ℤ) + 1 = k₀ + ((m - d : ℕ) : ℤ) := by
         rw [hk]; push_cast [show d + 1 ≤ m by omega, show d ≤ m by omega]; ring
-      have h2 := two_mul_bkTheta_eq_of_east_of_south n ξ hpk hAB (A₀ := A₀)
-        (by rw [heast]; exact hprev) (hrow k hk1 (by omega))
       have hs := hrow k hk1 (by omega)
+      have h2 := two_mul_bkTheta_eq_of_east_of_south n ξ hpk hAB (A₀ := A₀)
+        (by rwa [heast]) hs
       have : |bkTheta n ξ (k₀ + (k : ℤ), l)| ≤ 1 / 54 := by
         rw [← h2, abs_mul, abs_two] at hs; linarith
       exact this.trans (le_max_right _ _)
   have h1 := key (m - 1) le_rfl
-  have hm1 : ((m - (m - 1) : ℕ) : ℤ) = 1 := by omega
-  rw [hm1] at h1
+  rw [show ((m - (m - 1) : ℕ) : ℤ) = 1 by omega] at h1
   exact two_mul_bkTheta_eq_of_east_of_south n ξ (mem_bkPoints_mk.2 hp) hAB h1 (hS.trans hε)
 
 end CollatzPosDens

@@ -55,8 +55,7 @@ theorem Dpt_cast {K : Type*} [DivisionRing K] [CharZero K] :
   simp [Dpt_eq]
 
 /-- The exit threshold is below the point threshold. -/
-theorem D1_lt_Dpt : D1 < Dpt := by
-  norm_num
+theorem D1_lt_Dpt : D1 < Dpt := by norm_num
 
 /-- The point threshold is positive. -/
 theorem Dpt_pos : 0 < Dpt := by norm_num

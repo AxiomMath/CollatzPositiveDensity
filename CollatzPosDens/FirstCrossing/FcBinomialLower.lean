@@ -64,11 +64,10 @@ namespace CollatzPosDens
 
 /-- `200 B(j) < 317 j + 200`, from `log₂ 3 ≤ 317/200`. -/
 private theorem fcBinomialLower_ceilLog3_bound (j : ℕ) : 200 * ceilLog3 j < 317 * j + 200 := by
-  have h1 := ceilLog3_lt_mul_logb_add_one j
-  have h2 := logb_two_three_bounds.2
-  have h3 : (200 * ceilLog3 j : ℝ) < 317 * j + 200 := by
-    nlinarith [(Nat.cast_nonneg j : (0 : ℝ) ≤ j)]
-  exact_mod_cast h3
+  have h : (200 * ceilLog3 j : ℝ) < 317 * j + 200 := by
+    nlinarith [ceilLog3_lt_mul_logb_add_one j, logb_two_three_bounds.2,
+      (Nat.cast_nonneg j : (0 : ℝ) ≤ j)]
+  exact_mod_cast h
 
 /-- The binomial identity `∑_{t < a} (n choose t) + ∑_{t < b} (n choose t) = 2 ^ n` for
 `a + b = n + 1`. -/
@@ -236,7 +235,6 @@ theorem geomMass_centralFamily_ge_binomial {u : ℕ} (hu : 256 ≤ u) (K : ℕ) 
       (geomMass_union_le _ _).trans <| add_le_add
         ((geomMass_union_le _ _).trans (add_le_add hE1 hE2.le)) (geomMass_overshoot_le u (rb u) K)
   rw [tsub_le_iff_right, tsub_le_iff_right, tsub_le_iff_right]
-  calc (1 : ℝ≥0∞) ≤ _ := htot
-    _ = _ := by ring
+  exact htot.trans_eq (by ring)
 
 end CollatzPosDens

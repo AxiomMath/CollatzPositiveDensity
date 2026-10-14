@@ -48,17 +48,13 @@ namespace CollatzPosDens
 /-- Every integer power `2^l` of `2` is a dyadic rational. -/
 theorem two_zpow_mem_dyadicRationals (l : ℤ) : (2 : ℚ) ^ l ∈ dyadicRationals := by
   rcases l with m | m
-  · have : ((2 : ℚ) ^ (Int.ofNat m)) = ((2 ^ m : ℤ) : ℚ) / 2 ^ 0 := by simp
-    rw [this]; exact intCast_div_two_pow_mem _ _
-  · have : ((2 : ℚ) ^ (Int.negSucc m)) = ((1 : ℤ) : ℚ) / 2 ^ (m + 1) := by
-      rw [zpow_negSucc]; simp
-    rw [this]; exact intCast_div_two_pow_mem _ _
+  · simpa using intCast_div_two_pow_mem (2 ^ m) 0
+  · simpa [zpow_negSucc] using intCast_div_two_pow_mem 1 (m + 1)
 
 /-- The rational number `3^{2(j-1)} 2^{-l}` is a dyadic rational. -/
 theorem three_pow_mul_two_zpow_mem_dyadicRationals (j : ℕ) (l : ℤ) :
-    (3 : ℚ) ^ (2 * (j - 1)) * 2 ^ (-l) ∈ dyadicRationals := by
-  refine Subalgebra.mul_mem _ (Subalgebra.pow_mem _ ?_ _) (two_zpow_mem_dyadicRationals _)
-  simp
+    (3 : ℚ) ^ (2 * (j - 1)) * 2 ^ (-l) ∈ dyadicRationals :=
+  Subalgebra.mul_mem _ (Subalgebra.pow_mem _ (by simp) _) (two_zpow_mem_dyadicRationals _)
 
 /-- The pair point `px(j, l) = [3^{2(j-1)} 2^{-l}]_n ∈ G_n`: the reduction modulo `3^n` of the
 dyadic rational `3^{2(j-1)} 2^{-l}`. -/
@@ -83,13 +79,13 @@ theorem dyadicRed_two_zpow (n : ℕ) (l : ℤ) :
   rcases l with m | m
   · have h : (⟨(2 : ℚ) ^ (Int.ofNat m), two_zpow_mem_dyadicRationals _⟩ : dyadicRationals) =
         (2 : dyadicRationals) ^ m := Subtype.ext (by
-      rw [Subalgebra.coe_pow]; simp; rfl)
+      rw [Subalgebra.coe_pow]
+      simp
+      rfl)
     rw [h, map_pow, map_ofNat, Int.ofNat_eq_natCast, zpow_natCast, Units.val_pow_eq_pow_val, hu]
   · have h : (⟨(2 : ℚ) ^ (Int.negSucc m), two_zpow_mem_dyadicRationals _⟩ : dyadicRationals) =
         ⟨((1 : ℤ) : ℚ) / 2 ^ (m + 1), intCast_div_two_pow_mem _ _⟩ :=
-      Subtype.ext (by
-        change (2 : ℚ) ^ (Int.negSucc m) = ((1 : ℤ) : ℚ) / 2 ^ (m + 1)
-        rw [zpow_negSucc]; simp)
+      Subtype.ext (by simp [zpow_negSucc])
     rw [h, dyadicRed_div_two_pow, zpow_negSucc, ← inv_pow, Units.val_pow_eq_pow_val,
       ← ZMod.inv_coe_unit, hu, Int.cast_one, one_mul]
 

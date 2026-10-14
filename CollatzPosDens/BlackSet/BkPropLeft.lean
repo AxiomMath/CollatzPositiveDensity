@@ -50,14 +50,17 @@ theorem abs_bkTheta_le_of_row_east (n : ℕ) (ξ : ResidueGroup n) {j l : ℤ}
     rw [mem_bkPoints_mk] at hp
     have h₁ : |bkTheta n ξ (j + 1, l)| ≤ ε := by
       refine ih (mem_bkPoints_mk.2 (by omega)) ?_ fun k hk => ?_
-      · convert hm using 4; push_cast; ring
-      · convert hbelow (k + 1) (by omega) using 4; push_cast; ring
+      · convert hm using 4
+        push_cast
+        ring
+      · convert hbelow (k + 1) (by omega) using 4
+        push_cast
+        ring
     have h₀ : |bkTheta n ξ (j, l - 1)| ≤ ε := by simpa using hbelow 0 (by omega)
     have h2 := two_mul_bkTheta_eq_of_east_of_south n ξ (mem_bkPoints_mk.2 hp)
       (A₀ := ε) (B₀ := ε) (by linarith) h₁ h₀
-    have hε0 : 0 ≤ ε := (abs_nonneg _).trans h₀
-    have : |2 * bkTheta n ξ (j, l)| ≤ ε := by rw [h2]; exact h₀
+    have : |2 * bkTheta n ξ (j, l)| ≤ ε := h2 ▸ h₀
     rw [abs_mul, abs_two] at this
-    linarith
+    linarith [(abs_nonneg _).trans h₀]
 
 end CollatzPosDens

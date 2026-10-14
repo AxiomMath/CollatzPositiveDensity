@@ -82,7 +82,8 @@ theorem ofReal_mxHeadMass (n k l : ℕ) (y : ResidueGroup n) :
       (((mxHeadGate_finite n k l).toFinset.filter
         fun h => dyadicRed n ⟨off h, off_mem_dyadicRationals h⟩ = y : Finset Word) :
           Set Word) := by
-    ext w; simp
+    ext w
+    simp
   rw [hs, geomMass_coe_finset, mxHeadMass_def,
     ENNReal.ofReal_sum_of_nonneg fun _ _ => by positivity]
   refine Finset.sum_congr rfl fun h _ => ?_

@@ -55,11 +55,11 @@ noncomputable def trDelta (s : ℕ) : ℝ :=
 theorem one_sub_dStar_sub_trDelta (s : ℕ) :
     1 - (dStar : ℝ) - trDelta s =
       1 - E8 (gammaStar : ℝ) * p45 s - E8 ((kappaStar * gammaStar : ℚ) : ℝ) * p3 s := by
-  rw [trDelta]; ring
+  rw [trDelta]
+  ring
 
 /-- The complement `1 - d_*` of the single-passage loss is positive. -/
-theorem one_sub_dStar_pos : (0 : ℝ) < 1 - (dStar : ℝ) := by
-  have : (dStar : ℝ) < 1 := by exact_mod_cast dStar_lt_one
-  linarith
+theorem one_sub_dStar_pos : (0 : ℝ) < 1 - (dStar : ℝ) :=
+  sub_pos.mpr (by exact_mod_cast dStar_lt_one)
 
 end CollatzPosDens

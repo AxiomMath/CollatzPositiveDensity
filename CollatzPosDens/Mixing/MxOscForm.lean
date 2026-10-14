@@ -48,9 +48,7 @@ open Finset
 theorem fiberAvg_refLaw {m q : ℕ} (h : m ≤ q) (y : ResidueGroup q) :
     fiberAvg h (fun y => (refLaw q y).toReal) y =
       (3 : ℝ) ^ ((m : ℤ) - q) * (refLaw m (residueReduction h y)).toReal := by
-  rw [fiberAvg, ← ENNReal.toReal_sum fun y _ =>
-    refLaw_ne_top q y,
-    sum_refLaw_residueReduction_eq]
+  rw [fiberAvg, ← ENNReal.toReal_sum fun y _ => refLaw_ne_top q y, sum_refLaw_residueReduction_eq]
 
 /-- **Oscillation form.** For `m ≤ q`,
 `⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = (2/3) Osc_{m,q}(μ_q)`. -/
@@ -59,18 +57,12 @@ theorem residueAvg_abs_refDensity_sub {m q : ℕ} (h : m ≤ q) :
     residueAvg q (fun y => |refDensity q y - refDensity m (residueReduction h y)|) =
       2 / 3 * oscillation h (fun y => (refLaw q y).toReal) := by
   have h3 : (3 : ℝ) ^ m = 3 ^ q * (3 : ℝ) ^ ((m : ℤ) - q) := by
-    rw [← zpow_natCast, ← zpow_natCast, ← zpow_add₀ (by norm_num)]
-    congr 1
-    ring
-  have hpos : (0 : ℝ) < 3 ^ q := by positivity
+    rw [← zpow_natCast, ← zpow_natCast, ← zpow_add₀ (by norm_num), add_sub_cancel]
   rw [residueAvg_def, oscillation, mul_sum, mul_sum]
   refine sum_congr rfl fun y _ => ?_
-  rw [fiberAvg_refLaw, refDensity, refDensity, h3]
-  rw [show 2 / 3 * 3 ^ q * (refLaw q y).toReal -
-      2 / 3 * (3 ^ q * 3 ^ ((m : ℤ) - q)) * (refLaw m (residueReduction h y)).toReal =
-      (2 / 3 * 3 ^ q) * ((refLaw q y).toReal -
-        3 ^ ((m : ℤ) - q) * (refLaw m (residueReduction h y)).toReal) by ring,
-    abs_mul, abs_of_pos (by positivity : (0 : ℝ) < 2 / 3 * 3 ^ q)]
+  rw [fiberAvg_refLaw, refDensity, refDensity, h3, mul_assoc, mul_assoc, mul_assoc, ← mul_sub,
+    ← mul_sub, abs_mul, abs_mul, abs_of_pos (by positivity : (0 : ℝ) < 3 ^ q),
+    abs_of_pos (by norm_num : (0 : ℝ) < 2 / 3)]
   field_simp
 
 end CollatzPosDens

@@ -106,6 +106,12 @@ theorem fcMaximal_exp_mul_geomMass_le {t : ℝ} (ht : 0 ≤ t)
     rw [geomMass_setOf_length_succ_and, ← ENNReal.tsum_mul_left, pow_succ',
       ← ENNReal.tsum_mul_right]
     refine ENNReal.tsum_le_tsum fun a => ?_
+    have hexp : ENNReal.ofReal (exp (t * v)) =
+        ENNReal.ofReal (exp (t * ((a : ℝ) - 2))) *
+          ENNReal.ofReal (exp (t * (v - ((a : ℝ) - 2)))) := by
+      rw [← ENNReal.ofReal_mul (by positivity), ← Real.exp_add]
+      congr 2
+      ring
     by_cases hav : v ≤ (a : ℝ) - 2
     · have hset : {x : Word | x.length = H ∧ fcMaximalExceeds (H + 1) v (a :: x)} =
           {x : Word | x.length = H} := by
@@ -123,12 +129,6 @@ theorem fcMaximal_exp_mul_geomMass_le {t : ℝ} (ht : 0 ≤ t)
           {x : Word | x.length = H ∧ fcMaximalExceeds H (v - ((a : ℝ) - 2)) x} := by
         ext x
         simp [fcMaximalExceeds_cons, hav]
-      have hexp : ENNReal.ofReal (exp (t * v)) =
-          ENNReal.ofReal (exp (t * ((a : ℝ) - 2))) *
-            ENNReal.ofReal (exp (t * (v - ((a : ℝ) - 2)))) := by
-        rw [← ENNReal.ofReal_mul (by positivity), ← Real.exp_add]
-        congr 2
-        ring
       rw [hset, hexp]
       calc _ = 2⁻¹ ^ (a : ℕ) * ENNReal.ofReal (exp (t * ((a : ℝ) - 2))) *
               (ENNReal.ofReal (exp (t * (v - ((a : ℝ) - 2)))) *
@@ -155,17 +155,19 @@ theorem fcMaximal_geomMass_le (H : ℕ) {v : ℝ} (hv : 0 ≤ v) (hvH : 4 * v / 
     nlinarith [exp_pos t, exp_pos (-t)]
   have hΦ := concentrationMgf_eq_ofReal he2
   have hmain := fcMaximal_exp_mul_geomMass_le ht0
-    (hΦ ▸ ENNReal.one_le_ofReal.mpr hb.1) H v
+    (by rw [hΦ]; exact ENNReal.one_le_ofReal.mpr hb.1) H v
   rw [hΦ] at hmain
+  have hup : ENNReal.ofReal (∑' a : ℕ, (1 / 2 : ℝ) ^ (a + 1) *
+      exp (t * (((a + 1 : ℕ) : ℝ) - 2))) ^ H ≤ ENNReal.ofReal (exp (H * (9 * t ^ 2 / 8))) := by
+    rw [← ENNReal.ofReal_pow (zero_le_one.trans hb.1), Real.exp_nat_mul]
+    exact ENNReal.ofReal_le_ofReal (pow_le_pow_left₀ (zero_le_one.trans hb.1) hb.2 H)
   calc geomMass _ = ENNReal.ofReal (exp (-(t * v))) *
         (ENNReal.ofReal (exp (t * v)) * geomMass _) := by
         rw [← mul_assoc, ← ENNReal.ofReal_mul (exp_pos _).le, ← Real.exp_add, neg_add_cancel,
           Real.exp_zero, ENNReal.ofReal_one, one_mul]
       _ ≤ ENNReal.ofReal (exp (-(t * v))) * ENNReal.ofReal (exp (H * (9 * t ^ 2 / 8))) := by
         gcongr
-        refine hmain.trans ?_
-        rw [← ENNReal.ofReal_pow (zero_le_one.trans hb.1), Real.exp_nat_mul]
-        exact ENNReal.ofReal_le_ofReal (pow_le_pow_left₀ (zero_le_one.trans hb.1) hb.2 H)
+        exact hmain.trans hup
       _ = ENNReal.ofReal (exp (-2 * v ^ 2 / (9 * H))) := by
         rw [← ENNReal.ofReal_mul (exp_pos _).le, ← Real.exp_add]
         congr 2

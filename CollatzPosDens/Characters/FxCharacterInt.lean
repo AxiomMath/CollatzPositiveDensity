@@ -39,9 +39,7 @@ representative of `x ∈ G_n`, then `e_n(x) = exp(2πi a / 3^n)`. -/
 theorem fxChar_eq_exp_of_intModEq (n : ℕ) (x : ResidueGroup n) (a : ℤ)
     (ha : a ≡ (x.val : ℤ) [ZMOD 3 ^ n]) :
     fxChar n x = exp (2 * π * I * a / 3 ^ n) := by
-  have hx : ((a : ℤ) : ResidueGroup n) = x := by
-    rw [(ZMod.intCast_eq_intCast_iff a _ (3 ^ n)).2 (by exact_mod_cast ha)]
-    simp
-  rw [← hx, fxChar_intCast]
+  rw [← fxChar_intCast, (ZMod.intCast_eq_intCast_iff a _ (3 ^ n)).2 (by exact_mod_cast ha)]
+  simp
 
 end CollatzPosDens

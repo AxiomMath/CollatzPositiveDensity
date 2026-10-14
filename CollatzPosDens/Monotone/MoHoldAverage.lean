@@ -66,8 +66,7 @@ theorem tsum_holdLaw_mul_chQ_add_le_hasSum_weight {w : ℤ → ℝ} (hw0 : ∀ j
   have h0 : 0 ≤ f := fun _ ↦ mul_nonneg (holdLaw_nonneg _ _) (hw0' _)
   have hfib : ∀ r : ℕ, HasSum (fun l : ℤ ↦ f (r, l)) (nu45 ((r : ℤ) + 1) * w ((r : ℤ) + 1)) :=
     fun r ↦ by
-      have := (hasSum_holdLaw (j := r + 1) (by omega)).mul_right (w ((r : ℤ) + 1))
-      simpa [hf] using this
+      simpa [hf] using (hasSum_holdLaw (j := r + 1) (by omega)).mul_right (w ((r : ℤ) + 1))
   have hsr : Summable fun r : ℕ ↦ nu45 ((r : ℤ) + 1) * w ((r : ℤ) + 1) :=
     hasSum_nu45_natCast_add_one.summable.of_nonneg_of_le
       (fun r ↦ mul_nonneg (nu45_nonneg _) (hw0' r))
@@ -88,7 +87,7 @@ theorem tsum_holdLaw_mul_chQ_add_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {
     ∑' h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε (p + h) ≤
       (∑' r : ℕ, nu45 ((r : ℤ) + 1) * ((max ((m : ℤ) - ((r : ℤ) + 1)) 1 : ℤ) : ℝ) ^ (-A)) *
         chQm n ξ ε A (m - 1) := by
-  set w : ℤ → ℝ := fun j ↦ ((max ((m : ℤ) - j) 1 : ℤ) : ℝ) ^ (-A) with hw
+  set w : ℤ → ℝ := fun j ↦ ((max ((m : ℤ) - j) 1 : ℤ) : ℝ) ^ (-A)
   have hw0 : ∀ j, 1 ≤ j → 0 ≤ w j := fun j _ ↦
     Real.rpow_nonneg (by exact_mod_cast zero_le_one.trans (le_max_right _ _)) _
   have hw1 : ∀ j, 1 ≤ j → w j ≤ 1 := fun j _ ↦
@@ -104,7 +103,6 @@ theorem tsum_holdLaw_mul_chQ_add_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {
   have hstep := chQ_le_boundary_step n ξ ε hA (m := m) (r := (bkJ h).toNat) (by omega)
     (add_mem_bkPoints hp hh) (by simp only [bkJ, Prod.fst_add] at hpm hh' ⊢; omega)
   have hr : (((bkJ h).toNat : ℕ) : ℤ) = bkJ h := by omega
-  rw [hr] at hstep
-  exact hstep
+  rwa [hr] at hstep
 
 end CollatzPosDens

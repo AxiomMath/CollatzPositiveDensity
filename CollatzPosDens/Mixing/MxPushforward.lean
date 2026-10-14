@@ -53,14 +53,16 @@ private def mxPushforwardAppendEquiv {m q : ℕ} (h : m ≤ q) :
     {u : Word | u.length = m} × {v : Word | v.length = q - m} ≃
       {w : Word | w.length = q} where
   toFun p := ⟨p.1.1 ++ p.2.1, by
-    have h1 := p.1.2; have h2 := p.2.2
-    simp only [Set.mem_ofPred_eq] at h1 h2 ⊢
-    rw [List.length_append, h1, h2]; omega⟩
+    have h₁ : p.1.1.length = m := p.1.2
+    have h₂ : p.2.1.length = q - m := p.2.2
+    simp only [Set.mem_ofPred_eq, List.length_append, h₁, h₂]
+    omega⟩
   invFun w := (⟨w.1.take m, by
-    have h1 := w.2; simp only [Set.mem_ofPred_eq] at h1 ⊢
-    rw [List.length_take, h1]; omega⟩, ⟨w.1.drop m, by
-    have h1 := w.2; simp only [Set.mem_ofPred_eq] at h1 ⊢
-    rw [List.length_drop, h1]⟩)
+    have h₁ : w.1.length = q := w.2
+    simp only [Set.mem_ofPred_eq, List.length_take, h₁]
+    omega⟩, ⟨w.1.drop m, by
+    have h₁ : w.1.length = q := w.2
+    simp only [Set.mem_ofPred_eq, List.length_drop, h₁]⟩)
   left_inv p := by
     obtain ⟨⟨u, hu⟩, ⟨v, hv⟩⟩ := p
     simp only [Set.mem_ofPred_eq] at hu
@@ -108,9 +110,7 @@ theorem sum_refLaw_residueReduction_eq {m q : ℕ} (h : m ≤ q) (x : ResidueGro
     have key : ∀ a b : ℕ, ((2 : ℝ≥0∞) ^ a * 2 ^ b)⁻¹ = (2 ^ a)⁻¹ * 2⁻¹ ^ b := fun a b => by
       rw [ENNReal.mul_inv (by simp) (by simp), ← ENNReal.inv_pow (n := b)]
     simp only [key]
-    rw [ENNReal.tsum_mul_left]
-    simp only [Word.massWeight] at hv
-    rw [hv, mul_one]
+    rw [ENNReal.tsum_mul_left, hv, mul_one]
   · simp
 
 end CollatzPosDens

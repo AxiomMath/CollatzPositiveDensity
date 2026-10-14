@@ -12,13 +12,13 @@ public import CollatzPosDens.Main.EndpointJoint
 /-!
 # The explicit joint density theorem
 
-For every natural number `N ≥ X_ch = 2 ^ 2 ^ 2 ^ 2 ^ 140214`, at least `c_ch · N` of the odd
+For every natural number `N ≥ X_ch = 2 ^ 2 ^ 2 ^ 2 ^ 87640`, at least `c_ch · N` of the odd
 integers `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps and within
-`⌊3.4881 log n⌋₊` accelerated Collatz steps, where `c_ch = 1 / 2 ^ 2 ^ 2 ^ 140214`.
+`⌊3.4881 log n⌋₊` accelerated Collatz steps, where `c_ch = 1 / 2 ^ 2 ^ 2 ^ 87640`.
 
 This is the joint density theorem for a prescribed endpoint `s` coprime to `6`
 (`positive_density_collatz_and_collatzAccel_reaches_of_coprime_six`) at `s = 1`: there
-`c(1) = 1 / (1 ^ 4 · 2 ^ 2 ^ 2 ^ 140214) = c_ch`, `X(1) = 2 ^ (1 ^ 3 · 2 ^ 2 ^ 2 ^ 140214) = X_ch`
+`c(1) = 1 / (1 ^ 4 · 2 ^ 2 ^ 2 ^ 87640) = c_ch`, `X(1) = 2 ^ (1 ^ 3 · 2 ^ 2 ^ 2 ^ 87640) = X_ch`
 and `log (n / 1) = log n`.
 
 ## Main results
@@ -30,8 +30,8 @@ and `log (n / 1) = log n`.
 ## Implementation notes
 
 The identifications `c(1) = c_ch` and `X(1) = X_ch` are made by rewriting `1 ^ k = 1` and
-`1 · a = a` in the same expressions with the innermost exponent `140214` replaced by a variable
-`x`, and then specializing to `x = 140214` definitionally. Working with a variable keeps the
+`1 · a = a` in the same expressions with the innermost exponent `87640` replaced by a variable
+`x`, and then specializing to `x = 87640` definitionally. Working with a variable keeps the
 kernel from attempting to evaluate the towers, which it refuses to do.
 
 ## References
@@ -43,16 +43,16 @@ kernel from attempting to evaluate the towers, which it refuses to do.
 
 open Finset
 
-/-- `2 ^ 2 ^ 2 ^ 2 ^ x`; `X_ch` is its value at `x = 140214`. -/
+/-- `2 ^ 2 ^ 2 ^ 2 ^ x`; `X_ch` is its value at `x = 87640`. -/
 private def towerFour (x : ℕ) : ℕ := 2 ^ 2 ^ 2 ^ 2 ^ x
 
-/-- `2 ^ (s ^ 3 · 2 ^ 2 ^ 2 ^ x)`; `X(s)` is its value at `x = 140214`. -/
+/-- `2 ^ (s ^ 3 · 2 ^ 2 ^ 2 ^ x)`; `X(s)` is its value at `x = 87640`. -/
 private def thresholdTower (s x : ℕ) : ℕ := 2 ^ (s ^ 3 * 2 ^ 2 ^ 2 ^ x)
 
-/-- `1 / 2 ^ 2 ^ 2 ^ x`; `c_ch` is its value at `x = 140214`. -/
+/-- `1 / 2 ^ 2 ^ 2 ^ x`; `c_ch` is its value at `x = 87640`. -/
 private def densityTower (x : ℕ) : ℚ := 1 / 2 ^ 2 ^ 2 ^ x
 
-/-- `1 / (s ^ 4 · 2 ^ 2 ^ 2 ^ x)`; `c(s)` is its value at `x = 140214`. -/
+/-- `1 / (s ^ 4 · 2 ^ 2 ^ 2 ^ x)`; `c(s)` is its value at `x = 87640`. -/
 private def densityDepTower (s x : ℕ) : ℚ := 1 / (s ^ 4 * 2 ^ 2 ^ 2 ^ x)
 
 private theorem thresholdTower_one (x : ℕ) : thresholdTower 1 x = towerFour x := by
@@ -66,11 +66,11 @@ private theorem densityDepTower_one (x : ℕ) : densityDepTower 1 x = densityTow
 /-- `X(1) = X_ch`. -/
 private theorem collatzDensityThresholdDep_one :
     collatzDensityThresholdDep 1 = collatzDensityThreshold :=
-  (thresholdTower_one 140214 : thresholdTower 1 140214 = towerFour 140214)
+  (thresholdTower_one 87640 : thresholdTower 1 87640 = towerFour 87640)
 
 /-- `c(1) = c_ch`. -/
 private theorem collatzDensityDep_one : collatzDensityDep 1 = collatzDensity :=
-  (densityDepTower_one 140214 : densityDepTower 1 140214 = densityTower 140214)
+  (densityDepTower_one 87640 : densityDepTower 1 87640 = densityTower 87640)
 
 /-- **The explicit joint density theorem.** For every `N ≥ X_ch`, at least `c_ch · N` of the odd
 `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps and within

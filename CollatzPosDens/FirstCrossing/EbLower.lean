@@ -47,7 +47,7 @@ theorem eb_ge_ceil_div_hundred (b : ℕ) : (b + 99) / 100 ≤ eb b := by
 /-- For every `b ∈ ℕ`, `e_b ≥ max(1, b/100)`. -/
 @[collatz_pos_dens "lem_eb_lower"]
 theorem eb_lower (b : ℕ) : max 1 ((b : ℝ) / 100) ≤ eb b := by
-  refine max_le (by exact_mod_cast one_le_eb b) ?_
+  refine max_le (mod_cast one_le_eb b) ?_
   rw [div_le_iff₀ (by norm_num)]
   have := eb_ge_ceil_div_hundred b
   exact_mod_cast (by omega : b ≤ eb b * 100)

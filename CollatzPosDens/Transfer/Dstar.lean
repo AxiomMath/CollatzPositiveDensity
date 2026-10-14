@@ -60,7 +60,8 @@ noncomputable def Dstar : ℚ :=
 /-- The defining formula of `D_*`. -/
 theorem Dstar_def :
     Dstar = max (max (max (max (max (max D1 Dpt) (Dexp : ℚ)) Dbad) (Dsc : ℚ)) 1) 2 := by
-  unfold Dstar; rfl
+  unfold Dstar
+  rfl
 
 /-- A rational number bounds `D_*` from above iff it bounds every entry of the maximum. -/
 theorem Dstar_le_iff {x : ℚ} :
@@ -72,31 +73,27 @@ theorem Dstar_le_iff {x : ℚ} :
 theorem cast_Dstar {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K] :
     (Dstar : K) = max (max (max (max (max (max (D1 : K) (Dpt : K)) (Dexp : K)) (Dbad : K))
       (Dsc : K)) 1) 2 := by
-  rw [Dstar_def]; push_cast; rfl
+  rw [Dstar_def]
+  push_cast
+  rfl
 
 /-- `D_1 ≤ D_*`. -/
-theorem D1_le_Dstar : D1 ≤ Dstar := by
-  rw [Dstar_def]; simp only [le_max_iff, le_refl, true_or]
+theorem D1_le_Dstar : D1 ≤ Dstar := (Dstar_le_iff.1 le_rfl).1
 
 /-- `D_pt ≤ D_*`. -/
-theorem Dpt_le_Dstar : Dpt ≤ Dstar := by
-  rw [Dstar_def]; simp only [le_max_iff, le_refl, true_or, or_true]
+theorem Dpt_le_Dstar : Dpt ≤ Dstar := (Dstar_le_iff.1 le_rfl).2.1
 
 /-- `D_exp ≤ D_*`. -/
-theorem Dexp_le_Dstar : (Dexp : ℚ) ≤ Dstar := by
-  rw [Dstar_def]; simp only [le_max_iff, le_refl, true_or, or_true]
+theorem Dexp_le_Dstar : (Dexp : ℚ) ≤ Dstar := (Dstar_le_iff.1 le_rfl).2.2.1
 
 /-- `D_bad ≤ D_*`. -/
-theorem Dbad_le_Dstar : Dbad ≤ Dstar := by
-  rw [Dstar_def]; simp only [le_max_iff, le_refl, true_or, or_true]
+theorem Dbad_le_Dstar : Dbad ≤ Dstar := (Dstar_le_iff.1 le_rfl).2.2.2.1
 
 /-- `D_sc ≤ D_*`. -/
-theorem Dsc_le_Dstar : (Dsc : ℚ) ≤ Dstar := by
-  rw [Dstar_def]; simp only [le_max_iff, le_refl, true_or, or_true]
+theorem Dsc_le_Dstar : (Dsc : ℚ) ≤ Dstar := (Dstar_le_iff.1 le_rfl).2.2.2.2.1
 
 /-- `2 ≤ D_*`. -/
-theorem two_le_Dstar : 2 ≤ Dstar := by
-  rw [Dstar_def]; exact le_max_right _ _
+theorem two_le_Dstar : 2 ≤ Dstar := (Dstar_le_iff.1 le_rfl).2.2.2.2.2.2
 
 /-- `1 ≤ D_*`. -/
 theorem one_le_Dstar : 1 ≤ Dstar := one_le_two.trans two_le_Dstar

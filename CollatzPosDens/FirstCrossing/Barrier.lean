@@ -75,6 +75,7 @@ theorem barrier_self (b : ℕ) (u : ℤ) : barrier b u b = 2 * (b : ℤ) + u - r
 
 /-- The centred barrier `H_{b,r_b}(s)` equals its computable form `barrierRb b s`. -/
 theorem barrier_rb_eq_barrierRb (b s : ℕ) : barrier b (rb b) s = barrierRb b s := by
-  rw [barrier_def, ceilLog3_eq_ceilLog3Nat, ceilLog3_eq_ceilLog3Nat, barrierRb]; ring
+  rw [barrier_def, ceilLog3_eq_ceilLog3Nat, ceilLog3_eq_ceilLog3Nat, barrierRb]
+  ring
 
 end CollatzPosDens

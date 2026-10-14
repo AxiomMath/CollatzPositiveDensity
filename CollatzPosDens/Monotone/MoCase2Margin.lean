@@ -31,12 +31,12 @@ namespace CollatzPosDens
 /-- `1 + w_*/8 - 3/16 · 3/5 · z_* ≤ 1` in `ℚ`. -/
 @[collatz_pos_dens "lem_mo_case2_margin"]
 theorem moCase2_margin : 1 + wStar / 8 - 3 / 16 * (3 / 5 * zStar) ≤ 1 := by
-  rw [wStar_eq, zStar_eq]; norm_num
+  norm_num [wStar_eq, zStar_eq]
 
 /-- `1 + w_*/8 - 3/16 · 3/5 · z_* ≤ 1` for the casts of `w_*` and `z_*` into a linearly ordered
 field. -/
 theorem moCase2_margin_cast {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K] :
     1 + (wStar : K) / 8 - 3 / 16 * (3 / 5 * (zStar : K)) ≤ 1 := by
-  rw [wStar_cast, zStar_cast]; norm_num
+  norm_num [wStar_cast, zStar_cast]
 
 end CollatzPosDens

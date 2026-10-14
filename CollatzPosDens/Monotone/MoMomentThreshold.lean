@@ -55,14 +55,16 @@ open Real ENNReal
 theorem mgfNu45_moRate_pow_le {m : ℕ} (hm₁ : (D1 : ℝ) ≤ m) (hmexp : Dexp ≤ m) {s : ℕ}
     (hs : (s : ℝ) ≤ m / Real.log m ^ 2) :
     mgfNu45 (moRate Aexp m) ^ (s + 1) ≤ ENNReal.ofReal (1 + (wStar : ℝ) / 8) := by
-  set A : ℝ := (Aexp : ℝ) with hAdef
-  set w : ℝ := (wStar : ℝ) with hwdef
-  set U := Real.log m with hUdef
-  set t := moRate A m with htdef
+  set A : ℝ := (Aexp : ℝ)
+  set w : ℝ := (wStar : ℝ)
+  set U := Real.log m
+  set t := moRate A m
   have hA : A = 10241 / 4096 := Aexp_cast
   have hw : w = 63 / 2500 := wStar_cast
   have hmargin : 234 * A < w * U := Dexp_margin (by exact_mod_cast hmexp)
-  have hU : 234 < U := by rw [hA, hw] at hmargin; nlinarith
+  have hU : 234 < U := by
+    rw [hA, hw] at hmargin
+    nlinarith
   have hD1 : (256 * A / w) ^ 2 + 2 ≤ (m : ℝ) := by
     have : (D1 : ℝ) = (256 * A / w) ^ 2 + 2 := by rw [D1_def]; push_cast; rfl
     linarith

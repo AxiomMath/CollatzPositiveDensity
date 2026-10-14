@@ -62,14 +62,14 @@ theorem omegaStar_cast {K : Type*} [DivisionRing K] [CharZero K] :
     (omegaStar : K) =
       17900546471008806829928229500985832153923 /
         14265091358720000000000000000000000000000000 := by
-  rw [omegaStar_eq]; push_cast; rfl
+  simp [Rat.cast_div]
 
 /-- The two-passage correction is positive. -/
 theorem omegaStar_pos : 0 < omegaStar := by
-  rw [omegaStar_eq]; norm_num
+  norm_num [omegaStar]
 
 /-- The two-passage correction is less than one. -/
 theorem omegaStar_lt_one : omegaStar < 1 := by
-  rw [omegaStar_eq]; norm_num
+  norm_num [omegaStar]
 
 end CollatzPosDens

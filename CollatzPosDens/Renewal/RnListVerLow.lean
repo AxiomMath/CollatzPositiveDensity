@@ -59,7 +59,7 @@ private lemma holdListLaw_le_verLow {P : ℕ} {Y : ℝ} (h : Fin P → ℕ × �
       (4095 / 4096 : ℝ) ^ (-Y) * ∏ i, (holdLaw (h i).1 (h i).2 * (4095 / 4096 : ℝ) ^ (h i).2) := by
   set v : ℝ := 4095 / 4096
   have hv0 : (0 : ℝ) < v := by norm_num [v]
-  have hl : v ^ Y ≤ ∏ i, v ^ (h i).2 :=
+  have hl : v ^ Y ≤ ∏ i, v ^ (h i).2 := by
     calc v ^ Y ≤ v ^ (∑ i, ((h i).2 : ℝ)) :=
           Real.rpow_le_rpow_of_exponent_ge hv0 (by norm_num [v]) hY
       _ = ∏ i, v ^ (h i).2 := by
@@ -132,8 +132,9 @@ theorem tsum_holdListLaw_verLow_le (P : ℕ) (Y : ℝ) :
 theorem summable_holdListLaw_verLow (P : ℕ) (Y : ℝ) :
     Summable fun h : {h : Fin P → ℕ × ℤ // (∀ i, 1 ≤ (h i).1) ∧ ∑ i, ((h i).2 : ℝ) ≤ Y} ↦
       holdListLaw h.1 :=
-  (ENNReal.summable_toReal ((tsum_holdListLaw_verLow_le P Y).trans_lt
-    ENNReal.ofReal_lt_top).ne).congr fun _ ↦ ENNReal.toReal_ofReal (holdListLaw_nonneg _)
+  (ENNReal.summable_toReal
+    ((tsum_holdListLaw_verLow_le P Y).trans_lt ENNReal.ofReal_lt_top).ne).congr fun _ ↦
+    ENNReal.toReal_ofReal (holdListLaw_nonneg _)
 
 /-- **Lower vertical tail of hold lists**, real form:
 `∑ η^{⊗P}(h) ≤ (4095/4096)^{(127/10) P - Y}`, the sum over `h ∈ 𝒫^P` with

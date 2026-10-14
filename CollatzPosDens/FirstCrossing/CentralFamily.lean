@@ -86,7 +86,9 @@ theorem centralFamily_subset_firstCrossing (b K : ℕ) :
 theorem mem_centralFamily_of_large {b K : ℕ} (hb : 256 ≤ b) {w : Word} :
     w ∈ centralFamily b K ↔
       w ∈ firstCrossing b (rb b) K ∧ b - wd b ≤ w.length ∧ w.length ≤ b + wd b := by
-  have hb' : b ∉ ({9, 10, 11} : Finset ℕ) := by simp; omega
+  have hb' : b ∉ ({9, 10, 11} : Finset ℕ) := by
+    simp only [Finset.mem_insert, Finset.mem_singleton]
+    omega
   simp only [mem_centralFamily, hb', false_imp_iff, true_and, hb, forall_const]
 
 /-- For `b ∈ {9, 10, 11}`, `w ∈ 𝒞(b, K)` iff `w ∈ 𝒲(b, r_b, K)` and
@@ -94,7 +96,9 @@ theorem mem_centralFamily_of_large {b K : ℕ} (hb : 256 ≤ b) {w : Word} :
 theorem mem_centralFamily_of_small {b K : ℕ} (hb : b ∈ ({9, 10, 11} : Finset ℕ)) {w : Word} :
     w ∈ centralFamily b K ↔ w ∈ firstCrossing b (rb b) K ∧
       barrier b (rb b) w.length + fcMinOvershoot b w.length ≤ (w.valSum : ℤ) := by
-  have hb' : ¬ 256 ≤ b := by simp at hb; omega
+  have hb' : ¬ 256 ≤ b := by
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hb
+    omega
   simp only [mem_centralFamily, hb, hb', false_imp_iff, and_true, forall_const]
 
 /-- Outside `{9, 10, 11}` and below `256`, `𝒞(b, K) = 𝒲(b, r_b, K)`. -/

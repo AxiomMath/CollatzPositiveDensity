@@ -45,11 +45,11 @@ theorem Hstar_def : Hstar = 17451 := rfl
 
 /-- The value of the plateau height cast into an additive monoid with one, e.g. `ℝ`. -/
 @[simp]
-theorem Hstar_cast {R : Type*} [AddMonoidWithOne R] : (Hstar : R) = 17451 := by
-  rw [Hstar_def]; norm_num
+theorem Hstar_cast {R : Type*} [AddMonoidWithOne R] : (Hstar : R) = 17451 :=
+  Nat.cast_ofNat
 
 /-- The plateau height is positive. -/
 theorem Hstar_pos : 0 < Hstar := by
-  rw [Hstar_def]; norm_num
+  decide
 
 end CollatzPosDens

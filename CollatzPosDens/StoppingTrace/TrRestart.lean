@@ -124,7 +124,6 @@ theorem trStopTime_restart_of_noLateHit (hlate : ∀ t, IsTrHit n ξ ε x t → 
   have h₃ := (isSome_trStopTime_iff.1 (by simp [hq] : (trStopTime n ξ ε x (i + 1)).isSome)).2
   have h₄ := (isSome_trStopTime_iff.1 (by simp [hq'] : (trStopTime n ξ ε x' 1).isSome)).2
   have h₅ := (hiff (trNu n ξ ε x' - 1)).2 (by omega)
-  simp only [add_tsub_cancel_right]
   omega
 
 /-- **Restarting the stopping sequence at a stop**. Let `o ∈ 𝒫`, `β` a list of `N` blocks with

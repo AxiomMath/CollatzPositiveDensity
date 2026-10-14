@@ -47,10 +47,9 @@ theorem rStar_def : rStar = 580 := rfl
 
 /-- The constant `r_*` is positive. -/
 theorem rStar_pos : 0 < rStar := by
-  rw [rStar_def]; norm_num
+  decide
 
 /-- In natural-number subtraction, `r_* - 1 = 579`. -/
-theorem rStar_sub_one : rStar - 1 = 579 := by
-  rw [rStar_def]
+theorem rStar_sub_one : rStar - 1 = 579 := rfl
 
 end CollatzPosDens

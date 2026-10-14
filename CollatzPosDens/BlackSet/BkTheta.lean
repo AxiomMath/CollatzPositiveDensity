@@ -52,7 +52,6 @@ theorem bkTheta_def (n : ℕ) (ξ : ResidueGroup n) (p : ℤ × ℤ) :
 /-- The angle lies in `(-1/2, 1/2]`. -/
 theorem bkTheta_mem_Ioc (n : ℕ) (ξ : ResidueGroup n) (p : ℤ × ℤ) :
     bkTheta n ξ p ∈ Set.Ioc (-1 / 2 : ℝ) (1 / 2) :=
-  haveI : NeZero (3 ^ n) := ⟨pow_ne_zero n three_ne_zero⟩
   sfr_mem_Ioc _
 
 /-- The angle has absolute value at most `1/2`. -/

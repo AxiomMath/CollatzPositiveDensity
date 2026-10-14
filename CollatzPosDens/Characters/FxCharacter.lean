@@ -55,7 +55,7 @@ theorem fxChar_intCast (n : ℕ) (j : ℤ) :
   rfl
 
 /-- The value of `e_n` at the residue of a natural number `j` is `exp(2πi j / 3^n)`. -/
-theorem fxChar_natCast (n : ℕ) (j : ℕ) :
+theorem fxChar_natCast (n j : ℕ) :
     fxChar n (j : ResidueGroup n) = exp (2 * π * I * j / 3 ^ n) := by
   simpa using fxChar_intCast n j
 
@@ -63,8 +63,7 @@ theorem fxChar_natCast (n : ℕ) (j : ℕ) :
 representative of `x`. -/
 theorem fxChar_apply (n : ℕ) (x : ResidueGroup n) :
     fxChar n x = exp (2 * π * I * x.val / 3 ^ n) := by
-  have h := fxChar_natCast n x.val
-  rwa [ZMod.natCast_zmod_val] at h
+  simpa only [ZMod.natCast_zmod_val] using fxChar_natCast n x.val
 
 /-- `e_n(0) = 1`. -/
 theorem fxChar_zero (n : ℕ) : fxChar n 0 = 1 :=

@@ -53,26 +53,26 @@ theorem cubic_le_exp_neg {t : ℝ} (ht : 0 ≤ t) :
     simpa using (hasDerivAt_neg x).exp
   have h1 : ∀ s, 0 ≤ s → 0 ≤ exp (-s) - 1 + s := fun s hs =>
     nonneg_of_hasDerivAt_nonneg (f := fun x => exp (-x) - 1 + x)
-      (f' := fun x => -exp (-x) + 1)
       (fun x => ((hd x).sub_const 1).add (hasDerivAt_id' x))
-      (by simp) (fun x hx => by
-        have := exp_le_one_iff.mpr (neg_nonpos.mpr hx); linarith) hs
+      (by simp) (fun x hx => by linarith [exp_le_one_iff.mpr (neg_nonpos.mpr hx)]) hs
   have h2 : ∀ s, 0 ≤ s → 0 ≤ 1 - s + s ^ 2 / 2 - exp (-s) := fun s hs =>
     nonneg_of_hasDerivAt_nonneg (f := fun x => 1 - x + x ^ 2 / 2 - exp (-x))
       (f' := fun x => -1 + x + exp (-x))
       (fun x => by
-        have := (((hasDerivAt_id' x).const_sub 1).add
-          ((hasDerivAt_pow 2 x).div_const 2)).sub (hd x)
-        convert this using 1; push_cast; ring)
-      (by simp) (fun x hx => by have := h1 x hx; linarith) hs
+        convert (((hasDerivAt_id' x).const_sub 1).add
+          ((hasDerivAt_pow 2 x).div_const 2)).sub (hd x) using 1
+        push_cast
+        ring)
+      (by simp) (fun x hx => by linarith [h1 x hx]) hs
   have h3 := nonneg_of_hasDerivAt_nonneg
       (f := fun x => exp (-x) - 1 + x - x ^ 2 / 2 + x ^ 3 / 6)
       (f' := fun x => -exp (-x) + 1 - x + x ^ 2 / 2)
       (fun x => by
-        have := ((((hd x).sub_const 1).add (hasDerivAt_id' x)).sub
-          ((hasDerivAt_pow 2 x).div_const 2)).add ((hasDerivAt_pow 3 x).div_const 6)
-        convert this using 1; push_cast; ring)
-      (by simp) (fun x hx => by have := h2 x hx; linarith) ht
+        convert ((((hd x).sub_const 1).add (hasDerivAt_id' x)).sub
+          ((hasDerivAt_pow 2 x).div_const 2)).add ((hasDerivAt_pow 3 x).div_const 6) using 1
+        push_cast
+        ring)
+      (by simp) (fun x hx => by linarith [h2 x hx]) ht
   linarith
 
 end CollatzPosDens

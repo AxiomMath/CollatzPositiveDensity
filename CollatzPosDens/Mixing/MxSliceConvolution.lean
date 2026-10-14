@@ -64,11 +64,11 @@ private theorem dyadicRed_off_append_of_mem_mxHeadGate {n k l : ℕ} (hk : k < n
     rw [map_sub, map_natCast, ZMod.natCast_zmod_val, sub_self]
   obtain ⟨q, hq⟩ := exists_eq_three_pow_mul_of_dyadicRed_eq_zero hz
   have hv : (⟨off v, off_mem_dyadicRationals v⟩ : dyadicRationals) = z.val + 3 ^ T * q := by
-    rw [← hq]; ring
-  have hlen : h.length = k + 1 := length_of_mem_mxHeadGate hh
-  have hval : h.valSum = l := valSum_of_mem_mxHeadGate hh
+    rw [← hq]
+    ring
   have hw : dyadicRed n ⟨h.weight, h.weight_mem_dyadicRationals⟩ = tailLawCoeff n k l := by
-    rw [dyadicRed_weight, tailLawCoeff_eq, hlen, hval]
+    rw [dyadicRed_weight, tailLawCoeff_eq, length_of_mem_mxHeadGate hh,
+      valSum_of_mem_mxHeadGate hh]
   have h3 : (3 : ResidueGroup n) ^ (k + 1) * 3 ^ T = 0 := by
     rw [← pow_add, show k + 1 + T = n by omega]
     exact three_pow_self_residueGroup n
@@ -103,6 +103,35 @@ private theorem tsum_tail_eq_tailLaw (n k l : ℕ) (x y : ResidueGroup n) :
   refine tsum_congr fun v => ?_
   simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true, eq_sub_iff_add_eq']
 
+/-- Splitting `w = hv` with `|h| = k + 1` is a bijection `Hd(n, k, l) × ℤ_{≥1}^T ≃ Sl(n, k, l)`. -/
+def mxSliceGateEquiv {n k : ℕ} (hk : k < n) (l : ℕ) :
+    (mxHeadGate_finite n k l).toFinset × {v : Word | v.length = n - k - 1} ≃
+      mxSliceGate n k l where
+  toFun p := ⟨p.1.1 ++ p.2.1, by
+    have h1 := (Set.Finite.mem_toFinset _).1 p.1.2
+    refine ⟨?_, ?_⟩
+    · rw [List.length_append, h1.1, p.2.2]
+      omega
+    · rw [List.take_left' h1.1]
+      exact h1⟩
+  invFun w := (⟨w.1.take (k + 1), (Set.Finite.mem_toFinset _).2 w.2.2⟩,
+    ⟨w.1.drop (k + 1), by
+      simp [w.2.1]
+      omega⟩)
+  left_inv p := by
+    have h1 := ((Set.Finite.mem_toFinset _).1 p.1.2).1
+    ext
+    · simp [List.take_left' h1]
+    · simp [List.drop_left' h1]
+  right_inv w := Subtype.ext (List.take_append_drop _ _)
+
+/-- `mxSliceGateEquiv` concatenates the head and the tail. -/
+@[simp]
+theorem mxSliceGateEquiv_apply_coe {n k : ℕ} (hk : k < n) (l : ℕ)
+    (p : (mxHeadGate_finite n k l).toFinset × {v : Word | v.length = n - k - 1}) :
+    (mxSliceGateEquiv hk l p : Word) = p.1.1 ++ p.2.1 :=
+  rfl
+
 /-- **Slices as convolutions.** For `k < n` and `x ∈ G_n`,
 `Sub^n_{Sl(n,k,l)}(x) = ∑_{y ∈ G_n} Hm_{n,k,l}(y) Tl_{n,k,l}(x - y)`. -/
 @[collatz_pos_dens "lem_mx_slice_convolution"]
@@ -112,27 +141,13 @@ theorem subMass_mxSliceGate_eq_sum {n k l : ℕ} (hk : k < n) (x : ResidueGroup 
   set F := (mxHeadGate_finite n k l).toFinset
   let r : Word → ResidueGroup n := fun h => dyadicRed n ⟨off h, off_mem_dyadicRationals h⟩
   have hF : ∀ h, h ∈ F ↔ h ∈ mxHeadGate n k l := fun h => Set.Finite.mem_toFinset _
-  let e : F × {v : Word | v.length = n - k - 1} ≃ mxSliceGate n k l :=
-    { toFun := fun p => ⟨p.1.1 ++ p.2.1, by
-        have h1 := (hF _).1 p.1.2
-        refine ⟨?_, ?_⟩
-        · rw [List.length_append, h1.1, p.2.2]; omega
-        · rw [List.take_left' h1.1]; exact h1⟩
-      invFun := fun w => (⟨w.1.take (k + 1), (hF _).2 w.2.2⟩,
-        ⟨w.1.drop (k + 1), by simp [w.2.1]; omega⟩)
-      left_inv := fun p => by
-        have h1 := ((hF _).1 p.1.2).1
-        ext
-        · simp [List.take_left' h1]
-        · simp [List.drop_left' h1]
-      right_inv := fun w => Subtype.ext (List.take_append_drop _ _) }
   have hsum : subMass n (mxSliceGate n k l) x =
       ∑' p : F × {v : Word | v.length = n - k - 1}, (2⁻¹ : ℝ≥0∞) ^ l *
         (if r p.1.1 + tailLawCoeff n k l *
             ((dyadicRed (n - k - 1) ⟨off p.2.1, off_mem_dyadicRationals p.2.1⟩).val :
               ResidueGroup n) = x
           then (2⁻¹ : ℝ≥0∞) ^ p.2.1.valSum else 0) := by
-    rw [subMass_eq_tsum, ← e.tsum_eq]
+    rw [subMass_eq_tsum, ← (mxSliceGateEquiv hk l).tsum_eq]
     refine tsum_congr fun p => ?_
     have h1 := (hF _).1 p.1.2
     change (if dyadicRed n ⟨off (p.1.1 ++ p.2.1), _⟩ = x then

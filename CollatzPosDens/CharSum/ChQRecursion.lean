@@ -70,6 +70,6 @@ theorem chQ_eq_mul_tsum (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {p : ℤ × �
       chWhiteFactor n ξ ε p *
         ∑' β : {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)},
           chBlockWeight β * chInternalWeight n ξ ε p β * chQ n ξ ε (p + chBlockPoint β) :=
-  chQ_eq_mul_tsum_of_nonneg n ξ ε (by have := mem_bkPoints.mp hp; omega)
+  chQ_eq_mul_tsum_of_nonneg n ξ ε (zero_le_one.trans (mem_bkPoints.mp hp))
 
 end CollatzPosDens

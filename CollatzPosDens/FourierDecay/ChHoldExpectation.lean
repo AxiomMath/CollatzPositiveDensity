@@ -63,7 +63,8 @@ private lemma holdLaw_mul_rpow_le {A : ℝ} (hA : 0 < A) (hA5 : A ≤ 5) :
   have h0 : 0 ≤ f := fun x ↦ mul_nonneg (holdLaw_nonneg _ _) (Real.rpow_nonneg (by positivity) _)
   have hfib : ∀ m : ℕ, HasSum (fun l : ℤ ↦ f (m, l))
       (nu45 ((m : ℤ) + 1) * (((m : ℤ) + 1 : ℤ) : ℝ) ^ A) := fun m ↦ by
-    simpa [f] using (hasSum_holdLaw (j := m + 1) (by omega)).mul_right ((((m : ℤ) + 1 : ℤ) : ℝ) ^ A)
+    simpa [f] using
+      (hasSum_holdLaw (j := m + 1) (by omega)).mul_right ((((m : ℤ) + 1 : ℤ) : ℝ) ^ A)
   have hinj : Function.Injective fun m : ℕ ↦ (m : ℤ) + 1 := fun a b h ↦ by simpa using h
   have hgnn : ∀ j : ℤ, 0 ≤ nu45 j * (j : ℝ) ^ A := fun j ↦ by
     rcases le_or_gt j 0 with hj | hj
@@ -85,6 +86,39 @@ private lemma holdLaw_mul_rpow_le {A : ℝ} (hA : 0 < A) (hA5 : A ≤ 5) :
       tsum_comp_le_tsum_of_inj hsm hgnn hinj
     _ ≤ 20 ^ A := hle
 
+/-- The pointwise bound `η(h) Q(h) ≤ D^A 8^A n^{-A} η(h) j(h)^A`, from the gap inequality
+`n ≤ 8 j(h) d_J(h)`. -/
+private lemma holdLaw_mul_chQ_le_of_gap {n : ℕ} (hn : 1 ≤ n) {ξ : ResidueGroup n} {ε : ℝ}
+    {A : ℝ} (hA : 0 < A) {D : ℕ}
+    (hQ : ∀ p ∈ bkPoints, chQ n ξ ε p ≤ (D : ℝ) ^ A * (chDist n p : ℝ) ^ (-A)) (h : bkPoints) :
+    holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h ≤
+      (D : ℝ) ^ A * 8 ^ A / (n : ℝ) ^ A * (holdLaw h.1.1.toNat h.1.2 * (h.1.1 : ℝ) ^ A) := by
+  obtain ⟨p, hp⟩ := h
+  have hj : 1 ≤ p.1 := hp
+  have hgap := le_eight_mul_max_half_sub n (j := p.1.toNat) (by omega)
+  have hd : max (n / 2 - p.1.toNat) 1 = chDist n p := by
+    unfold chDist bkJ
+    congr 1
+    omega
+  rw [hd] at hgap
+  have hdpos : (0 : ℝ) < chDist n p := by exact_mod_cast chDist_pos n p
+  have hjR : (p.1 : ℝ) = ((p.1.toNat : ℕ) : ℝ) := by
+    rw [← Int.cast_natCast, Int.toNat_of_nonneg (by omega)]
+  have hgapR : (n : ℝ) ≤ 8 * ((p.1.toNat : ℕ) : ℝ) * chDist n p := by exact_mod_cast hgap
+  have key : (D : ℝ) ^ A * (chDist n p : ℝ) ^ (-A) ≤
+      (D : ℝ) ^ A * 8 ^ A / (n : ℝ) ^ A * (p.1 : ℝ) ^ A := by
+    rw [Real.rpow_neg hdpos.le, ← div_eq_mul_inv, hjR, div_le_iff₀ (by positivity)]
+    have hpow : (n : ℝ) ^ A ≤ (8 * ((p.1.toNat : ℕ) : ℝ) * chDist n p) ^ A :=
+      Real.rpow_le_rpow (by positivity) hgapR hA.le
+    rw [Real.mul_rpow (by positivity) hdpos.le, Real.mul_rpow (by norm_num) (by positivity)]
+      at hpow
+    rw [div_mul_eq_mul_div, div_mul_eq_mul_div, le_div_iff₀ (by positivity)]
+    exact (mul_le_mul_of_nonneg_left hpow (by positivity)).trans_eq (by ring)
+  calc holdLaw p.1.toNat p.2 * chQ n ξ ε p
+      ≤ holdLaw p.1.toNat p.2 * ((D : ℝ) ^ A * 8 ^ A / (n : ℝ) ^ A * (p.1 : ℝ) ^ A) :=
+        mul_le_mul_of_nonneg_left ((hQ p hp).trans key) (holdLaw_nonneg _ _)
+    _ = _ := by ring
+
 /-- **Expectation of the renewal function under the holding-time law.** Let `0 < A ≤ 5` and
 suppose `Q(p) ≤ D^A d_J(p)^{-A}` for every `p ∈ 𝒫`. Then `∑_{h ∈ 𝒫} η(h) Q(h)` converges and
 `∑_{h ∈ 𝒫} η(h) Q(h) ≤ (160 D)^A / n^A`. -/
@@ -96,38 +130,8 @@ theorem holdLaw_chQ_expectation_le {n : ℕ} (hn : 1 ≤ n) (ξ : ResidueGroup n
       ∑' h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h ≤
         (160 * D : ℝ) ^ A / (n : ℝ) ^ A := by
   obtain ⟨hsg, hleg⟩ := holdLaw_mul_rpow_le hA hA5
-  have hnR : (0 : ℝ) < n := by exact_mod_cast hn
+  have hterm := holdLaw_mul_chQ_le_of_gap hn hA hQ
   set C : ℝ := (D : ℝ) ^ A * 8 ^ A / (n : ℝ) ^ A
-  have hterm : ∀ h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h ≤
-      C * (holdLaw h.1.1.toNat h.1.2 * (h.1.1 : ℝ) ^ A) := by
-    rintro ⟨p, hp⟩
-    have hj : 1 ≤ p.1 := hp
-    have hgap := le_eight_mul_max_half_sub n (j := p.1.toNat) (by omega)
-    have hd : max (n / 2 - p.1.toNat) 1 = chDist n p := by
-      unfold chDist bkJ
-      congr 1
-      omega
-    rw [hd] at hgap
-    have hdpos : (0 : ℝ) < chDist n p := by exact_mod_cast chDist_pos n p
-    have hjR : (p.1 : ℝ) = ((p.1.toNat : ℕ) : ℝ) := by
-      rw [← Int.cast_natCast, Int.toNat_of_nonneg (by omega)]
-    have hgapR : (n : ℝ) ≤ 8 * ((p.1.toNat : ℕ) : ℝ) * chDist n p := by exact_mod_cast hgap
-    have key : (D : ℝ) ^ A * (chDist n p : ℝ) ^ (-A) ≤ C * (p.1 : ℝ) ^ A := by
-      rw [Real.rpow_neg hdpos.le, ← div_eq_mul_inv, hjR, div_le_iff₀ (by positivity)]
-      have hpow : (n : ℝ) ^ A ≤ (8 * ((p.1.toNat : ℕ) : ℝ) * chDist n p) ^ A :=
-        Real.rpow_le_rpow hnR.le hgapR hA.le
-      rw [Real.mul_rpow (by positivity) hdpos.le,
-        Real.mul_rpow (by norm_num) (by positivity)] at hpow
-      simp only [C]
-      rw [div_mul_eq_mul_div, div_mul_eq_mul_div, le_div_iff₀ (by positivity)]
-      calc (D : ℝ) ^ A * (n : ℝ) ^ A
-          ≤ (D : ℝ) ^ A * ((8 : ℝ) ^ A * ((p.1.toNat : ℕ) : ℝ) ^ A * (chDist n p : ℝ) ^ A) :=
-            mul_le_mul_of_nonneg_left hpow (by positivity)
-        _ = _ := by ring
-    calc holdLaw p.1.toNat p.2 * chQ n ξ ε p
-        ≤ holdLaw p.1.toNat p.2 * (C * (p.1 : ℝ) ^ A) :=
-          mul_le_mul_of_nonneg_left ((hQ p hp).trans key) (holdLaw_nonneg _ _)
-      _ = C * (holdLaw p.1.toNat p.2 * (p.1 : ℝ) ^ A) := by ring
   have hg := hsg.hasSum.mul_left C
   have hsf : Summable fun h : bkPoints ↦ holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h :=
     hg.summable.of_nonneg_of_le

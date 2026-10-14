@@ -30,13 +30,13 @@ namespace CollatzPosDens
 /-- The clearing constant: `11 K_* ≥ 32 · 1575 · 4096`. -/
 @[collatz_pos_dens "lem_tr_clear_numeric"]
 theorem Kstar_clear_numeric : 32 * 1575 * 4096 ≤ 11 * Kstar := by
-  rw [Kstar_eq]; decide
+  rw [Kstar_eq]
+  decide
 
 /-- The clearing constant inequality `11 K_* ≥ 32 · 1575 · 4096`, cast into any ordered
 semiring. -/
 theorem Kstar_clear_numeric_cast {R : Type*} [Semiring R] [PartialOrder R]
     [IsOrderedRing R] : (32 * 1575 * 4096 : R) ≤ 11 * (Kstar : R) := by
-  have h := Nat.mono_cast (α := R) Kstar_clear_numeric
-  simpa only [Nat.cast_mul, Nat.cast_ofNat] using h
+  simpa only [Nat.cast_mul, Nat.cast_ofNat] using Nat.mono_cast (α := R) Kstar_clear_numeric
 
 end CollatzPosDens

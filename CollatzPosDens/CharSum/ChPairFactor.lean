@@ -75,10 +75,8 @@ theorem chPairFactor_nonneg (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s b : ℤ
     0 ≤ chPairFactor n ξ j s b := by
   unfold chPairFactor
   split_ifs with hb
-  · have : (0 : ℝ) < (b : ℝ) - 1 := by
-      have : (2 : ℝ) ≤ b := by exact_mod_cast hb
-      linarith
-    positivity
+  · have : (2 : ℝ) ≤ b := by exact_mod_cast hb
+    exact mul_nonneg (one_div_nonneg.2 (by linarith)) (norm_nonneg _)
   · exact zero_le_one
 
 /-- The pair factor is at most `1`. -/
@@ -86,23 +84,14 @@ theorem chPairFactor_le_one (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s b : ℤ
     chPairFactor n ξ j s b ≤ 1 := by
   unfold chPairFactor
   split_ifs with hb
-  · have hpos : (0 : ℝ) < (b : ℝ) - 1 := by
-      have : (2 : ℝ) ≤ b := by exact_mod_cast hb
-      linarith
-    have hcard : ((Finset.Icc 1 (b.toNat - 1)).card : ℝ) = (b : ℝ) - 1 := by
-      have hc : (Finset.Icc 1 (b.toNat - 1)).card = b.toNat - 1 := by
-        rw [Nat.card_Icc]; omega
-      have hk : (((b.toNat - 1 : ℕ) : ℤ) : ℝ) = ((b - 1 : ℤ) : ℝ) := by
-        congr 1; omega
-      rw [hc]; push_cast at hk; exact hk
-    have hle : ‖∑ t ∈ Finset.Icc 1 (b.toNat - 1),
-        fxChar n (-((2 : ResidueGroup n) ^ t + 3) * chPairPoint n j (s + b) * ξ)‖ ≤
-        (b : ℝ) - 1 := by
-      refine (norm_sum_le _ _).trans ?_
-      simp only [fxChar_norm_eq_one, Finset.sum_const, nsmul_eq_mul, mul_one]
-      exact hcard.le
-    rw [div_mul_eq_mul_div, one_mul, div_le_one hpos]
-    exact hle
+  · have h₂ : (2 : ℝ) ≤ b := by exact_mod_cast hb
+    rw [div_mul_eq_mul_div, one_mul, div_le_one (by linarith)]
+    refine (norm_sum_le _ _).trans ?_
+    simp only [fxChar_norm_eq_one, Finset.sum_const, nsmul_eq_mul, mul_one, Nat.card_Icc]
+    rw [show b.toNat - 1 + 1 - 1 = b.toNat - 1 by omega, Nat.cast_sub (by omega), Nat.cast_one]
+    have : ((b.toNat : ℤ) : ℝ) = b := by exact_mod_cast Int.toNat_of_nonneg (by omega)
+    push_cast at this
+    rw [this]
   · exact le_rfl
 
 end CollatzPosDens
