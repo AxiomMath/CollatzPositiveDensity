@@ -7,34 +7,31 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Definitions
-public import CollatzPosDens.Recipe.X0
-public import CollatzPosDens.Recipe.CM
-public import CollatzPosDens.Recipe.X0Tower
-public import CollatzPosDens.Recipe.InvcTower
-public import CollatzPosDens.Main.CountSuperset
-public import CollatzPosDens.Main.MnInternal
+public import CollatzPosDens.Main.EndpointNotThreeDvd
 
 /-!
 # The joint density theorem for a prescribed endpoint coprime to six
 
-Let `t` be a natural number coprime to `6`. For every natural number `N ≥ X(t)`, where
-`X(t) = 2 ^ (t ^ 3 · 2 ^ 2 ^ 2 ^ 87640)`, at least `c(t) · N` of the odd integers
-`n ∈ {0, …, N - 1}` reach `t` within `⌊10.46 log (n / t)⌋₊` Collatz steps and within
-`⌊3.4881 log (n / t)⌋₊` accelerated Collatz steps, where `c(t) = 1 / (t ^ 4 · 2 ^ 2 ^ 2 ^ 87640)`.
+Let `t` be a natural number coprime to `6`, and let `D_A = 2 ^ 2 ^ 2 ^ 163` be the tower
+constant. For every `N`, at least `⌊c_end(t) · N⌋₊` of the odd integers `n ∈ {0, …, N - 1}`
+reach `t` within `⌊10.46 log (n / t)⌋₊` Collatz steps and within `⌊3.4881 log (n / t)⌋₊`
+accelerated Collatz steps, where `c_end(t) = 1 / (t ^ (25/11) · D_A)` (`collatzDensityDep`).
+The power of `t` is a real power, and the comparison is in `ℕ`.
 
-Coprimality to `6` makes `t` positive, odd and prime to `3`. The proof applies the internal joint
-count `c_M(t) X ≤ #{…}` at `X = N` (valid since `X_0(t) < X(t) ≤ N`), enlarges the counted set to
-the challenge's, and replaces `c_M(t)` by the smaller `c(t)`.
+Coprimality to `6` makes `t` odd and prime to `3`. Being prime to `3`, the joint density theorem
+for an endpoint prime to three applies; being odd, `t` is its own odd part `t / 2 ^ v₂(t) = t`,
+so the set counted there is the set counted here.
 
 ## Main results
 
-* `positive_density_collatz_and_collatzAccel_reaches_of_coprime_six`: the challenge statement.
+* `positive_density_collatz_and_collatzAccel_reaches_of_coprime_six`: the joint density theorem
+  for an endpoint coprime to six.
 
 ## Implementation notes
 
-The challenge states the inequality in `ℚ`; it is proved in `ℝ` and transported back, since the
-inclusion `ℚ → ℝ` preserves and reflects order. The towers in `X(t)` and `c(t)` are only ever
-compared symbolically, never evaluated.
+The statement is verbatim the challenge statement: the hypothesis `t.Coprime 6` is
+`gcd(t, 6) = 1`, and the decimal literals `10.46` and `3.4881` are the rationals `1046 / 100`
+and `34881 / 10000`.
 
 ## References
 
@@ -45,56 +42,21 @@ compared symbolically, never evaluated.
 
 open Finset CollatzPosDens
 
-/-- **The joint density theorem for an endpoint coprime to six.** For `t` coprime to `6` and
-every `N ≥ X(t)`, at least `c(t) · N` of the odd `n ∈ {0, …, N - 1}` reach `t` within
-`⌊10.46 log (n / t)⌋₊` Collatz steps and within `⌊3.4881 log (n / t)⌋₊` accelerated Collatz
-steps. -/
+/-- **The generalized explicit density theorem**, both clocks at once:
+for any `t` coprime to `6`, for every `N`, at least `⌊c(t) N⌋` of odd starting values `n < N`
+reach `t` in at most `⌊10.46 log (n/t)⌋` Collatz steps and
+in at most `⌊3.4881 log (n/t)⌋` accelerated Collatz steps. -/
 @[collatz_pos_dens "thm_endpoint_joint"]
 theorem positive_density_collatz_and_collatzAccel_reaches_of_coprime_six
-    {t : ℕ} (ht : t.Coprime 6) {N : ℕ} (hN : collatzDensityThresholdDep t ≤ N) :
-    collatzDensityDep t * N ≤
+    {t : ℕ} (ht : t.Coprime 6) (N : ℕ) :
+    ⌊collatzDensityDep t * N⌋₊ ≤
     #{n ∈ range N | Odd n ∧ ReachWithin collatz t n ⌊(10.46 : ℝ) * Real.log (n / t)⌋₊ ∧
       ReachWithin collatzAccel t n ⌊(3.4881 : ℝ) * Real.log (n / t)⌋₊} := by
-  -- `t` is positive, odd and prime to `3`
-  have ht0 : 0 < t := by
-    rcases Nat.eq_zero_or_pos t with rfl | h
-    · simp at ht
-    · exact h
-  have hto : Odd t := by
-    rcases Nat.even_or_odd t with h | h
-    · have h2 : (2 : ℕ) ∣ t.gcd 6 := Nat.dvd_gcd (even_iff_two_dvd.1 h) (by norm_num)
-      rw [ht] at h2
-      norm_num at h2
-    · exact h
-  have ht3 : ¬ 3 ∣ t := by
-    intro h
-    have h3 : (3 : ℕ) ∣ t.gcd 6 := Nat.dvd_gcd h (by norm_num)
-    rw [ht] at h3
-    norm_num at h3
-  have h1 : (10.46 : ℝ) = 1046 / 100 := by norm_num
-  have h2 : (3.4881 : ℝ) = 34881 / 10000 := by norm_num
-  rw [h1, h2]
-  set c := #{n ∈ range N | Odd n ∧
-      ReachWithin collatz t n ⌊(1046 / 100 : ℝ) * Real.log ((n : ℝ) / t)⌋₊ ∧
-      ReachWithin collatzAccel t n ⌊(34881 / 10000 : ℝ) * Real.log ((n : ℝ) / t)⌋₊} with hc
-  -- `X_0(t) ≤ N`
-  have hcut : cutoff t ≤ N := (cutoff_lt_collatzDensityThresholdDep ht0).le.trans hN
-  have hM := densityConst_mul_le_ncard_reach ht0 hto ht3 (X := (N : ℝ)) (by exact_mod_cast hcut)
-  -- the internal set sits inside the challenge's
-  have hsub := count_superset t N
-  have hle : {n : ℕ | 1 ≤ n ∧ (n : ℝ) < N ∧
-        (Odd n ∧ ReachWithin collatz t n ⌊(523 / 50 : ℝ) * Real.log ((n : ℝ) / t)⌋₊ ∧
-          ReachWithin collatzAccel t n
-            ⌊(34881 / 10000 : ℝ) * Real.log ((n : ℝ) / t)⌋₊)}.ncard ≤ c := by
-    rw [hc, ← Set.ncard_coe_finset]
-    refine Set.ncard_le_ncard ?_ (Finset.finite_toSet _)
-    intro n hn
-    refine hsub ⟨hn.1, ?_, hn.2.2⟩
-    exact_mod_cast hn.2.1
-  have hMc : densityConst t * N ≤ (c : ℝ) := hM.trans (by exact_mod_cast hle)
-  -- `c(t) ≤ c_M(t)`
-  have hcd : ((collatzDensityDep t : ℚ) : ℝ) ≤ densityConst t :=
-    (collatzDensityDep_lt_densityConst ht0).le
-  have hR : ((collatzDensityDep t : ℚ) : ℝ) * N ≤ (c : ℝ) :=
-    (mul_le_mul_of_nonneg_right hcd (Nat.cast_nonneg N)).trans hMc
-  exact_mod_cast hR
+  have ht3 : ¬ 3 ∣ t := fun h =>
+    absurd (Nat.dvd_gcd h (by norm_num : 3 ∣ 6)) (by rw [ht]; norm_num)
+  have ht2 : ¬ 2 ∣ t := fun h =>
+    absurd (Nat.dvd_gcd h (by norm_num : 2 ∣ 6)) (by rw [ht]; norm_num)
+  have hodd : t / 2 ^ padicValNat 2 t = t := by
+    rw [padicValNat.eq_zero_of_not_dvd ht2, pow_zero, Nat.div_one]
+  have h := positive_density_collatz_and_collatzAccel_reaches_of_not_three_dvd ht3 N
+  rwa [hodd] at h

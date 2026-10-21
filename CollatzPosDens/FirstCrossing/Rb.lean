@@ -15,8 +15,9 @@ public import CollatzPosDens.FirstCrossing.Eb
 
 For a natural number `b` this file defines the shift radius
 $$r_b = 2 w_b - \mathsf{B}(w_b) - 2 e_b \in \mathbb{Z},$$
-where `w_b = ⌊3b/5⌋`, `B(j) = ⌈j log₂ 3⌉` and `e_b` is the scale increment. Since
-`B(w_b) + 2 e_b` may exceed `2 w_b` (for instance `r_0 = -2`), the radius is valued in `ℤ`.
+where `w_b = ⌊3b/5⌋` is `CollatzPosDens.wb`, `B(j) = ⌈j log₂ 3⌉` is `CollatzPosDens.ceilLog3`
+and the scale increment `e_b = ⌈b/100⌉` is `CollatzPosDens.eb`. Since `B(w_b) + 2 e_b` may
+exceed `2 w_b` (for instance `r_1 = -2`), the radius is valued in `ℤ`.
 
 ## Main definitions
 
@@ -26,12 +27,8 @@ where `w_b = ⌊3b/5⌋`, `B(j) = ⌈j log₂ 3⌉` and `e_b` is the scale incre
 
 * `CollatzPosDens.rb_def`: the unfolding of `r_b`.
 * `CollatzPosDens.rb_add_ceilLog3_add_eb`: `r_b + B(w_b) + 2 e_b = 2 w_b`.
-* `CollatzPosDens.rb_zero`: `r_0 = -2`.
-
-## References
-
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026],
-  §15.1.
+* `CollatzPosDens.rb_zero`: `r_0 = 0`.
+* `CollatzPosDens.rb_one`: `r_1 = -2`.
 -/
 
 @[expose] public section
@@ -43,7 +40,7 @@ namespace CollatzPosDens
 noncomputable def rb (b : ℕ) : ℤ :=
   2 * (wb b : ℤ) - ceilLog3 (wb b) - 2 * eb b
 
-/-- `r_b` equals `2 w_b - B(w_b) - 2 e_b`, as an equation in `ℤ`. -/
+/-- Unfolding lemma for `rb`. -/
 theorem rb_def (b : ℕ) : rb b = 2 * (wb b : ℤ) - ceilLog3 (wb b) - 2 * eb b := rfl
 
 /-- The defining relation `r_b + B(w_b) + 2 e_b = 2 w_b`. -/
@@ -52,9 +49,13 @@ theorem rb_add_ceilLog3_add_eb (b : ℕ) :
   rw [rb_def]
   ring
 
-/-- `r_0 = -2`. -/
+/-- `r_0 = 0`. -/
 @[simp]
-theorem rb_zero : rb 0 = -2 := by
-  simp [rb_def, wb_def, ceilLog3, eb_of_le_twelve]
+theorem rb_zero : rb 0 = 0 := by
+  simp [rb_def, wb_def, ceilLog3, eb_eq]
+
+/-- `r_1 = -2`, so the shift radius can be negative. -/
+theorem rb_one : rb 1 = -2 := by
+  simp [rb_def, wb_def, ceilLog3, eb_eq]
 
 end CollatzPosDens

@@ -16,12 +16,19 @@ public import CollatzPosDens.BlackSet.BkNwClosure
 public import CollatzPosDens.BlackSet.BkBlackOn
 public import CollatzPosDens.BlackSet.BkClaimStar
 public import CollatzPosDens.BlackSet.BkColtopSpec
+public import CollatzPosDens.BlackSet.BkNeighbourhood
+public import CollatzPosDens.BlackSet.BkCardinal
 
 /-!
 # Black points of a canonical triangle share its column top
 
-Let `ξ` be a unit, `0 < ε < 1/27`, `p` black and `q ∈ Δ(p)` black, where `Δ(p)` is the
-canonical triangle of `p`. Then the column tops agree: `l_*(q) = l_*(p)`.
+Let `ξ` be a unit, `0 < ε < 1/27`, `p` black and `q ∈ Δ(p)` black. Then `l_*(q) = l_*(p)`.
+
+Put `L = l_*(p)`, the second corner coordinate of `Δ(p)`, and check the characterisation of the
+column top for `q` and `L`: first `l(q) ≤ L` since `q ∈ Δ(p)`; next each `(j(q), l'')` with
+`l(q) ≤ l'' ≤ L` lies in `Δ(p)` by north-west closure, hence is black; finally
+`(j(q), L + 1)` lies outside `Δ(p)` and is a cardinal neighbour of `(j(q), L) ∈ Δ(p)`, so it lies
+in `𝒩(Δ(p))` and is not black by Claim (*), and since `j(q) ≤ ⌊n/2⌋` it is white.
 
 ## Main results
 
@@ -29,12 +36,12 @@ canonical triangle of `p`. Then the column tops agree: `l_*(q) = l_*(p)`.
 
 ## Implementation notes
 
-As in the source, black points are points of `𝒫`; this is recorded by the hypothesis
-`p ∈ bkPoints`, needed to form the canonical triangle `Δ(p)`.
+Black points are points of `𝒫`; this is recorded by the hypothesis `p ∈ bkPoints`, needed to form
+the canonical triangle `Δ(p)`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §5.6.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -62,7 +69,8 @@ theorem bkColTop_eq_of_mem_bkCanonTriangle {n : ℕ} {ξ : ResidueGroup n} {ε :
     omega
   exact (isBkWhite_iff_not_bkBlack (p := (bkJ q, bkColTop n ξ ε p + 1)) hqb.bkJ_le).2
     (not_bkBlack_of_bkDist_le_one (q := (bkJ q, bkColTop n ξ ε p + 1)) hξ hε hε' hp hb
-      (mem_bkPoints.2 (mem_bkPoints.1 hqP)) hy (hcol Δ.l (BkTriangle.le_l_of_mem hq) le_rfl)
-      (bkDist_add_one_snd _ _).le)
+      (mem_bkNeighbourhood_of (mem_bkPoints.2 (mem_bkPoints.1 hqP)) hy
+        (hcol Δ.l (BkTriangle.le_l_of_mem hq) le_rfl)
+        (by simp [BkCardinalNeighbour, bkJ, bkL, hL])))
 
 end CollatzPosDens

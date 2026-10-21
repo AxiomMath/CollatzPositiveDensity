@@ -11,42 +11,41 @@ public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.CharSum.ChBlockPoint
 public import CollatzPosDens.CharSum.ChBlockWeight
 public import CollatzPosDens.CharSum.ChRaw
-public import CollatzPosDens.StoppingTrace.TrFirstRaw
 public import CollatzPosDens.StoppingTrace.TrLive
 public import CollatzPosDens.StoppingTrace.TrPassage
 public import CollatzPosDens.StoppingTrace.TrRaw3Witness
 public import CollatzPosDens.StoppingTrace.TrRawSum
 
 /-!
-# A raw-three witness crosses in its last block
+# A first raw crossing happens in the last block
 
-Let `s ∈ ℕ` and let `π = ((c¹, e¹), …, (cᵏ, eᵏ)) ∈ 𝒜₃(s)` be a raw-three witness. The letter
-`3` read at the first raw crossing `i_s(π)` of the raw word `z = c¹ e¹ ⋯ cᵏ eᵏ` is a nonclosing
-letter of the last block: there is `1 ≤ i ≤ |cᵏ|` with `cᵏᵢ = 3` and
-`(i_s(π), σ_{i_s(π)}(π)) = Bp_{k-1}(π) + (i, cᵏ₁ + ⋯ + cᵏᵢ)`.
+Let `s ∈ ℕ`, let `c, o, r` be integers with `c ≥ 2`, `1 ≤ o ≤ c`, `r ≥ 1`, and let
+`π = ((c¹, e¹), …, (cᵏ, eᵏ)) ∈ 𝒳_{c,o,r}(s)`. Write `m = |cᵏ|`, `aᵢ = cᵏᵢ` for `1 ≤ i ≤ m` and
+`a_{m+1} = eᵏ`. Then the crossing position `r` lies in the last block: there is
+`1 ≤ i ≤ m + 1` with `aᵢ = c` and `(r, s + o) = Bp_{k-1}(π) + (i, a₁ + ⋯ + aᵢ)`.
 
-Write `z = z' cᵏ eᵏ` with `z'` the concatenation of the first `k - 1` blocks, of length
-`L = j(Bp_{k-1}(π))` and letter sum `l(Bp_{k-1}(π)) ≤ s`. Since `π` is live, all its letters are
-at least `2`, so the raw partial sums are nondecreasing on `z'`; as `σ_{i_s(π)}(π) > s`, the
-crossing cannot happen inside `z'`. It cannot happen at the closing letter `eᵏ ≠ 3` either, so it
-happens at a position `L + i` with `1 ≤ i ≤ |cᵏ|`.
+The proof is short. Write the raw word as `z = z' cᵏ eᵏ` with `z'` the concatenation of the
+first `k - 1` blocks, of length `L = j(Bp_{k-1}(π))` and letter sum `l(Bp_{k-1}(π)) ≤ s`. Since
+`π` is live, all its letters are at least `2`, so the raw partial sums are nondecreasing on
+`z'`; as `σ_r(π) = s + o > s`, the position `r` is not inside `z'`. So `r = L + i` with
+`1 ≤ i ≤ m + 1`, the `r`-th letter is `aᵢ`, and `σ_r(π) = l(Bp_{k-1}(π)) + a₁ + ⋯ + aᵢ`.
 
 ## Main results
 
-* `CollatzPosDens.trRawThreeWitness_lastBlock`: a raw-three witness crosses level `s` at a
-  nonclosing letter `3` of its last block.
+* `CollatzPosDens.trRawThreeWitness_lastBlock`: the statement above.
 
 ## Implementation notes
 
-Lists of blocks are `List (List ℤ × ℤ)`; the condition `eᵏ ∈ {4, 5}` coming from `π ∈ 𝔅ᵏ` is
-part of membership in `Π_s` (`trRawThreeWitness_closing_mem`), and only its consequence `eᵏ ≠ 3`
-is used. The last block `(cᵏ, eᵏ)` is named through `π.getLast? = some (cᵏ, eᵏ)`, which always
-holds for a nonempty `π`. Letters are indexed from `1`, so `cᵏᵢ` is the entry `cᵏ[i - 1]` of the
-Lean list. Points of the block path live in `ℤ × ℤ`, so `i_s(π)` is cast to `ℤ`.
+Lists of blocks are `List (List ℤ × ℤ)`. The last block `(cᵏ, eᵏ)` is named through
+`π.getLast? = some (cᵏ, eᵏ)`, which always holds for a nonempty `π`, and the word `a₁ ⋯ a_{m+1}` is
+the Lean list `cᵏ ++ [eᵏ]`. Letters are indexed from `1`, so `aᵢ` is the entry of index `i - 1`.
+Points of the block path live in `ℤ × ℤ`, so `r` is cast to `ℤ`. The statement is proved under the
+single side condition `0 < o`: the conditions `c ≥ 2`, `o ≤ c` and `r ≥ 1` are not used (`r ≥ 1`
+follows from `σ_r(π) = s + o > 0`).
 
 ## References
 
-* [Mazur, *Collatz positive density*], §9.3.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -61,68 +60,55 @@ theorem sum_drop_flatMap_nonneg {π : List (List ℤ × ℤ)} (h : ∀ b ∈ π,
     have := two_le_of_mem_append_of_chBlockWeight_ne_zero (h b hb) hxb
     omega
 
-/-- A raw-three witness `π = ((c¹, e¹), …, (cᵏ, eᵏ)) ∈ 𝒜₃(s)` crosses level `s` at a
-nonclosing letter `3` of its last block: there is `1 ≤ i ≤ |cᵏ|` with `cᵏᵢ = 3` and
-`(i_s(π), σ_{i_s(π)}(π)) = Bp_{k-1}(π) + (i, cᵏ₁ + ⋯ + cᵏᵢ)`. -/
+/-- A first raw crossing event `π = ((c¹, e¹), …, (cᵏ, eᵏ)) ∈ 𝒳_{c,o,r}(s)` with `0 < o`
+crosses in its last block: writing `a = cᵏ eᵏ = (a₁, …, a_{m+1})`, there is `1 ≤ i ≤ m + 1`
+with `aᵢ = c` and `(r, s + o) = Bp_{k-1}(π) + (i, a₁ + ⋯ + aᵢ)`. -/
 @[collatz_pos_dens "lem_tr_raw3_last_block"]
-theorem trRawThreeWitness_lastBlock {s : ℕ} {π : List (List ℤ × ℤ)}
-    (hπ : π ∈ trRawThreeWitness s) {c : List ℤ} {e : ℤ}
-    (hlast : π.getLast? = some (c, e)) :
-    ∃ i, 1 ≤ i ∧ i ≤ c.length ∧ c[i - 1]? = some 3 ∧
-      (((trFirstRaw s π : ℕ) : ℤ), trRawSum π (trFirstRaw s π)) =
-        chBlockPath π (π.length - 1) + ((i : ℤ), (c.take i).sum) := by
-  have h3 : (π.flatMap fun b => b.1 ++ [b.2])[trFirstRaw s π - 1]? = some 3 :=
-    List.getElem?_eq_some_iff.mpr (trRawThreeWitness_getElem_flatMap hπ)
-  have hone := trRawThreeWitness_one_le_trFirstRaw hπ
-  have hs := trRawThreeWitness_lt_trRawSum hπ
+theorem trRawThreeWitness_lastBlock {s : ℕ} {c o : ℤ} {r : ℕ} (ho : 0 < o)
+    {π : List (List ℤ × ℤ)} (hπ : π ∈ trRawThreeWitness s c o r) {d : List ℤ} {e : ℤ}
+    (hlast : π.getLast? = some (d, e)) :
+    ∃ i, 1 ≤ i ∧ i ≤ d.length + 1 ∧ (d ++ [e])[i - 1]? = some c ∧
+      ((r : ℤ), (s : ℤ) + o) =
+        chBlockPath π (π.length - 1) + ((i : ℤ), ((d ++ [e]).take i).sum) := by
+  obtain ⟨hlt, hc⟩ := trRawThreeWitness_getElem_flatMap hπ
+  have h3 : (π.flatMap fun b => b.1 ++ [b.2])[r - 1]? = some c :=
+    List.getElem?_eq_some_iff.mpr ⟨hlt, hc⟩
+  have hs := trRawThreeWitness_lt_trRawSum hπ ho
+  have hσ := trRawThreeWitness_trRawSum hπ
   have hP := trRawThreeWitness_mem_trPassage hπ
   have hlive := trLive_of_mem_trPassage hP
-  set I := trFirstRaw s π with hI
-  clear_value I
   obtain ⟨π₀, rfl⟩ := List.getLast?_eq_some_iff.mp hlast
-  have hlen : (π₀ ++ [(c, e)]).length - 1 = π₀.length := by simp
-  have hBp : chBlockPath (π₀ ++ [(c, e)]) π₀.length = chBlockPath π₀ π₀.length :=
+  have hlen : (π₀ ++ [(d, e)]).length - 1 = π₀.length := by simp
+  have hBp : chBlockPath (π₀ ++ [(d, e)]) π₀.length = chBlockPath π₀ π₀.length :=
     chBlockPath_append_of_le _ _ le_rfl
-  have hle : (chBlockPath (π₀ ++ [(c, e)]) π₀.length).2 ≤ s :=
+  have hle : (chBlockPath (π₀ ++ [(d, e)]) π₀.length).2 ≤ s :=
     chBlockPath_snd_le_of_mem_trPassage hP (by simp)
   rw [hBp, ← sum_flatMap_eq_chBlockPath_snd] at hle
-  have hz : ((π₀ ++ [(c, e)]).flatMap fun b => b.1 ++ [b.2]) =
-      (π₀.flatMap fun b => b.1 ++ [b.2]) ++ (c ++ [e]) := by simp
+  have hz : ((π₀ ++ [(d, e)]).flatMap fun b => b.1 ++ [b.2]) =
+      (π₀.flatMap fun b => b.1 ++ [b.2]) ++ (d ++ [e]) := by simp
   set z₀ := π₀.flatMap fun b => b.1 ++ [b.2] with hz₀
   have hfst : (chBlockPath π₀ π₀.length).1 = (z₀.length : ℤ) := by
     rw [← toNat_chBlockPath_fst, Int.toNat_of_nonneg (chBlockPath_fst_nonneg _ _)]
-  rw [trRawSum_eq_sum_take, hz] at hs ⊢
-  rw [hz] at h3
-  rw [hlen, hBp]
-  by_cases hIL : I ≤ z₀.length
+  rw [trRawSum_eq_sum_take, hz] at hs hσ
+  rw [hz] at h3 hlt
+  simp only [List.length_append, List.length_singleton] at hlt
+  rw [hlen, hBp, ← hσ]
+  by_cases hIL : r ≤ z₀.length
   · exfalso
     rw [List.take_append_of_le_length hIL] at hs
-    have hnn : 0 ≤ (z₀.drop I).sum :=
-      sum_drop_flatMap_nonneg (fun b hb ↦ hlive b (by simp [hb])) I
-    have hsplit := congrArg List.sum (List.take_append_drop I z₀)
+    have hnn : 0 ≤ (z₀.drop r).sum :=
+      sum_drop_flatMap_nonneg (fun b hb ↦ hlive b (by simp [hb])) r
+    have hsplit := congrArg List.sum (List.take_append_drop r z₀)
     rw [List.sum_append] at hsplit
     omega
   · push Not at hIL
     rw [List.getElem?_append_right (by omega)] at h3
-    by_cases hc : I - 1 - z₀.length < c.length
-    · rw [List.getElem?_append_left hc] at h3
-      refine ⟨I - z₀.length, by omega, by omega, ?_, ?_⟩
-      · rwa [show I - z₀.length - 1 = I - 1 - z₀.length by omega]
-      · rw [show I = z₀.length + (I - z₀.length) by omega, List.take_append,
-          List.take_of_length_le (by omega), List.sum_append, Nat.add_sub_cancel_left,
-          List.take_append_of_le_length (by omega)]
-        ext
-        · simp only [Prod.fst_add, hfst]
-          push_cast
-          omega
-        · simp only [Prod.snd_add, hz₀, sum_flatMap_eq_chBlockPath_snd]
-    · exfalso
-      push Not at hc
-      rw [List.getElem?_append_right hc] at h3
-      simp only [List.getElem?_singleton] at h3
-      split_ifs at h3
-      have he := trRawThreeWitness_closing_mem hπ (b := (c, e)) (by simp)
-      rw [Option.some_injective _ h3] at he
-      norm_num at he
+    refine ⟨r - z₀.length, by omega, by omega, ?_, ?_⟩
+    · rwa [show r - z₀.length - 1 = r - 1 - z₀.length by omega]
+    · rw [List.take_append, List.take_of_length_le (by omega), List.sum_append]
+      ext
+      · simp only [Prod.fst_add, hfst]
+        omega
+      · simp only [Prod.snd_add, hz₀, sum_flatMap_eq_chBlockPath_snd]
 
 end CollatzPosDens

@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Fourier.ZMod
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Characters.FxCharacter
 public import CollatzPosDens.Transfer.RefLaw
+public import CollatzPosDens.Transfer.RefDensity
 
 /-!
 # Fourier coefficients on `G_n`
@@ -28,6 +29,8 @@ reference law `μ_n` is regarded as the real-valued function `y ↦ μ_n(y)^ℝ`
 
 * `CollatzPosDens.fxDft_eq_dft`: `f̂` is Mathlib's discrete Fourier transform `𝓕 f`.
 * `CollatzPosDens.refLawDft_apply`: `μ̂_n(ξ) = ∑_y μ_n(y)^ℝ e_n(-ξ y)`.
+* `CollatzPosDens.refLawDft_eq_refDensity`: `3^n μ̂_n(ξ) = ∑_y ρ_n(y) e_n(-ξ y)`, where `ρ_n` is
+  the reference density.
 
 ## Implementation notes
 
@@ -65,6 +68,13 @@ theorem fxDft_apply (n : ℕ) (f : ResidueGroup n → ℂ) (ξ : ResidueGroup n)
 theorem refLawDft_apply (n : ℕ) (ξ : ResidueGroup n) :
     refLawDft n ξ = ∑ y : ResidueGroup n, ((refLaw n y).toReal : ℂ) * fxChar n (-(ξ * y)) :=
   rfl
+
+/-- In terms of the reference density `ρ_n(y) = 3^n μ_n(y)^ℝ`:
+`3^n μ̂_n(ξ) = ∑_{y ∈ G_n} ρ_n(y) e_n(-ξ y)`. -/
+theorem refLawDft_eq_refDensity (n : ℕ) (ξ : ResidueGroup n) :
+    (3 : ℂ) ^ n * refLawDft n ξ = fxDft n (fun y => (refDensity n y : ℂ)) ξ := by
+  simp only [refLawDft, fxDft_apply, refDensity, Finset.mul_sum, Complex.ofReal_mul,
+    Complex.ofReal_pow, Complex.ofReal_ofNat, mul_assoc]
 
 /-- The Fourier coefficients `f̂` are Mathlib's discrete Fourier transform on `ZMod (3 ^ n)`. -/
 theorem fxDft_eq_dft (n : ℕ) (f : ResidueGroup n → ℂ) : fxDft n f = 𝓕 f := by

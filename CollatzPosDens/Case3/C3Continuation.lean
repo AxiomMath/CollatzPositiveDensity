@@ -6,36 +6,37 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.CharSum.ChQContinuation
-public import CollatzPosDens.CharSum.ChQRange
-public import CollatzPosDens.CharSum.ChQStopped
+public import CollatzPosDens.Case3.C3FactorReward
+public import CollatzPosDens.Case3.C3HIterate
+public import CollatzPosDens.Case3.C3PaidLaw
 public import CollatzPosDens.CharSum.ChBlockListMass
+public import CollatzPosDens.CharSum.ChInternalRange
+public import CollatzPosDens.CharSum.ChQRange
+public import CollatzPosDens.StoppingTrace.TrAtoms
 public import CollatzPosDens.StoppingTrace.TrConcat
 public import CollatzPosDens.StoppingTrace.TrCount
-public import CollatzPosDens.StoppingTrace.TrFreshLaw
 public import CollatzPosDens.StoppingTrace.TrFreshPath
 public import CollatzPosDens.StoppingTrace.TrListSplit
 public import CollatzPosDens.StoppingTrace.TrPrefixFreeMass
 public import CollatzPosDens.StoppingTrace.TrWhiteCount
 
 /-!
-# Continuation through the first passage
+# Continuation through the paid passage
 
-Fix `n : ℕ`, `J = ⌊n/2⌋` and `ξ : ResidueGroup n`, and take whiteness with respect to
-`(n, ξ, ε_*)`, where `ε_* = epsStar`. For a point `e ∈ 𝒫 = bkPoints`, a level `g ∈ ℕ` and a
-horizon `P ≤ J`, the renewal function `Q = chQ n ξ ε_*` satisfies
-`Q(e) ≤ ∑_a μ_{e,g}(a) e^{-z_* N^e_{P-1}(a)} Q(y^e_P(a))`, with `z_* = zStar`. The sum runs over
-the atoms `a = ((r, ℓ), β) ∈ trAtoms n` of the fresh law `μ_{e,g} = trFreshLaw n e g`, the weighted
-white count is `N^e_{P-1} = trWhiteCount n ξ e · (P - 1)`, and `y^e_P = trFreshPath e · P` is the
-fresh path.
+Fix `n`, `J = ⌊n/2⌋`, `ξ ∈ G_n`, and let whiteness, the renewal function `Q`, the penalty
+`H = Q / w` and the paid passage mass `F̃_e` refer to `(n, ξ, ε_*)`. For a black point `e ∈ 𝒫`
+and a horizon `1 ≤ L ≤ J`,
+`Q(e) ≤ ∑_{a ∈ 𝒜_n} μ̃_e(a) e^{-z_* N^e_{L-1}(a)} Q(y^e_L(a))`, where `μ̃_e` is the paid fresh law,
+`N^e_{L-1}` the weighted white count and `y^e_L` the fresh path.
 
-The stopped inequality gives `Q(e) ≤ ∑_x F_g(x) Q(e + x)`. For each `x`, put `o = e + x`; the
-continuation identity with `P` blocks expands `Q(o)` over `γ ∈ 𝔅^P`. Dropping the factors
-`w(q_0) ≤ 1` and `I(q_{P-1}; γ^P) ≤ 1` and grouping the rest by blocks, using
-`w(q + bpt(b)) I(q; b) = e^{-z_* rw(q, b)}`, bounds the term of `γ` by
-`bw^⊗(γ) e^{-z_* N^*(o, γ; P-1)} Q(x_P(o, γ))`. These quantities only depend on the first `P`
-blocks of a list, and the remaining `J - P` blocks carry total weight `1`, so the sum may be
-taken over `𝔅^J` instead. Multiplying by `F_g(x)` and summing over `x` gives the claim.
+The paid passage decomposition gives `Q(e) = ∑_{x} F̃_e(x) H(e + x)` over `x ∈ ℤ_{≥1} × ℤ`. For
+each `x`, put `o = e + x`; the `L`-step identity expands `H(o)` over `γ ∈ 𝔅^L`. Splitting off the
+reward of the last block, `N^*(o, γ; L) = N^*(o, γ; L - 1) + rw(v, γ^L)` with `v = x_{L-1}(o, γ)`,
+and `e^{-z_* rw(v, b)} H(v + bpt(b)) = I(v; b) Q(v + bpt(b)) ≤ Q(v + bpt(b))` for a block `b` of
+nonzero weight, since `w(v + bpt(b)) I(v; b) = e^{-z_* rw(v, b)}` and `I ≤ 1`. This bounds the term
+of `γ` by `bw^⊗(γ) e^{-z_* N^*(o, γ; L-1)} Q(x_L(o, γ))`. These quantities only depend on the
+first `L` blocks of a list, and the remaining `J - L` blocks carry total weight `1`, so the sum may
+be taken over `𝔅^J` instead. Multiplying by `F̃_e(x)` and summing over `x` gives the claim.
 
 ## Main results
 
@@ -43,16 +44,16 @@ taken over `𝔅^J` instead. Multiplying by `F_g(x)` and summing over `x` gives 
 
 ## Implementation notes
 
-The reference assumes `1 ≤ P ≤ J`; the inequality holds for every `P ≤ J` and is stated so (for
-`P = 0` it is the stopped inequality, with `N^e_{0 - 1} = N^e_0 = 0` in `ℕ`). The renewal function
-`Q` is taken at the threshold `ε_*`, the one to which whiteness in the white count refers.
-The sum over the atoms is a `tsum` over the subtype `𝒜_n = trAtoms n`; its terms are shown to be
-summable, so the `tsum` is a genuine sum. The intermediate regrouping of the series is carried
-out in `[0, ∞]`.
+The paid fresh law is valued in `[0, ∞]`, so the inequality is stated in `[0, ∞]`, with the real
+quantity `Q(e)` and the real factors `e^{-z_* N} Q(y)` embedded through `ENNReal.ofReal`; the sum
+over the atoms is then an unconditional `tsum` over the subtype `𝒜_n = trAtoms n`. The conditions
+`n ≥ 1` and that `ξ` is a unit are not needed. The hypothesis `1 ≤ L` is needed: for `L = 0` the
+bound would read `Q(e) ≤ ∑ F̃_e(x) Q(e + x)`, whereas the decomposition only gives
+`Q(e) = ∑ F̃_e(x) H(e + x)` with `H ≥ Q`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §10.4.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -61,256 +62,137 @@ namespace CollatzPosDens
 
 open scoped ENNReal
 
-/-- For a block `b` and a point `q`, `w(q + bpt(b)) I(q; b) = e^{-z_* rw(q, b)}`, whiteness
-referring to `(n, ξ, ε_*)`. -/
-private theorem chWhiteFactor_mul_chInternalWeight (n : ℕ) (ξ : ResidueGroup n) (q : ℤ × ℤ)
-    (b : List ℤ × ℤ) :
-    chWhiteFactor n ξ (epsStar : ℝ) (q + chBlockPoint b) *
-        chInternalWeight n ξ (epsStar : ℝ) q b =
-      Real.exp (-((zStar : ℝ) * trReward n ξ q b)) := by
-  classical
-  set m := b.1.length
-  set p : ℕ → Prop := fun i => b.1.getD i 0 = 3 ∧
-    IsBkWhite n ξ (epsStar : ℝ) (q + ((i : ℤ) + 1, (b.1.take (i + 1)).sum)) with hp
-  have hI : chInternalWeight n ξ (epsStar : ℝ) q b =
-      Real.exp (-((kappaStar : ℝ) * zStar)) ^ ((Finset.range m).filter p).card := by
-    rw [chInternalWeight_eq_prod_ite]
-    have h : (∏ i : Fin m, if b.1[i] = 3 then
-        chRaw3Factor n ξ (epsStar : ℝ) (q + ((i : ℤ) + 1, (b.1.take (i + 1)).sum)) else 1) =
-        ∏ i ∈ Finset.range m, if b.1.getD i 0 = 3 then
-          chRaw3Factor n ξ (epsStar : ℝ) (q + ((i : ℤ) + 1, (b.1.take (i + 1)).sum)) else 1 := by
-      rw [Finset.prod_range]
-      exact Finset.prod_congr rfl fun i _ => by simp [m]
-    rw [h, ← Finset.prod_const, Finset.prod_filter]
-    refine Finset.prod_congr rfl fun i _ => ?_
-    simp only [chRaw3Factor]
-    split_ifs <;> simp_all
-  have hcard : ((Finset.Icc 1 m).filter fun i =>
-      b.1.getD (i - 1) 0 = 3 ∧
-        IsBkWhite n ξ (epsStar : ℝ) (q + ((i : ℤ), (b.1.take i).sum))).card =
-      ((Finset.range m).filter p).card := by
-    refine Finset.card_nbij' (· - 1) (· + 1) ?_ ?_ ?_ ?_
-    · intro i hi
-      simp only [Finset.coe_filter, Finset.mem_Icc, Set.mem_ofPred_eq] at hi
-      simp only [Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq, hp]
-      refine ⟨by omega, hi.2.1, ?_⟩
-      rw [show i - 1 + 1 = i by omega, show ((i - 1 : ℕ) : ℤ) + 1 = (i : ℤ) by omega]
-      exact hi.2.2
-    · intro i hi
-      simp only [Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq, hp] at hi
-      simp only [Finset.coe_filter, Finset.mem_Icc, Set.mem_ofPred_eq]
-      refine ⟨by omega, by simpa using hi.2.1, ?_⟩
-      push_cast
-      exact hi.2.2
-    · intro i hi
-      simp only [Finset.coe_filter, Finset.mem_Icc, Set.mem_ofPred_eq] at hi
-      change i - 1 + 1 = i
-      omega
-    · intro i _
-      simp
-  rw [hI, trReward_def, hcard, ← Real.exp_nat_mul, chWhiteFactor]
-  split_ifs
-  · rw [← Real.exp_add]
-    congr 1
-    ring
-  · rw [one_mul]
-    congr 1
-    ring
+/-- The term of `γ ∈ 𝔅^L`, `L ≥ 1`, in the `L`-step identity for `H` is bounded by
+`bw^⊗(γ) e^{-z_* N^*(o, γ; L-1)} Q(x_L(o, γ))`. -/
+private theorem trListWeight_mul_exp_mul_c3H_le (n : ℕ) (ξ : ResidueGroup n) (o : ℤ × ℤ)
+    {L : ℕ} (hL : 1 ≤ L) (γ : List (List ℤ × ℤ)) (hγ : γ.length = L)
+    (hγB : ∀ x ∈ γ, x.2 ∈ ({4, 5} : Set ℤ)) :
+    trListWeight γ * Real.exp (-(zStar : ℝ) * trCount n ξ o γ L) *
+        c3H n ξ (epsStar : ℝ) (o + chBlockPath γ L) ≤
+      trListWeight γ * (Real.exp (-(zStar : ℝ) * trCount n ξ o γ (L - 1)) *
+        chQ n ξ (epsStar : ℝ) (trPath o γ L)) := by
+  by_cases hw : trListWeight γ = 0
+  · simp [hw]
+  obtain ⟨m, rfl⟩ : ∃ m, L = m + 1 := ⟨L - 1, by omega⟩
+  have hm : m < γ.length := by omega
+  have hbmem : γ[m] ∈ γ := List.getElem_mem hm
+  have hbw : chBlockWeight γ[m] ≠ 0 := fun h ↦
+    hw (List.prod_eq_zero (List.mem_map.2 ⟨γ[m], hbmem, h⟩))
+  have hc : ∀ a ∈ γ[m].1, a ≠ 4 ∧ a ≠ 5 := fun a ha ↦ by
+    by_contra h
+    refine hbw (chBlockWeight_eq_zero_of_mem ha ?_)
+    rw [not_and_or, not_ne_iff, not_ne_iff] at h
+    rcases h with h | h <;> simp [h]
+  have he : γ[m].2 = 4 ∨ γ[m].2 = 5 := by simpa using hγB γ[m] hbmem
+  have hpath : o + chBlockPath γ (m + 1) = trPath o γ m + chBlockPoint γ[m] := by
+    rw [chBlockPath_succ γ hm, ← add_assoc, trPath_eq_add_chBlockPath]
+  have hfac := chWhiteFactor_mul_chInternalWeight_eq_exp_trReward n ξ (trPath o γ m) γ[m] hc he
+  rw [trCount_succ o γ hm, Nat.add_sub_cancel, trPath_eq_add_chBlockPath o γ (m + 1), hpath,
+    mul_add, Real.exp_add, ← hfac, mul_assoc, mul_assoc]
+  refine mul_le_mul_of_nonneg_left ?_ (trListWeight_nonneg γ)
+  refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
+  rw [mul_comm (chWhiteFactor _ _ _ _), mul_assoc, chWhiteFactor_mul_c3H]
+  exact mul_le_of_le_one_left (chQ_nonneg _ _ _ _) (chInternalWeight_le_one _ _ _ _ _)
 
-/-- Along a list `L` of `P` blocks from `o`, with `q_i = o + Bp_i(L)`,
-`∏_{i<P} w(q_i) ∏_{k<P} I(q_k; Lᵏ⁺¹) ≤ e^{-z_* N^*(o, L; P - 1)}`. -/
-private theorem prod_chWhiteFactor_mul_prod_chInternalWeight_le (n : ℕ) (ξ : ResidueGroup n)
-    (o : ℤ × ℤ) (L : List (List ℤ × ℤ)) :
-    (∏ i ∈ Finset.range L.length, chWhiteFactor n ξ (epsStar : ℝ) (o + chBlockPath L i)) *
-        (∏ k ∈ Finset.range L.length,
-          chInternalWeight n ξ (epsStar : ℝ) (o + chBlockPath L k) (L.getD k ([], 0))) ≤
-      Real.exp (-((zStar : ℝ) * trCount n ξ o L (L.length - 1))) := by
-  rcases hL : L.length with _ | m
-  · simp
-  have hw : ∀ i, 0 ≤ chWhiteFactor n ξ (epsStar : ℝ) (o + chBlockPath L i) := fun _ ↦
-    chWhiteFactor_nonneg _ _ _ _
-  have hI : ∀ k, 0 ≤ chInternalWeight n ξ (epsStar : ℝ) (o + chBlockPath L k)
-      (L.getD k ([], 0)) := fun _ ↦ chInternalWeight_nonneg _ _ _ _ _
-  rw [Finset.prod_range_succ', Finset.prod_range_succ]
-  calc _ ≤ (∏ i ∈ Finset.range m, chWhiteFactor n ξ (epsStar : ℝ) (o + chBlockPath L (i + 1))) *
-        ∏ k ∈ Finset.range m,
-          chInternalWeight n ξ (epsStar : ℝ) (o + chBlockPath L k) (L.getD k ([], 0)) :=
-        mul_le_mul (mul_le_of_le_one_right (Finset.prod_nonneg fun _ _ ↦ hw _)
-            (chWhiteFactor_le_one _ _ _ _))
-          (mul_le_of_le_one_right (Finset.prod_nonneg fun _ _ ↦ hI _)
-            (chInternalWeight_le_one _ _ _ _ _))
-          (mul_nonneg (Finset.prod_nonneg fun _ _ ↦ hI _) (hI _))
-          (Finset.prod_nonneg fun _ _ ↦ hw _)
-    _ = ∏ k ∈ Finset.range m, Real.exp (-((zStar : ℝ) *
-          trReward n ξ (trPath o L k) (L.getD k ([], 0)))) := by
-        rw [← Finset.prod_mul_distrib]
-        refine Finset.prod_congr rfl fun k hk ↦ ?_
-        have hk : k < L.length := by
-          have := Finset.mem_range.1 hk
-          omega
-        rw [chBlockPath_succ L hk, ← add_assoc, trPath_eq_add_chBlockPath,
-          List.getD_eq_getElem _ _ hk]
-        exact chWhiteFactor_mul_chInternalWeight n ξ _ _
-    _ = _ := by
-        rw [← Real.exp_sum, trCount_def, hL, Nat.add_sub_cancel,
-          min_eq_left (Nat.le_succ m), Finset.mul_sum, ← Finset.sum_neg_distrib]
-
-/-- The factor `e^{-z_* N^*(o, L; k)} Q(p)` is at most `1`. -/
-private theorem exp_neg_mul_trCount_mul_chQ_le_one (n : ℕ) (ξ : ResidueGroup n) (o : ℤ × ℤ)
-    (L : List (List ℤ × ℤ)) (k : ℕ) (p : ℤ × ℤ) :
-    Real.exp (-((zStar : ℝ) * trCount n ξ o L k)) * chQ n ξ (epsStar : ℝ) p ≤ 1 := by
-  refine (mul_le_of_le_one_left (chQ_nonneg _ _ _ _) ?_).trans (chQ_le_one _ _ _ _)
-  rw [Real.exp_le_one_iff, neg_nonpos]
-  exact mul_nonneg (by exact_mod_cast zStar_nonneg) (trCount_nonneg _ _ _)
-
-/-- The continuation inequality from a base point `o` with `0 ≤ j(o)`, summed over `𝔅^J`,
-`J ≥ P`, as a sum in `[0, ∞]`. -/
-private theorem ofReal_chQ_le_tsum_trListWeight (n : ℕ) (ξ : ResidueGroup n) {o : ℤ × ℤ}
-    (ho : 0 ≤ bkJ o) {P J : ℕ} (hPJ : P ≤ J) :
-    ENNReal.ofReal (chQ n ξ (epsStar : ℝ) o) ≤
+/-- From a point `o ∈ 𝒫` and for `1 ≤ L ≤ J`,
+`H(o) ≤ ∑_{β ∈ 𝔅^J} bw^⊗(β) e^{-z_* N^*(o, β; L-1)} Q(x_L(o, β))`, in `[0, ∞]`. -/
+private theorem ofReal_c3H_le_tsum_trListWeight (n : ℕ) (ξ : ResidueGroup n) {o : ℤ × ℤ}
+    (ho : o ∈ bkPoints) {L J : ℕ} (hL : 1 ≤ L) (hLJ : L ≤ J) :
+    ENNReal.ofReal (c3H n ξ (epsStar : ℝ) o) ≤
       ∑' β : {β : List (List ℤ × ℤ) //
           β.length = J ∧ ∀ x ∈ β, x ∈ {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)}},
         ENNReal.ofReal (trListWeight β.1) *
-          ENNReal.ofReal (Real.exp (-((zStar : ℝ) * trCount n ξ o β.1 (P - 1))) *
-            chQ n ξ (epsStar : ℝ) (trPath o β.1 P)) := by
-  set Φ : List (List ℤ × ℤ) → ℝ := fun L ↦
-    Real.exp (-((zStar : ℝ) * trCount n ξ o L (P - 1))) * chQ n ξ (epsStar : ℝ) (trPath o L P)
+          ENNReal.ofReal (Real.exp (-(zStar : ℝ) * trCount n ξ o β.1 (L - 1)) *
+            chQ n ξ (epsStar : ℝ) (trPath o β.1 L)) := by
+  set Φ : List (List ℤ × ℤ) → ℝ := fun γ ↦
+    Real.exp (-(zStar : ℝ) * trCount n ξ o γ (L - 1)) * chQ n ξ (epsStar : ℝ) (trPath o γ L)
     with hΦ
-  have hΦ0 : ∀ L, 0 ≤ Φ L := fun L ↦ mul_nonneg (Real.exp_pos _).le (chQ_nonneg _ _ _ _)
-  have hΦ1 : ∀ L, Φ L ≤ 1 := fun L ↦ exp_neg_mul_trCount_mul_chQ_le_one n ξ o L _ _
-  have hΦapp : ∀ u f : List (List ℤ × ℤ), u.length = P → Φ (u ++ f) = Φ u := by
+  have hΦapp : ∀ u f : List (List ℤ × ℤ), u.length = L → Φ (u ++ f) = Φ u := by
     intro u f hu
     simp only [hΦ]
     rw [trCount_append_of_le o u f (by omega), trPath_concat o u f hu.ge]
-  set T : (Fin P → {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}) → ℝ := fun β ↦
-    (∏ k, chBlockWeight (β k)) *
-      (∏ i ∈ Finset.range P,
-        chWhiteFactor n ξ (epsStar : ℝ) (o + chBlockPath (List.ofFn fun k ↦ (β k).1) i)) *
-      (∏ k : Fin P, chInternalWeight n ξ (epsStar : ℝ)
-        (o + chBlockPath (List.ofFn fun k ↦ (β k).1) k) (β k)) *
-      chQ n ξ (epsStar : ℝ) (o + chBlockPath (List.ofFn fun k ↦ (β k).1) P) with hT
-  have hT0 : ∀ β, 0 ≤ T β := fun β ↦
-    mul_nonneg (mul_nonneg (mul_nonneg (prod_chBlockWeight_nonneg β)
-      (Finset.prod_nonneg fun _ _ ↦ chWhiteFactor_nonneg _ _ _ _))
-      (Finset.prod_nonneg fun _ _ ↦ chInternalWeight_nonneg _ _ _ _ _)) (chQ_nonneg _ _ _ _)
-  have hTle : ∀ β, T β ≤ (∏ k, chBlockWeight (β k)) * Φ (List.ofFn fun k ↦ (β k).1) := by
-    intro β
-    set L := List.ofFn fun k ↦ (β k).1 with hL
-    have hlen : L.length = P := List.length_ofFn
-    have hI : (∏ k : Fin P, chInternalWeight n ξ (epsStar : ℝ) (o + chBlockPath L k) (β k)) =
-        ∏ k ∈ Finset.range L.length,
-          chInternalWeight n ξ (epsStar : ℝ) (o + chBlockPath L k) (L.getD k ([], 0)) := by
-      rw [hlen, Finset.prod_range]
-      refine Finset.prod_congr rfl fun k _ ↦ ?_
-      rw [List.getD_eq_getElem _ _ (by rw [hlen]; exact k.2)]
-      simp [hL]
-    have key := prod_chWhiteFactor_mul_prod_chInternalWeight_le n ξ o L
-    rw [← hI, hlen] at key
-    simp only [hT, hΦ]
-    rw [← trPath_eq_add_chBlockPath, ← hL, mul_assoc, mul_assoc]
-    refine mul_le_mul_of_nonneg_left ?_ (prod_chBlockWeight_nonneg β)
-    rw [← mul_assoc]
-    exact mul_le_mul_of_nonneg_right key (chQ_nonneg _ _ _ _)
-  have hTS : Summable T := Summable.of_nonneg_of_le hT0
-    (fun β ↦ (hTle β).trans (mul_le_of_le_one_right (prod_chBlockWeight_nonneg β) (hΦ1 _)))
-    (hasSum_prod_chBlockWeight P).summable
-  rw [chQ_eq_tsum_blockPath_of_nonneg n ξ _ P ho, ENNReal.ofReal_tsum_of_nonneg hT0 hTS]
-  refine (ENNReal.tsum_le_tsum fun β ↦ (ENNReal.ofReal_le_ofReal (hTle β)).trans_eq
-    (ENNReal.ofReal_mul (prod_chBlockWeight_nonneg β))).trans (le_of_eq ?_)
-  rw [← (blockListEquivFin P).tsum_eq]
-  obtain ⟨b, rfl⟩ := Nat.exists_eq_add_of_le hPJ
+  set T : {β : List (List ℤ × ℤ) // β.length = L ∧ ∀ x ∈ β, x.2 ∈ ({4, 5} : Set ℤ)} → ℝ :=
+    fun γ ↦ trListWeight γ.1 * Real.exp (-(zStar : ℝ) * trCount n ξ o γ.1 L) *
+      c3H n ξ (epsStar : ℝ) (o + chBlockPath γ.1 L) with hT
+  have hT0 : ∀ γ, 0 ≤ T γ := fun γ ↦
+    mul_nonneg (mul_nonneg (trListWeight_nonneg _) (Real.exp_pos _).le) (c3H_nonneg _ _ _ _)
+  have hH : c3H n ξ (epsStar : ℝ) o = ∑' γ, T γ := c3H_eq_tsum_blockList n ξ L ho
+  by_cases hTS : Summable T
+  swap
+  · rw [hH, tsum_eq_zero_of_not_summable hTS, ENNReal.ofReal_zero]
+    exact bot_le
+  rw [hH, ENNReal.ofReal_tsum_of_nonneg hT0 hTS]
+  refine (ENNReal.tsum_le_tsum fun γ : {β : List (List ℤ × ℤ) //
+      β.length = L ∧ ∀ x ∈ β, x.2 ∈ ({4, 5} : Set ℤ)} ↦ (ENNReal.ofReal_le_ofReal
+    (trListWeight_mul_exp_mul_c3H_le n ξ o hL γ.1 γ.2.1 γ.2.2)).trans_eq
+    (ENNReal.ofReal_mul (trListWeight_nonneg _))).trans (le_of_eq ?_)
+  obtain ⟨b, rfl⟩ := Nat.exists_eq_add_of_le hLJ
   have hstep : ∀ β : {β : List (List ℤ × ℤ) //
-      β.length = P + b ∧ ∀ x ∈ β, x ∈ {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)}},
-      ENNReal.ofReal (Φ β.1) = ENNReal.ofReal (Φ (trSublist β.1 1 P)) := by
+      β.length = L + b ∧ ∀ x ∈ β, x ∈ {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)}},
+      ENNReal.ofReal (Φ β.1) = ENNReal.ofReal (Φ (trSublist β.1 1 L)) := by
     intro β
     rw [trSublist_one]
-    conv_lhs => rw [← List.take_append_drop P β.1]
+    conv_lhs => rw [← List.take_append_drop L β.1]
     rw [hΦapp _ _ (by rw [List.length_take, β.2.1]; omega)]
   change _ = ∑' β : {β : List (List ℤ × ℤ) //
-      β.length = P + b ∧ ∀ x ∈ β, x ∈ {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)}},
+      β.length = L + b ∧ ∀ x ∈ β, x ∈ {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)}},
     ENNReal.ofReal (trListWeight β.1) * ENNReal.ofReal (Φ β.1)
   simp_rw [hstep]
-  rw [tsum_trListWeight_trSublist {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)} P b
+  rw [tsum_trListWeight_trSublist {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)} L b
     (fun u _ ↦ ENNReal.ofReal (Φ u))]
   refine tsum_congr fun u ↦ ?_
   simp_rw [mul_right_comm _ _ (ENNReal.ofReal (Φ u.1))]
   rw [ENNReal.tsum_mul_left, tsum_ofReal_trListWeight_length_eq, mul_one]
-  obtain ⟨u, rfl, hu'⟩ := u
-  congr 2
-  · simp only [blockListEquivFin, Equiv.coe_fn_mk, trListWeight_eq_prod_fin]
-    rfl
-  · simp only [blockListEquivFin, Equiv.coe_fn_mk]
-    exact congrArg Φ (List.ofFn_getElem)
 
-/-- **Continuation through the first passage.** For `e ∈ 𝒫`, `g ∈ ℕ` and `P ≤ J = ⌊n/2⌋`,
-`Q(e) ≤ ∑_a μ_{e,g}(a) e^{-z_* N^e_{P-1}(a)} Q(y^e_P(a))`, the sum running over the atoms
-`a ∈ 𝒜_n` of the fresh law, with `Q` and whiteness taken at the threshold `ε_*`. -/
+/-- **Continuation through the paid passage.** Let `e ∈ 𝒫` be black for `(n, ξ, ε_*)` and
+`1 ≤ L ≤ J = ⌊n/2⌋`. Then `Q(e) ≤ ∑_{a ∈ 𝒜_n} μ̃_e(a) e^{-z_* N^e_{L-1}(a)} Q(y^e_L(a))`, in
+`[0, ∞]`, with `Q` and whiteness taken at the threshold `ε_*`. -/
 @[collatz_pos_dens "lem_c3_continuation"]
 theorem chQ_le_tsum_trFreshLaw_mul_exp (n : ℕ) (ξ : ResidueGroup n) {e : ℤ × ℤ}
-    (he : e ∈ bkPoints) (g : ℕ) {P : ℕ} (hP : P ≤ n / 2) :
-    chQ n ξ (epsStar : ℝ) e ≤
-      ∑' a : trAtoms n, trFreshLaw n e g a *
-        Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (P - 1))) *
-        chQ n ξ (epsStar : ℝ) (trFreshPath e a P) := by
-  set T : trAtoms n → ℝ := fun a ↦ trFreshLaw n e g a *
-    Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (P - 1))) *
-    chQ n ξ (epsStar : ℝ) (trFreshPath e a P) with hT
-  have hT0 : ∀ a, 0 ≤ T a := fun a ↦ mul_nonneg (mul_nonneg (trFreshLaw_nonneg _ _ _ _)
-    (Real.exp_pos _).le) (chQ_nonneg _ _ _ _)
-  set o : ℕ × ℤ → ℤ × ℤ := fun x ↦ (bkJ e + x.1, bkL e + x.2) with ho
-  set Φ : ℕ × ℤ → List (List ℤ × ℤ) → ℝ := fun x L ↦
-    Real.exp (-((zStar : ℝ) * trCount n ξ (o x) L (P - 1))) *
-      chQ n ξ (epsStar : ℝ) (trPath (o x) L P) with hΦ
-  set S : ℝ≥0∞ := ∑' x : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw g ((x.1 : ℤ), x.2)) *
+    (he : e ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) e) {L : ℕ} (hL : 1 ≤ L)
+    (hLJ : L ≤ n / 2) :
+    ENNReal.ofReal (chQ n ξ (epsStar : ℝ) e) ≤
+      ∑' a : trAtoms n, c3PaidLaw n ξ e a *
+        ENNReal.ofReal (Real.exp (-(zStar : ℝ) * trWhiteCount n ξ e a (L - 1)) *
+          chQ n ξ (epsStar : ℝ) (trFreshPath e a L)) := by
+  set G : ℤ × ℤ → ℝ≥0∞ := fun o ↦
     ∑' β : {β : List (List ℤ × ℤ) //
         β.length = n / 2 ∧ ∀ x ∈ β, x ∈ {x : List ℤ × ℤ | x.2 ∈ ({4, 5} : Set ℤ)}},
-      ENNReal.ofReal (trListWeight β.1) * ENNReal.ofReal (Φ x β.1) with hS
-  have hsplit : ∑' a, ENNReal.ofReal (T a) = S := by
-    rw [← (trAtomsEquiv n).symm.tsum_eq, ENNReal.tsum_prod']
-    refine tsum_congr fun x ↦ ?_
-    rw [← ENNReal.tsum_mul_left]
-    refine tsum_congr fun β ↦ ?_
-    simp only [hT, trAtomsEquiv, Equiv.coe_fn_symm_mk, trFreshLaw_def, hΦ, ho]
-    rw [ENNReal.ofReal_mul (mul_nonneg (mul_nonneg (firstPassageLaw_nonneg _ _)
-        (trListWeight_nonneg _)) (Real.exp_pos _).le),
-      ENNReal.ofReal_mul (mul_nonneg (firstPassageLaw_nonneg _ _) (trListWeight_nonneg _)),
-      ENNReal.ofReal_mul (firstPassageLaw_nonneg _ _),
-      ENNReal.ofReal_mul (Real.exp_pos _).le]
-    simp only [trWhiteCount_def, trFreshPath]
-    ring
-  have hlow : ENNReal.ofReal (chQ n ξ (epsStar : ℝ) e) ≤ S := by
-    have hnn : ∀ x : ℕ × ℤ, 0 ≤ firstPassageLaw g ((x.1 : ℤ), x.2) *
-        chQ n ξ (epsStar : ℝ) (e + ((x.1 : ℤ), x.2)) := fun x ↦
-      mul_nonneg (firstPassageLaw_nonneg _ _) (chQ_nonneg _ _ _ _)
-    have hsum : Summable fun x : ℕ × ℤ ↦ firstPassageLaw g ((x.1 : ℤ), x.2) *
-        chQ n ξ (epsStar : ℝ) (e + ((x.1 : ℤ), x.2)) :=
-      Summable.of_nonneg_of_le hnn
-        (fun x ↦ mul_le_of_le_one_right (firstPassageLaw_nonneg _ _) (chQ_le_one _ _ _ _))
-        (summable_firstPassageLaw_natCast g)
-    refine (ENNReal.ofReal_le_ofReal (chQ_le_tsum_firstPassageLaw_mul n ξ _ g he)).trans ?_
-    rw [ENNReal.ofReal_tsum_of_nonneg hnn hsum]
-    refine ENNReal.tsum_le_tsum fun x ↦ ?_
-    rw [ENNReal.ofReal_mul (firstPassageLaw_nonneg _ _)]
-    gcongr
-    rw [show e + ((x.1 : ℤ), x.2) = o x from rfl]
-    refine ofReal_chQ_le_tsum_trListWeight n ξ ?_ hP
-    have := mem_bkPoints.1 he
-    simp only [ho, bkJ] at this ⊢
-    omega
-  have hup : S ≤ ∑' x : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw g ((x.1 : ℤ), x.2)) := by
-    refine ENNReal.tsum_le_tsum fun x ↦ mul_le_of_le_one_right' ?_
-    refine (ENNReal.tsum_le_tsum fun β ↦ mul_le_of_le_one_right' ?_).trans_eq
-      (tsum_ofReal_trListWeight_length_eq _)
-    exact ENNReal.ofReal_le_one.2 (exp_neg_mul_trCount_mul_chQ_le_one n ξ _ _ _ _)
-  have hfin : ∑' a, ENNReal.ofReal (T a) ≠ ⊤ := by
-    rw [hsplit]
-    refine ne_top_of_le_ne_top ?_ hup
-    rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ firstPassageLaw_nonneg _ _)
-      (summable_firstPassageLaw_natCast g)]
-    exact ENNReal.ofReal_ne_top
-  have hTS : Summable T := by
-    simpa only [ENNReal.toReal_ofReal (hT0 _)] using ENNReal.summable_toReal hfin
-  rwa [← ENNReal.ofReal_le_ofReal_iff (tsum_nonneg hT0), ENNReal.ofReal_tsum_of_nonneg hT0 hTS,
-    hsplit]
+      ENNReal.ofReal (trListWeight β.1) *
+        ENNReal.ofReal (Real.exp (-(zStar : ℝ) * trCount n ξ o β.1 (L - 1)) *
+          chQ n ξ (epsStar : ℝ) (trPath o β.1 L)) with hG
+  set g : ℕ × ℤ → ℝ≥0∞ := fun y ↦
+    c3PaidPassage n ξ e ((y.1 : ℤ), y.2) * G (e + ((y.1 : ℤ), y.2)) with hg
+  rw [ofReal_chQ_eq_tsum_c3PaidPassage n ξ he hb]
+  calc _ ≤ ∑' x : {x : ℤ × ℤ // 1 ≤ x.1}, c3PaidPassage n ξ e x * G (e + x) := by
+        refine ENNReal.tsum_le_tsum fun x ↦ mul_le_mul_right ?_ _
+        refine ofReal_c3H_le_tsum_trListWeight n ξ ?_ hL hLJ
+        have h1 := mem_bkPoints.1 he
+        have h2 := x.2
+        simp only [mem_bkPoints, bkJ, Prod.fst_add] at h1 ⊢
+        omega
+    _ = ∑' x : {x : ℤ × ℤ // 1 ≤ x.1}, g (x.1.1.toNat, x.1.2) := by
+        refine tsum_congr fun x ↦ ?_
+        have hx : (((x.1.1.toNat : ℕ) : ℤ), x.1.2) = x.1 :=
+          Prod.ext (Int.toNat_of_nonneg (by have := x.2; omega)) rfl
+        simp only [hg, hx]
+    _ ≤ ∑' y : ℕ × ℤ, g y := by
+        refine ENNReal.tsum_comp_le_tsum_of_injective
+          (f := fun x : {x : ℤ × ℤ // 1 ≤ x.1} ↦ (x.1.1.toNat, x.1.2)) (fun x x' h ↦ ?_) g
+        simp only [Prod.mk.injEq] at h
+        refine Subtype.ext (Prod.ext ?_ h.2)
+        have := x.2
+        have := x'.2
+        omega
+    _ = _ := by
+        rw [← (trAtomsEquiv n).symm.tsum_eq]
+        conv_rhs => rw [ENNReal.tsum_prod']
+        refine tsum_congr fun y : ℕ × ℤ ↦ ?_
+        simp only [hg, hG]
+        rw [← ENNReal.tsum_mul_left]
+        refine tsum_congr fun β ↦ ?_
+        simp only [trAtomsEquiv, Equiv.coe_fn_symm_mk, c3PaidLaw_def, trWhiteCount_def,
+          trFreshPath, mul_assoc]
+        rfl
 
 end CollatzPosDens

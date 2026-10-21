@@ -6,103 +6,87 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Recipe.F
 public import CollatzPosDens.Recipe.Nstar
-public import CollatzPosDens.Recipe.PhBphys
-public import CollatzPosDens.FirstCrossing.PhDelta
-public import CollatzPosDens.Recipe.Varrho
-public import CollatzPosDens.Recipe.NValue
-public import CollatzPosDens.Recipe.MomentTail
+public import CollatzPosDens.Recipe.PhEj
+public import CollatzPosDens.Recipe.PhEjGeometric
+public import CollatzPosDens.Recipe.TailMargin
+public import Mathlib.Algebra.Order.Field.GeomSum
 
 /-!
-# The central tail after the generation threshold
+# The propagation tail after the generation threshold
 
-Let `F` be the error prefactor, `ϱ = 𝗀^{-1}` the error decay ratio and `N_*` the generation
-threshold. Then
-$$F \sum_{j \ge N_*} j^{5/2} \varrho^j < \frac{47}{32}\, 2^{-24}.$$
+Let `E_j` be the propagation majorant, `N_*` the generation threshold and `θ_tl` the tail
+margin. Then for every `n`,
+$$\sum_{j=N_*}^{n-1} \mathsf E_j < \theta_{\mathrm{tl}}.$$
 
-Since `2^δ = 𝗀`, one has `ϱ^{N_*} = 2^{-N_* δ}`, and the definition of `N_*` gives
-`N_* δ ≥ B_ph + 535/8 = 23 + log₂ F + 535/8`; hence `F ϱ^{N_*} ≤ 2^{-23-535/8}`. As
-`N_* = 6103914 ≥ 6000000`, the whole-tail bound gives
-`F ∑_{j ≥ N_*} j^{5/2} ϱ^j < 162 N_*^{5/2} 2^{-23-535/8}`, and the exact comparison
-`162^8 N_*^{20} 64^8 < 47^8 2^{535}` shows `162 N_*^{5/2} 2^{-535/8} < 47/64`.
+By the geometric majorant
+`E_j ≤ (7584/10^6) ρ^{j-N_*} + 2^{-90} σ^{j-N_*}`, with `ρ = 990945/10^6` and `σ = 199/200`,
+and the finite geometric sums `∑_{i<M} r^i ≤ 1/(1-r)` for `0 ≤ r < 1`, the partial sums are at
+most `(7584/10^6) · 200000/1811 + 200 · 2^{-90} = 7584/9055 + 200 · 2^{-90} = 0.837548…`.
+This is less than `6/7`, by the exact integer comparison `200 · 63385 < 1242 · 2^{90}` (note
+`6/7 - 7584/9055 = 1242/63385`), and `6/7 ≤ θ_tl`.
 
 ## Main results
 
-* `CollatzPosDens.generationThreshold_central_tail_lt`: the tail series is summable and
-  `F ∑_{j ≥ N_*} j^{5/2} ϱ^j < (47/32) 2^{-24}`.
+* `CollatzPosDens.sum_Ico_generationThreshold_propagationMajorant_lt`:
+  `∑_{j=N_*}^{n-1} E_j < θ_tl` for every `n`.
 
 ## Implementation notes
 
-The tail is the sum over the subtype `Set.Ici N_*` of `ℕ`, with `j^{5/2}` the real power of the
-cast; summability is part of the conclusion, so that the bound on the `tsum` is not vacuous.
-The final comparison uses the exact value `N_* = 6103914` rather than the upper bound
-`13 · 10^6` of the source; both make the eighth-power comparison true.
+The statement holds for every `n`, not only for `n ≥ N_*`: for `n ≤ N_*` the sum is empty.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §15.2.
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- `F ϱ^{N_*} ≤ 2^{-23-535/8}`. -/
-private lemma errorPrefactor_mul_pow_generationThreshold_le :
-    errorPrefactor * errorDecayRatio ^ generationThreshold ≤ (2 : ℝ) ^ (-23 - 535 / 8 : ℝ) := by
-  have hδ := logGrowthRate_pos
-  have hN := le_generationThreshold
-  rw [div_le_iff₀ (by positivity), physicalExponent_def] at hN
-  rw [errorDecayRatio_pow_eq_rpow, ← rpow_logGrowthRate, ← Real.rpow_mul (by norm_num),
-    show errorPrefactor = (2 : ℝ) ^ Real.logb 2 errorPrefactor from
-      (Real.rpow_logb (by norm_num) (by norm_num) errorPrefactor_pos).symm,
-    ← Real.rpow_add (by norm_num)]
-  exact Real.rpow_le_rpow_of_exponent_le (by norm_num) (by nlinarith)
+/-- For `0 ≤ r < 1`, `∑_{j=N}^{n-1} r^{j-N} ≤ 1/(1-r)`. -/
+private lemma sum_Ico_pow_sub_le {r : ℝ} (hr₀ : 0 ≤ r) (hr₁ : r < 1) (N n : ℕ) :
+    ∑ j ∈ Finset.Ico N n, r ^ (j - N) ≤ 1 / (1 - r) := by
+  rw [Finset.sum_Ico_eq_sum_range]
+  simp only [Nat.add_sub_cancel_left]
+  rw [Finset.range_eq_Ico]
+  simpa using geom_sum_Ico_le_of_lt_one (m := 0) (n := n - N) hr₀ hr₁
 
-set_option exponentiation.threshold 600 in
-/-- `162 N_*^{5/2} 2^{-535/8} < 47/64`, via the eighth-power comparison. -/
-private lemma generationThreshold_central_tail_const :
-    162 * ((generationThreshold : ℝ) ^ (5 / 2 : ℝ)) * (2 : ℝ) ^ (-535 / 8 : ℝ) < 47 / 64 := by
-  rw [generationThreshold_eq]
-  have h0 : 0 ≤ 162 * ((6103914 : ℕ) : ℝ) ^ (5 / 2 : ℝ) * (2 : ℝ) ^ (-535 / 8 : ℝ) := by
-    positivity
-  refine (pow_lt_pow_iff_left₀ h0 (by norm_num) (n := 8) (by norm_num)).1 ?_
-  rw [mul_pow, mul_pow, ← Real.rpow_natCast (_ ^ (5 / 2 : ℝ)),
-    ← Real.rpow_natCast ((2 : ℝ) ^ _), ← Real.rpow_mul (by positivity),
-    ← Real.rpow_mul (by norm_num),
-    show (5 / 2 : ℝ) * ((8 : ℕ) : ℝ) = ((20 : ℕ) : ℝ) by norm_num,
-    show (-535 / 8 : ℝ) * ((8 : ℕ) : ℝ) = ((-535 : ℤ) : ℝ) by norm_num,
-    Real.rpow_natCast, Real.rpow_intCast]
-  norm_num
+/-- `∑_{j=N_*}^{n-1} E_j < 6/7` for every `n`. -/
+private lemma sum_Ico_generationThreshold_propagationMajorant_lt_six_sevenths (n : ℕ) :
+    ∑ j ∈ Finset.Ico generationThreshold n, propagationMajorant j < 6 / 7 := by
+  have hsum := Finset.sum_le_sum (s := Finset.Ico generationThreshold n)
+    fun j hj => propagationMajorant_le_geometric (Finset.mem_Ico.1 hj).1
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum] at hsum
+  have hρ := sum_Ico_pow_sub_le (r := 990945 / 10 ^ 6) (by norm_num) (by norm_num)
+    generationThreshold n
+  have hσ := sum_Ico_pow_sub_le (r := 199 / 200) (by norm_num) (by norm_num)
+    generationThreshold n
+  have h90 : (0 : ℝ) < 2 ^ (-90 : ℤ) := by positivity
+  have hcert : (200 * 63385 : ℕ) < 1242 * 2 ^ 90 := by decide +kernel
+  have hR : (200 : ℝ) * 63385 < 1242 * 2 ^ 90 := by exact_mod_cast hcert
+  have h2 : (200 : ℝ) * 2 ^ (-90 : ℤ) < 1242 / 63385 := by
+    rw [zpow_neg, zpow_ofNat, lt_div_iff₀ (by norm_num), mul_assoc, mul_comm _ (63385 : ℝ),
+      ← mul_assoc, ← div_eq_mul_inv, div_lt_iff₀ (by positivity)]
+    linarith
+  have hρ' : (7584 / 10 ^ 6 : ℝ) * ∑ j ∈ Finset.Ico generationThreshold n,
+      (990945 / 10 ^ 6 : ℝ) ^ (j - generationThreshold) ≤ 7584 / 9055 := by
+    calc _ ≤ (7584 / 10 ^ 6 : ℝ) * (1 / (1 - 990945 / 10 ^ 6)) := by gcongr
+      _ = 7584 / 9055 := by norm_num
+  have hσ' : (2 : ℝ) ^ (-90 : ℤ) * ∑ j ∈ Finset.Ico generationThreshold n,
+      (199 / 200 : ℝ) ^ (j - generationThreshold) ≤ 200 * 2 ^ (-90 : ℤ) := by
+    calc _ ≤ (2 : ℝ) ^ (-90 : ℤ) * (1 / (1 - 199 / 200)) := by gcongr
+      _ = 200 * 2 ^ (-90 : ℤ) := by norm_num
+  have : (7584 / 9055 : ℝ) + 1242 / 63385 = 6 / 7 := by norm_num
+  linarith
 
-/-- **Central tail after `N_*`.** The series `∑_{j ≥ N_*} j^{5/2} ϱ^j` is summable and
-`F ∑_{j ≥ N_*} j^{5/2} ϱ^j < (47/32) 2^{-24}`. -/
+/-- **Tail after `N_*`.** For every `n`, `∑_{j=N_*}^{n-1} E_j < θ_tl`. -/
 @[collatz_pos_dens "lem_Nstar_tail"]
-theorem generationThreshold_central_tail_lt :
-    Summable (fun j : Set.Ici generationThreshold =>
-        ((j : ℕ) : ℝ) ^ (5 / 2 : ℝ) * errorDecayRatio ^ (j : ℕ)) ∧
-      errorPrefactor * ∑' j : Set.Ici generationThreshold,
-          ((j : ℕ) : ℝ) ^ (5 / 2 : ℝ) * errorDecayRatio ^ (j : ℕ) <
-        47 / 32 * (2 : ℝ) ^ (-24 : ℤ) := by
-  obtain ⟨hs, hlt⟩ := moment_tail_lt (d := 5 / 2) (by norm_num)
-    (n := generationThreshold) (by rw [generationThreshold_eq]; norm_num)
-  refine ⟨hs, ?_⟩
-  have hsplit : (2 : ℝ) ^ (-23 - 535 / 8 : ℝ) = (2 : ℝ) ^ (-535 / 8 : ℝ) * 2 ^ (-23 : ℤ) := by
-    rw [← Real.rpow_intCast, ← Real.rpow_add (by norm_num)]
-    norm_num
-  calc errorPrefactor * ∑' j : Set.Ici generationThreshold,
-          ((j : ℕ) : ℝ) ^ (5 / 2 : ℝ) * errorDecayRatio ^ (j : ℕ)
-      < errorPrefactor * (162 * ((generationThreshold : ℝ) ^ (5 / 2 : ℝ) *
-          errorDecayRatio ^ generationThreshold)) := mul_lt_mul_of_pos_left hlt errorPrefactor_pos
-    _ = 162 * (generationThreshold : ℝ) ^ (5 / 2 : ℝ) *
-          (errorPrefactor * errorDecayRatio ^ generationThreshold) := by ring
-    _ ≤ 162 * (generationThreshold : ℝ) ^ (5 / 2 : ℝ) * (2 : ℝ) ^ (-23 - 535 / 8 : ℝ) :=
-        mul_le_mul_of_nonneg_left errorPrefactor_mul_pow_generationThreshold_le (by positivity)
-    _ = (162 * (generationThreshold : ℝ) ^ (5 / 2 : ℝ) * (2 : ℝ) ^ (-535 / 8 : ℝ)) *
-          2 ^ (-23 : ℤ) := by rw [hsplit]; ring
-    _ < 47 / 64 * 2 ^ (-23 : ℤ) :=
-        mul_lt_mul_of_pos_right generationThreshold_central_tail_const (by positivity)
-    _ = 47 / 32 * (2 : ℝ) ^ (-24 : ℤ) := by norm_num
+theorem sum_Ico_generationThreshold_propagationMajorant_lt (n : ℕ) :
+    ∑ j ∈ Finset.Ico generationThreshold n, propagationMajorant j < (tailMargin : ℝ) := by
+  refine (sum_Ico_generationThreshold_propagationMajorant_lt_six_sevenths n).trans_le ?_
+  have h : (6 / 7 : ℚ) ≤ tailMargin := by norm_num [tailMargin_def]
+  calc (6 / 7 : ℝ) = ((6 / 7 : ℚ) : ℝ) := by norm_num
+    _ ≤ (tailMargin : ℝ) := Rat.cast_le.2 h
 
 end CollatzPosDens

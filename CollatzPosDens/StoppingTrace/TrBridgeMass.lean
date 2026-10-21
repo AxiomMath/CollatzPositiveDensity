@@ -6,7 +6,7 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Transfer.Gamma
+public import CollatzPosDens.Transfer.S02Gamma
 public import CollatzPosDens.StoppingTrace.TrCount
 public import CollatzPosDens.StoppingTrace.TrFirstStopSet
 public import CollatzPosDens.StoppingTrace.TrListWeight
@@ -16,9 +16,9 @@ public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 /-!
 # The bridge mass
 
-Fix a level `n` and a residue `ξ ∈ G_n`; points are coloured black or white at level `n`, residue
-`ξ` and colour scale `ε_*`. For a base point `y ∈ 𝒫`, the *bridge mass* is the tilted weight of
-the first-stop lists from `y`,
+Fix a level `n` and a residue `ξ ∈ G_n`. A point is black when it satisfies
+`CollatzPosDens.BkBlack n ξ ε_*` at the colour scale `ε_*`, and white otherwise. For a base point
+`y`, the *bridge mass* is the tilted weight of the first-stop lists from `y`,
 ```
 g_br(y) = ∑_{b ∈ 𝒰(y)} bw^⊗(b) e^{-γ_* N^*(y, b; |b|)} ∈ [0, ∞].
 ```
@@ -39,13 +39,12 @@ first-stop list is the empty one and `g_br(y) = 1`.
 
 The sum ranges over the subtype of the set `𝒰(y)` (`CollatzPosDens.trFirstStopSet` at the
 colour scale `ε_*`) and is the unconditional sum `tsum` in `[0, ∞]`, so it is always defined
-and may be infinite. Each real factor enters through `ENNReal.ofReal`; both factors are
-nonnegative, so nothing is truncated. The base point `y` ranges over all of `ℤ × ℤ`, which
-generalizes `y ∈ 𝒫`.
+and may be infinite, as in the source. Each real factor enters through `ENNReal.ofReal`; both
+factors are nonnegative, so nothing is truncated. The base point `y` ranges over all of `ℤ × ℤ`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §9.5.
+* [Mazur, *Collatz positive density*], §9.5.
 -/
 
 @[expose] public section

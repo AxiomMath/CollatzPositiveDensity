@@ -24,8 +24,7 @@ one of the rounded logarithmic scale parameters of the first-crossing argument.
 * `CollatzPosDens.lb_def`: the unfolding `ℓ_b = b - w_b`.
 * `CollatzPosDens.lb_add_wb`: `ℓ_b + w_b = b`, so the subtraction is exact.
 * `CollatzPosDens.lb_eq`: the closed form `ℓ_b = b - 3b/5` (natural-number division).
-* `CollatzPosDens.lb_le_self`: `ℓ_b ≤ b`.
-* `CollatzPosDens.cast_lb`: the cast of `ℓ_b` is the difference of the casts of `b` and `w_b`.
+* `CollatzPosDens.lb_le`: `ℓ_b ≤ b`.
 
 ## Implementation notes
 
@@ -34,7 +33,7 @@ cast to any additive group with one agrees with the integer difference (`cast_lb
 
 ## References
 
-* [Mazur, *Collatz positive density*], §15.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -55,7 +54,7 @@ theorem lb_add_wb (b : ℕ) : lb b + wb b = b := Nat.sub_add_cancel (wb_le_self 
 theorem lb_eq (b : ℕ) : lb b = b - 3 * b / 5 := rfl
 
 /-- `ℓ_b ≤ b`. -/
-theorem lb_le_self (b : ℕ) : lb b ≤ b := Nat.sub_le _ _
+theorem lb_le (b : ℕ) : lb b ≤ b := Nat.sub_le _ _
 
 /-- The cast of `ℓ_b` is the difference of the casts of `b` and `w_b`. -/
 theorem cast_lb {R : Type*} [AddGroupWithOne R] (b : ℕ) : (lb b : R) = b - wb b :=

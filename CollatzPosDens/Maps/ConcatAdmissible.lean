@@ -7,7 +7,7 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Maps.InverseOrbitOdd
-public import CollatzPosDens.Maps.ConcatOrbit
+public import CollatzPosDens.Maps.S01ConcatOrbit
 
 /-!
 # Admissibility of a concatenation

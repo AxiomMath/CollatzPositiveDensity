@@ -9,35 +9,36 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Maps.InverseOrbit
 public import CollatzPosDens.Maps.Valsum
-public import CollatzPosDens.OrdinaryTime.FullWord
-public import CollatzPosDens.Seed.GoodSeed
-public import CollatzPosDens.OrdinaryTime.SelectedPair
+public import CollatzPosDens.OrdinaryTime.S07FullWord
+public import CollatzPosDens.OrdinaryTime.S07SelectedPair
 public import CollatzPosDens.OrdinaryTime.OrbitLarge
+public import CollatzPosDens.Recipe.TargetFloor
 
 /-!
 # The telescoping bound for the valuation sum of a full word
 
-Let `s ≥ 1`, let `M` be an `s`-good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of
-level `(M, n, X)` with full word `𝐰` of length `d` and source `x`. Then
-`A(𝐰) log 2 ≤ log x - log M + d θ`, where `θ = log (3 + 1/4096)`.
+Let `t₁` be an odd integer with `t₁ ≥ targetFloor`, `n ∈ ℕ`, `X` real, and `(h, w)` a selected
+pair of level `(t₁, n, X)` with full word `fullWord h w` of length `d` and source
+`x = selectedPairSource t₁ h w`. Then
+`A(fullWord h w) log 2 ≤ log x - log t₁ + d log (3 + 1/4096)`, where `A` is `Word.valSum`.
 
-Writing `𝐰 = (a₁, …, a_d)` with inverse orbit `R₀ = M, …, R_d = x`, the relation
-`3 R_i + 1 = 2^{a_i} R_{i-1}` gives
-`a_i log 2 = log R_i - log R_{i-1} + log (3 + 1/R_i)`, which telescopes; each correction
-`log (3 + 1/R_i)` is at most `θ` because `R_i ≥ 4096`.
+Writing the word as `(a₁, …, a_d)` with inverse orbit `R₀ = t₁, …, R_d = x`, the relation
+`3 R_i + 1 = 2^{a_i} R_{i-1}` gives `a_i log 2 = log R_i - log R_{i-1} + log (3 + 1/R_i)`, which
+telescopes; each correction `log (3 + 1/R_i)` is at most `log (3 + 1/4096)` because
+`R_i ≥ 4096`.
 
 ## Main results
 
-* `CollatzPosDens.valSum_mul_log_two_le_of_le_inverseOrbit`: the telescoping bound for any
-  word whose inverse orbit stays above a positive constant `c`.
+* `CollatzPosDens.valSum_mul_log_two_le_of_le_inverseOrbit`: the telescoping bound for any word
+  whose inverse orbit stays above a positive constant `c`.
 * `CollatzPosDens.valSum_fullWord_mul_log_two_le`: the telescoping bound for the full word of a
   selected pair.
 
 ## Implementation notes
 
-The constant `θ = log (12289/4096)` is not given a name; it is written out as
-`Real.log (3 + 1 / 4096)`. The general form replaces `4096` by any positive lower bound `c` of
-the inverse orbit and the selected pair by an arbitrary word.
+The general form replaces `4096` by any positive lower bound `c` of the inverse orbit and the
+selected pair by an arbitrary word. The positivity of `X` is not used, so the full-word bound is
+stated for every real `X`.
 
 ## References
 
@@ -98,21 +99,24 @@ theorem valSum_mul_log_two_le_of_le_inverseOrbit {c : ℚ} (hc : 0 < c) :
     push_cast
     nlinarith
 
-/-- **Telescoping bound for full words**. Let `s ≥ 1` and let `M` be
-an `s`-good seed, `n ∈ ℕ`, `X > 0`, and `(h, w)` a selected pair of level `(M, n, X)` with
-full word `𝐰` of length `d` and source `x = src(w, R_h)`. Then
-`A(𝐰) log 2 ≤ log x - log M + d θ`, where `θ = log (3 + 1/4096)`. -/
+/-- **Telescoping bound for full words.** Let `t₁` be an odd integer with `t₁ ≥ targetFloor`,
+`X` real, and `(h, w)` a selected pair of level `(t₁, n, X)`. Then
+`A(fullWord h w) log 2 ≤ log (selectedPairSource t₁ h w) - log t₁ + d log (3 + 1/4096)`, where
+`d` is the length of `fullWord h w`. -/
 @[collatz_pos_dens "lem_telescope"]
-theorem valSum_fullWord_mul_log_two_le {n : ℕ} {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
-    {X : ℝ} (hX : 0 < X) {h : Fin n → Word} {w : Word} (hp : IsSelectedPair n X M h w) :
+theorem valSum_fullWord_mul_log_two_le {n : ℕ} {t₁ : ℤ} (hodd : Odd t₁)
+    (ht₁ : (targetFloor : ℤ) ≤ t₁) {X : ℝ} {h : Fin n → Word} {w : Word}
+    (hp : IsSelectedPair n X t₁ h w) :
     (Word.valSum (fullWord h w) : ℝ) * log 2 ≤
-      log (selectedPairSource M h w : ℝ) - log (M : ℝ) +
+      log (selectedPairSource t₁ h w : ℝ) - log (t₁ : ℝ) +
         (fullWord h w).length * log (3 + 1 / 4096) := by
   have key := valSum_mul_log_two_le_of_le_inverseOrbit (c := 4096) (by norm_num)
-    (fullWord h w) M fun i hi => four_thousand_ninety_six_le_inverseOrbit_fullWord hM hs hX hp hi
-  have hsrc : src (fullWord h w) (M : ℚ) = selectedPairSource M h w := by
+    (fullWord h w) t₁ fun i hi =>
+      four_thousand_ninety_six_le_inverseOrbit_fullWord hodd ht₁ hp hi
+  have hsrc : src (fullWord h w) (t₁ : ℚ) = selectedPairSource t₁ h w := by
     rw [selectedPairSource, historyEndpoint_eq_src, fullWord, src_append]
-  rw [hsrc] at key
-  simpa using key
+  have h4 : ((4096 : ℚ) : ℝ) = 4096 := by norm_num
+  rw [hsrc, h4, Rat.cast_intCast] at key
+  exact key
 
 end CollatzPosDens

@@ -12,6 +12,8 @@ public import CollatzPosDens.BlackSet.BkPoints
 public import CollatzPosDens.BlackSet.BkTriangle
 public import CollatzPosDens.Transfer.ResidueGroup
 public import CollatzPosDens.BlackSet.BkClaimStar
+public import CollatzPosDens.BlackSet.BkCardinal
+public import CollatzPosDens.BlackSet.BkNeighbourhood
 public import CollatzPosDens.BlackSet.BkColtopSpec
 public import CollatzPosDens.BlackSet.BkRowstartSpec
 public import CollatzPosDens.BlackSet.BkSizeNonneg
@@ -22,9 +24,11 @@ public import CollatzPosDens.BlackSet.BkSizeNonneg
 Let `ξ` be a unit, `0 < ε < 1/27` and `p = (j, l)` black, with `Δ(p) = (j_*, l_*, s)`.
 Then `p ∈ Δ(p)`.
 
-By `CollatzPosDens.not_bkBlack_of_bkDist_le_one`, a black point at distance `1` from a point of
-`Δ(p)` lies in `Δ(p)`. The corner `(j_*, l_*)` lies in `Δ(p)` since `s ≥ 0`; the row `l_*` is
-black from `j_*` to `j` and the column `j` is black from `l_*` down to `l`, so `p ∈ Δ(p)`.
+By Claim (*), a black cardinal neighbour of a point of `Δ(p)` lies in `Δ(p)`: otherwise it
+would lie in the cardinal neighbourhood `𝒩(Δ(p))`, none of whose points is black. The corner
+`(j_*, l_*)` lies in `Δ(p)` since `s ≥ 0`; walking right along the row `l_*` (all black by the
+characterization of `j_*`) reaches `(j, l_*)`, and walking down the column `j` (all black by the
+characterization of `l_*`) reaches `(j, l) = p`.
 
 ## Main results
 
@@ -32,7 +36,7 @@ black from `j_*` to `j` and the column `j` is black from `l_*` down to `l`, so `
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §5.6.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -47,12 +51,13 @@ theorem mem_bkCanonTriangle_self {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p :
     (hp : p ∈ bkPoints) (hb : BkBlack n ξ ε p) :
     p ∈ bkCanonTriangle n ξ ε p hp := by
   set Δ := bkCanonTriangle n ξ ε p hp
-  -- Black neighbours of points of `Δ(p)` lie in `Δ(p)`.
-  have step : ∀ x y : ℤ × ℤ, x ∈ Δ → y ∈ bkPoints → BkBlack n ξ ε y → bkDist y x = 1 →
-      y ∈ Δ := by
-    intro x y hx hy hyb hd
+  -- Black cardinal neighbours of points of `Δ(p)` lie in `Δ(p)`.
+  have step : ∀ x y : ℤ × ℤ, x ∈ Δ → y ∈ bkPoints → BkBlack n ξ ε y →
+      BkCardinalNeighbour y x → y ∈ Δ := by
+    intro x y hx hy hyb hyx
     by_contra hyΔ
-    exact not_bkBlack_of_bkDist_le_one hξ hε₀ hε hp hb hy hyΔ hx hd.le hyb
+    exact not_bkBlack_of_bkDist_le_one hξ hε₀ hε hp hb
+      (mem_bkNeighbourhood_of hy hyΔ hx hyx) hyb
   obtain ⟨hjs1, hjsj, hrow, -⟩ := (eq_bkRowStart_iff hp hb (bkRowStart n ξ ε p)).1 rfl
   obtain ⟨hlls, hcol, -⟩ := (eq_bkColTop_iff hξ (by linarith) hp hb (bkColTop n ξ ε p)).1 rfl
   -- Walk right along the row `l_*`.
@@ -64,7 +69,7 @@ theorem mem_bkCanonTriangle_self {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p :
     | succ k hk ih =>
       intro hkj
       exact step _ _ (ih (by omega)) (mem_bkPoints_mk.2 (by omega))
-        (hrow (k + 1) (by omega) hkj) (bkDist_add_one_fst _ _)
+        (hrow (k + 1) (by omega) hkj) (by simp [bkCardinalNeighbour_iff, bkJ, bkL])
   -- Walk down the column `j`.
   have hcolmem : ∀ m : ℤ, m ≤ bkColTop n ξ ε p → bkL p ≤ m → (bkJ p, m) ∈ Δ := by
     intro m hm
@@ -73,8 +78,7 @@ theorem mem_bkCanonTriangle_self {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p :
     | pred m hm ih =>
       intro hlm
       exact step _ _ (ih (by omega)) (mem_bkPoints_mk.2 hp)
-        (hcol (m - 1) hlm (by omega))
-        ((bkDist_comm _ _).trans (by simpa using bkDist_add_one_snd _ (m - 1)))
+        (hcol (m - 1) hlm (by omega)) (by simp [bkCardinalNeighbour_iff, bkJ, bkL])
   simpa using hcolmem (bkL p) hlls le_rfl
 
 end CollatzPosDens

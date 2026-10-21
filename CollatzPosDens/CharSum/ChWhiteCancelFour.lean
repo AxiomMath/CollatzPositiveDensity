@@ -8,43 +8,45 @@ module
 public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkSignedFrac
 public import CollatzPosDens.BlackSet.BkTheta
-public import CollatzPosDens.CharSum.ChPairFactor
+public import CollatzPosDens.CharSum.ChRawFactor
+public import CollatzPosDens.CharSum.ChPacketFn
 public import CollatzPosDens.CharSum.ChU0
 public import CollatzPosDens.CharSum.ChV0
 public import CollatzPosDens.CharSum.ChExpCubic
 public import CollatzPosDens.CharSum.ChFiber4Numeric
-public import CollatzPosDens.CharSum.ChFpFormula
 public import CollatzPosDens.CharSum.ChV0Lower
+public import CollatzPosDens.Transfer.EpsStar
+public import CollatzPosDens.Transfer.S02Z
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 
 /-!
 # Cancellation at a white closing letter `4`
 
-Fix `n : ℕ` and `ξ ∈ G_n`. If the angle `ϑ = ϑ_{n,ξ}(j, s + 4)` satisfies `|ϑ| > 8 / 217`, then
-the pair factor satisfies `Fp(j, s, 4) < e^{-21/500}`.
+Fix `n : ℕ` and `ξ ∈ G_n`. If the angle `ϑ = ϑ_{n,ξ}(p)` of a point `p` satisfies `|ϑ| > ε_*`,
+then the raw factor with `c = 4` is small: `φ_4(p) < e^{-z_*}`.
 
-By the formula for the pair factor through the angle, `Fp(j, s, 4) = |1 + E + E³| / 3` with
-`E = e^{-2πiϑ}`. Writing `u = sin²(πϑ)`, the multiple-angle formulas give
-`|1 + E + E³|² = 9 - 4R(u)` with `R(u) = 14u - 28u² + 16u³`. Since `π|ϑ| ∈ (v∘, π/2]`, the cubic
-Taylor bound for the sine gives `u > u∘`. On `[0, 1/4]` the cubic `R` is nondecreasing, and for
-`u > 1/4` one has `R(u) - 7u/4 = 16u(u - 7/8)² ≥ 0`; hence `R(u) ≥ min(R(u∘), 7/16)`. The
-numerical inequality for the letter `4` and the cubic lower bound for `e^{-t}` at `t = 2 · 21/500`
-then give `9 Fp(j, s, 4)² < 9 e^{-2 · 21/500}`.
+By `chPacketFn` (exponents `0, 1, 3`), `φ_4(p) = |1 + E + E³| / 3` with `E = e^{2πiϑ}`.
+Writing `u = sin²(πϑ)`, the multiple-angle formulas give `|1 + E + E³|² = 9 - 4R(u)` with
+`R(u) = 14u - 28u² + 16u³`. Since `π|ϑ| ∈ (v∘, π/2]`, the cubic Taylor bound for the sine gives
+`u > u∘`. On `[0, 1/4]` the cubic `R` is nondecreasing, and for `u > 1/4` one has
+`R(u) - 7u/4 = 16u(u - 7/8)² ≥ 0`; hence `R(u) ≥ min(R(u∘), 7/16)`. The numerical inequality
+`ch_fiber4_numeric_real` and the cubic lower bound `cubic_le_exp_neg` for `e^{-t}` at `t = 2z_*`
+then give `9 φ_4(p)² < 9 e^{-2z_*}`.
 
 ## Main results
 
-* `CollatzPosDens.chPairFactor_four_lt_exp_neg`: `Fp(j, s, 4) < e^{-21/500}` whenever
-  `|ϑ_{n,ξ}(j, s + 4)| > 8 / 217`.
-* `CollatzPosDens.chPairFactor_four_sq_eq`: `9 Fp(j, s, 4)² = 9 - 4R(sin²(πϑ))`.
+* `CollatzPosDens.chPairFactor_four_lt_exp_neg`: `φ_4(p) < e^{-z_*}` whenever
+  `|ϑ_{n,ξ}(p)| > ε_*`.
+* `CollatzPosDens.chPacketFn_three_sq_eq`: `9 Φ_3(θ)² = 9 - 4R(sin²(πθ))`.
 
 ## Implementation notes
 
-The hypothesis `j ≥ 1` of the source is not needed, since the formula for the pair factor through
-the angle holds for every natural number `j`.
+The point `p` ranges over all of `ℤ × ℤ`, not only over `𝒫`, since the angle and the raw factor
+are defined there; the statement on `𝒫` is a special case.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §7.1.
 -/
 
 @[expose] public section
@@ -75,59 +77,58 @@ private lemma norm_one_add_exp_add_exp_three_sq (a : ℝ) :
   linear_combination
     16 * (1 - 2 * (S ^ 2 + (1 - C ^ 2)) + S ^ 4 + S ^ 2 * (1 - C ^ 2) + (1 - C ^ 2) ^ 2) * hp
 
-/-- The pair factor at the closing letter `4` through `u = sin²(πϑ)`:
-`9 Fp(j, s, 4)² = 9 - 4(14u - 28u² + 16u³)` with `ϑ = ϑ_{n,ξ}(j, s + 4)`. -/
-theorem chPairFactor_four_sq_eq (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : ℤ) :
-    9 * chPairFactor n ξ j s 4 ^ 2 =
-      9 - 4 * (14 * sin (π * bkTheta n ξ ((j : ℤ), s + 4)) ^ 2 -
-        28 * (sin (π * bkTheta n ξ ((j : ℤ), s + 4)) ^ 2) ^ 2 +
-        16 * (sin (π * bkTheta n ξ ((j : ℤ), s + 4)) ^ 2) ^ 3) := by
-  set θ := bkTheta n ξ ((j : ℤ), s + 4)
-  rw [chPairFactor_eq_norm_sum_exp_bkTheta n ξ j s (by norm_num : (2 : ℤ) ≤ 4)]
-  have hI : Finset.Icc 1 ((4 : ℤ).toNat - 1) = {1, 2, 3} := by decide
-  have hsum : ∑ t ∈ Finset.Icc 1 ((4 : ℤ).toNat - 1),
-      Complex.exp (-2 * π * Complex.I * ((2 : ℂ) ^ (t - 1) - 1) * (θ : ℂ)) =
-      1 + Complex.exp (↑(-2 * π * θ) * Complex.I) +
-        Complex.exp (↑(3 * (-2 * π * θ)) * Complex.I) := by
-    rw [hI, Finset.sum_insert (by decide), Finset.sum_insert (by decide),
-      Finset.sum_singleton]
+/-- The packet function of length `3` through `u = sin²(πθ)`:
+`9 Φ_3(θ)² = 9 - 4(14u - 28u² + 16u³)`. -/
+theorem chPacketFn_three_sq_eq (θ : ℝ) :
+    9 * chPacketFn 3 θ ^ 2 =
+      9 - 4 * (14 * sin (π * θ) ^ 2 - 28 * (sin (π * θ) ^ 2) ^ 2 +
+        16 * (sin (π * θ) ^ 2) ^ 3) := by
+  rw [chPacketFn_def]
+  simp only [Finset.sum_range_succ, Finset.sum_range_zero, zero_add]
+  have hsum : Complex.exp (2 * π * Complex.I * ((((2 : ℝ) ^ 0 - 1) * θ : ℝ) : ℂ)) +
+      Complex.exp (2 * π * Complex.I * ((((2 : ℝ) ^ 1 - 1) * θ : ℝ) : ℂ)) +
+      Complex.exp (2 * π * Complex.I * ((((2 : ℝ) ^ 2 - 1) * θ : ℝ) : ℂ)) =
+      1 + Complex.exp (↑(2 * π * θ) * Complex.I) +
+        Complex.exp (↑(3 * (2 * π * θ)) * Complex.I) := by
+    push_cast
     norm_num
-    rw [add_assoc]
-    congr 3 <;> ring
-  rw [hsum, mul_pow, norm_one_add_exp_add_exp_three_sq,
-    show -2 * π * θ / 2 = -(π * θ) by ring, sin_neg, neg_sq]
+    congr 2 <;> ring_nf
+  rw [hsum, mul_pow, norm_one_add_exp_add_exp_three_sq, show 2 * π * θ / 2 = π * θ by ring]
+  norm_num
   ring
 
-/-- **Cancellation at a white closing letter `4`.** If `|ϑ_{n,ξ}(j, s + 4)| > 8 / 217`, then
-`Fp(j, s, 4) < e^{-21/500}`. -/
+/-- **Cancellation at a white closing letter `4`.** If `|ϑ_{n,ξ}(p)| > ε_*`, then
+`φ_4(p) < exp(-z_*)`. -/
 @[collatz_pos_dens "lem_ch_white_cancel_four"]
-theorem chPairFactor_four_lt_exp_neg (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (s : ℤ)
-    (h : 8 / 217 < |bkTheta n ξ ((j : ℤ), s + 4)|) :
-    chPairFactor n ξ j s 4 < exp (-(21 / 500)) := by
-  set θ := bkTheta n ξ ((j : ℤ), s + 4)
-  have hsq := chPairFactor_four_sq_eq n ξ j s
+theorem chPairFactor_four_lt_exp_neg {n : ℕ} {ξ : ResidueGroup n} {p : ℤ × ℤ}
+    (h : (epsStar : ℝ) < |bkTheta n ξ p|) :
+    chRawFactor n ξ 4 p < exp (-(zStar : ℝ)) := by
+  rw [chRawFactor_of_two_le n ξ (by norm_num), show ((4 : ℤ) - 1).toNat = 3 by decide]
+  set θ := bkTheta n ξ p
+  have hsq := chPacketFn_three_sq_eq θ
   set u := sin (π * θ) ^ 2
-  -- `u = sin²(π|θ|)`
   have hu_abs : u = sin (π * |θ|) ^ 2 := by
     rcases abs_cases θ with ⟨h1, -⟩ | ⟨h1, -⟩
     · rw [h1]
     · rw [h1, mul_neg, sin_neg, neg_sq]
-  -- lower bound `u > u∘`
   obtain ⟨hv0, hv1⟩ := chV0_pos_lt
   have hτ : |θ| ≤ 1 / 2 := abs_bkTheta_le n ξ _
   have hπ := pi_pos
-  have hlt : (chV0 : ℝ) < π * |θ| := by linarith [mul_lt_mul_of_pos_left h hπ]
+  have hlt : (chV0 : ℝ) < π * |θ| := hv1.trans (mul_lt_mul_of_pos_left h hπ)
   have hle : π * |θ| ≤ π / 2 := by nlinarith
   have hsin : sin (chV0 : ℝ) < sin (π * |θ|) :=
     sin_lt_sin_of_lt_of_le_pi_div_two (by linarith) hle hlt
-  have hcub : (chV0 : ℝ) - (chV0 : ℝ) ^ 3 / 6 ≤ sin (chV0 : ℝ) := sin_ge_sub_cube hv0.le
+  have hcub : (chV0 : ℝ) - (chV0 : ℝ) ^ 3 / 6 ≤ sin (chV0 : ℝ) := by
+    have h3 := Real.abs_sub_sin_le (chV0 : ℝ)
+    rw [abs_of_pos hv0] at h3
+    linarith [le_abs_self ((chV0 : ℝ) - sin (chV0 : ℝ))]
   have hcpos : (0 : ℝ) < (chV0 : ℝ) - (chV0 : ℝ) ^ 3 / 6 := by exact_mod_cast chV0_sub_cube_pos
   have hu0 : (chU0 : ℝ) < u := by
     rw [hu_abs, chU0_def]
     push_cast
     exact pow_lt_pow_left₀ (hcub.trans_lt hsin) hcpos.le two_ne_zero
   have hu0q : (chU0 : ℝ) ≤ 1 / 4 := by rw [chU0_eq]; norm_num
-  -- lower bound for `R(u)`
+  have hu0n : (0 : ℝ) ≤ chU0 := by exact_mod_cast chU0_nonneg
   have hR : min (14 * (chU0 : ℝ) - 28 * (chU0 : ℝ) ^ 2 + 16 * (chU0 : ℝ) ^ 3) (7 / 16) ≤
       14 * u - 28 * u ^ 2 + 16 * u ^ 3 := by
     rcases le_or_gt u (1 / 4) with hu | hu
@@ -138,14 +139,15 @@ theorem chPairFactor_four_lt_exp_neg (n : ℕ) (ξ : ResidueGroup n) (j : ℕ) (
     · refine min_le_of_right_le ?_
       nlinarith [mul_nonneg (by linarith : (0 : ℝ) ≤ 16 * u) (sq_nonneg (u - 7 / 8))]
   have hnum := ch_fiber4_numeric_real
-  have hexp := cubic_le_exp_neg (t := 2 * (21 / 500)) (by norm_num)
-  have hexp2 : exp (-(2 * (21 / 500) : ℝ)) = exp (-(21 / 500)) ^ 2 := by
+  have hexp := cubic_le_exp_neg (t := 2 * (zStar : ℝ)) (by rw [zStar_cast]; norm_num)
+  have hexp2 : exp (-(2 * (zStar : ℝ))) = exp (-(zStar : ℝ)) ^ 2 := by
     rw [← exp_nat_mul]
     norm_num
-  have h9 : 9 * chPairFactor n ξ j s 4 ^ 2 < 9 * exp (-(21 / 500)) ^ 2 := by
+  rw [zStar_cast] at hexp hexp2 ⊢
+  have h9 : 9 * chPacketFn 3 θ ^ 2 < 9 * exp (-(133 / 3125 : ℝ)) ^ 2 := by
     rw [← hexp2]
     nlinarith
-  exact (pow_lt_pow_iff_left₀ (chPairFactor_nonneg n ξ j s 4) (exp_pos _).le two_ne_zero).1
+  exact (pow_lt_pow_iff_left₀ (chPacketFn_nonneg 3 θ) (exp_pos _).le two_ne_zero).1
     (by linarith)
 
 end CollatzPosDens

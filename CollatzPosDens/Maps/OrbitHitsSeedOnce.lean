@@ -13,19 +13,25 @@ public import CollatzPosDens.Maps.SyrPeriodic
 /-!
 # An orbit hits a seed at most once
 
-Let `M` be a positive odd integer that is not Syracuse-periodic. If two words `u, u'` admissible
-from `M` have the same source `x`, then `S^{|u|}(x) = M = S^{|u'|}(x)`; were `|u| < |u'|`, this
-would give `S^{|u'| - |u|}(M) = M`, so `M` would be Syracuse-periodic. Hence `|u| = |u'|`.
+Let `y` be a positive odd integer that is not Syracuse-periodic. If `S^r(n) = y = S^{r'}(n)` for
+some `n`, then `r = r'`: were `r < r'`, this would give `S^{r' - r}(y) = y`, so `y` would be
+Syracuse-periodic. Applied to the source of words admissible from a seed `M`, two such words with
+the same source have the same length.
 
 ## Main results
 
 * `CollatzPosDens.Admissible.exists_collatzAccel_iterate_inverseOrbit`: along a word admissible
   from a positive odd integer `R`, the term `R_i` is a natural number `m` with `S^i(m) = R`.
 * `CollatzPosDens.collatzAccel_one`: the Syracuse map fixes `1`.
+* `CollatzPosDens.eq_of_collatzAccel_iterate_eq_of_not_syrPeriodic`: an orbit hits a
+  non-periodic point at most once.
 * `CollatzPosDens.Admissible.length_eq_of_src_eq`: two words admissible from `M` with the same
   source have the same length.
 
 ## Implementation notes
+
+The main statement holds for all natural numbers `y, n`: positivity and oddness are not needed,
+since `collatzAccel` is a total map on `ℕ`.
 
 The seed is a natural number `M : ℕ`, as `SyrPeriodic` is a predicate on `ℕ`; the words are
 admissible from its cast `(M : ℤ)`, matching the other statements about admissible words, and the
@@ -68,10 +74,25 @@ theorem Admissible.exists_collatzAccel_iterate_src {R : ℤ} {w : Word}
 theorem collatzAccel_one : collatzAccel 1 = 1 :=
   collatzAccel_eq_of_three_mul_add_one_eq (a := 2) (by norm_num) odd_one
 
-/-- **The orbit hits the seed once.** Let `M` be a positive odd integer that is not
-Syracuse-periodic. If the words `u, u'` are both admissible from `M` and
-`src(u, M) = src(u', M)`, then `|u| = |u'|`. -/
+/-- **The orbit hits the seed once.** If `y` is not Syracuse-periodic and `S^r(n) = y = S^{r'}(n)`,
+then `r = r'`: were `r < r'`, then `S^{r' - r}(y) = S^{r'}(n) = y` would make `y` periodic. -/
 @[collatz_pos_dens "lem_orbit_hits_seed_once"]
+theorem eq_of_collatzAccel_iterate_eq_of_not_syrPeriodic {y n : ℕ} (hper : ¬ SyrPeriodic y)
+    {r r' : ℕ} (hr : collatzAccel^[r] n = y) (hr' : collatzAccel^[r'] n = y) : r = r' := by
+  -- If `d < d'`, then `S^{d' - d}(y) = y` with `d' - d ≥ 1`, so `y` is Syracuse-periodic.
+  have key : ∀ d d' : ℕ, collatzAccel^[d] n = y → collatzAccel^[d'] n = y → ¬ d < d' := by
+    intro d d' hd hd' hlt
+    refine hper ⟨d' - d, by omega, ?_⟩
+    calc collatzAccel^[d' - d] y = collatzAccel^[d' - d] (collatzAccel^[d] n) := by rw [hd]
+      _ = collatzAccel^[d'] n := by
+        rw [← Function.iterate_add_apply, Nat.sub_add_cancel hlt.le]
+      _ = y := hd'
+  have := key _ _ hr hr'
+  have := key _ _ hr' hr
+  omega
+
+/-- Let `M` be a positive odd integer that is not Syracuse-periodic. If the words `u, u'` are both
+admissible from `M` and `src(u, M) = src(u', M)`, then `|u| = |u'|`. -/
 theorem Admissible.length_eq_of_src_eq {M : ℕ} (hpos : 0 < M) (hodd : Odd M)
     (hper : ¬ SyrPeriodic M) {u u' : Word} (hu : Admissible (M : ℤ) u)
     (hu' : Admissible (M : ℤ) u') (hsrc : src u (M : ℤ) = src u' (M : ℤ)) :
@@ -82,18 +103,7 @@ theorem Admissible.length_eq_of_src_eq {M : ℕ} (hpos : 0 < M) (hodd : Odd M)
   obtain ⟨x', hx', hxM'⟩ := hu'.exists_collatzAccel_iterate_src hpos' hodd'
   have hxx : x = x' := by exact_mod_cast hx.symm.trans (hsrc.trans hx')
   subst hxx
-  have h1 : collatzAccel^[u.length] x = M := by exact_mod_cast hxM
-  have h2 : collatzAccel^[u'.length] x = M := by exact_mod_cast hxM'
-  -- If `d < d'`, then `S^{d' - d}(M) = M` with `d' - d ≥ 1`, so `M` is Syracuse-periodic.
-  have key : ∀ d d' : ℕ, collatzAccel^[d] x = M → collatzAccel^[d'] x = M → ¬ d < d' := by
-    intro d d' hd hd' hlt
-    refine hper ⟨d' - d, by omega, ?_⟩
-    calc collatzAccel^[d' - d] M = collatzAccel^[d' - d] (collatzAccel^[d] x) := by rw [hd]
-      _ = collatzAccel^[d'] x := by
-        rw [← Function.iterate_add_apply, Nat.sub_add_cancel hlt.le]
-      _ = M := hd'
-  have := key _ _ h1 h2
-  have := key _ _ h2 h1
-  omega
+  exact eq_of_collatzAccel_iterate_eq_of_not_syrPeriodic hper (by exact_mod_cast hxM)
+    (by exact_mod_cast hxM')
 
 end CollatzPosDens

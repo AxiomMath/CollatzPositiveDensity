@@ -22,23 +22,34 @@ Since `x ↦ 2 ^ x` is strictly increasing, `δ > 1/70` is equivalent to `2 < (1
 * `CollatzPosDens.logGrowthRate_bounds`: `1/70 < δ ∧ δ < 1/69`.
 * `CollatzPosDens.one_div_seventy_lt_logGrowthRate`: `1/70 < δ`.
 * `CollatzPosDens.logGrowthRate_lt_one_div_sixtyNine`: `δ < 1/69`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
+/-- `(2 ^ (1 / n)) ^ n = 2` for a positive natural number `n`. -/
+private lemma two_rpow_one_div_pow (n : ℕ) (hn : n ≠ 0) :
+    ((2 : ℝ) ^ ((1 : ℝ) / n)) ^ n = 2 := by
+  rw [← Real.rpow_natCast, ← Real.rpow_mul (by norm_num)]
+  have : (1 : ℝ) / n * n = 1 := by field_simp
+  rw [this, Real.rpow_one]
+
 /-- The logarithmic growth rate satisfies `1/70 < δ`. -/
 theorem one_div_seventy_lt_logGrowthRate : (1 : ℝ) / 70 < logGrowthRate := by
-  rw [logGrowthRate_def, Real.lt_logb_iff_rpow_lt (by norm_num) (by norm_num), one_div]
-  have h := Real.rpow_inv_natCast_pow (x := 2) (n := 70) (by norm_num) (by norm_num)
+  rw [logGrowthRate_def, Real.lt_logb_iff_rpow_lt (by norm_num) (by norm_num)]
+  have h := two_rpow_one_div_pow 70 (by norm_num)
   push_cast at h
   exact lt_of_pow_lt_pow_left₀ 70 (by norm_num) (by rw [h]; norm_num)
 
 /-- The logarithmic growth rate satisfies `δ < 1/69`. -/
 theorem logGrowthRate_lt_one_div_sixtyNine : logGrowthRate < (1 : ℝ) / 69 := by
-  rw [logGrowthRate_def, Real.logb_lt_iff_lt_rpow (by norm_num) (by norm_num), one_div]
-  have h := Real.rpow_inv_natCast_pow (x := 2) (n := 69) (by norm_num) (by norm_num)
+  rw [logGrowthRate_def, Real.logb_lt_iff_lt_rpow (by norm_num) (by norm_num)]
+  have h := two_rpow_one_div_pow 69 (by norm_num)
   push_cast at h
   exact lt_of_pow_lt_pow_left₀ 69 (by positivity) (by rw [h]; norm_num)
 

@@ -17,7 +17,8 @@ public import Mathlib.Tactic.Ring
 
 This file proves that every binomial probability of row `n` satisfies
 $$\Bigl(\binom{n}{k} 2^{-n}\Bigr)^2 \le \frac{2}{3n+2}.$$
-The largest coefficient of row `n` is $\binom{n}{\lfloor n/2 \rfloor}$. For `n = 2m` this is the
+For `k > n` the coefficient vanishes. Otherwise, by unimodality of the row, the largest
+coefficient of row `n` is $\binom{n}{\lfloor n/2 \rfloor}$. For `n = 2m` this is the
 central binomial coefficient and the bound is $\frac{1}{3m+1} = \frac{2}{3n+2}$. For `n = 2m+1`,
 $\binom{2m+2}{m+1} = 2\binom{2m+1}{m}$, so
 $\binom{2m+1}{m} 2^{-(2m+1)} = \binom{2m+2}{m+1} 4^{-(m+1)}$,
@@ -27,14 +28,6 @@ whose square is at most $\frac{1}{3m+4} \le \frac{2}{3n+2}$.
 
 * `CollatzPosDens.choose_div_two_pow_sq_le`: for `n k : ℕ`,
   `(n.choose k / 2^n)^2 ≤ 2 / (3n+2)`.
-* `CollatzPosDens.intChoose_div_two_pow_sq_le`: the same bound for an integer index `k`,
-  with the convention $\binom{n}{k} = 0$ for `k < 0`.
-
-## Implementation notes
-
-For an integer index `k`, the coefficient $\binom{n}{k}$ is taken to be `0` outside `[0, n]`.
-Since `Nat.choose` already vanishes for `k > n`, the integer-indexed coefficient is
-`if 0 ≤ k then n.choose k.toNat else 0`, and the bound reduces to the natural-number statement.
 
 ## References
 
@@ -47,7 +40,7 @@ namespace CollatzPosDens
 
 open Nat
 
-/-- **Maximal binomial weight of a row**: for all `n k : ℕ`,
+/-- **Maximal binomial weight of a row**: for all natural numbers `n` and `k`,
 `(n.choose k / 2^n)^2 ≤ 2 / (3n+2)`. -/
 @[collatz_pos_dens "lem_rn_binom_row"]
 theorem choose_div_two_pow_sq_le (n k : ℕ) :
@@ -81,16 +74,5 @@ theorem choose_div_two_pow_sq_le (n k : ℕ) :
           push_cast
           rw [div_le_div_iff₀ (by positivity) (by positivity)]
           linarith
-
-/-- **Maximal binomial weight of a row**, integer index: for `n : ℕ` and `k : ℤ`, with
-$\binom{n}{k} = 0$ for `k < 0`, `(binom(n, k) / 2^n)^2 ≤ 2 / (3n+2)`. -/
-@[collatz_pos_dens "lem_rn_binom_row"]
-theorem intChoose_div_two_pow_sq_le (n : ℕ) (k : ℤ) :
-    (((if 0 ≤ k then n.choose k.toNat else 0 : ℕ) : ℝ) / 2 ^ n) ^ 2 ≤ 2 / (3 * n + 2) := by
-  split_ifs
-  · exact choose_div_two_pow_sq_le n k.toNat
-  · simp only [Nat.cast_zero, zero_div, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-      zero_pow]
-    positivity
 
 end CollatzPosDens

@@ -6,36 +6,38 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.OrdinaryTime.Bstar
+public import CollatzPosDens.OrdinaryTime.S07Bstar
 public import CollatzPosDens.OrdinaryTime.CkLateGrowth
 
 /-!
-# A lower bound for the scale sums at late indices
+# The generation count is small against the scale sum
 
-For every integer `n ≥ 2 · 10^{10}` the scale sum satisfies
+For every integer `n ≥ covGen = 23000` the scale sum satisfies
 $$2^{22}(n + 1) \le B_*(n).$$
-Since `n ≥ 1`, `2^{22}(n + 1) ≤ 2^{23} n ≤ 2^{40} n`; the late-growth bound of the scales gives
-`2^{40} n ≤ b_n`, and `b_n ≤ B_*(n)` because all scales are nonnegative.
+Since `n ≥ 1`, `2^{22}(n + 1) ≤ 2^{23} n ≤ 2^{40} n`; the late growth of the scales gives
+`2^{40} n ≤ b_n`; and `b_n ≤ B_*(n) = ∑_{j=0}^{n} b_j`, the scale `b_n` being the summand
+`j = n` and every scale being nonnegative.
 
 ## Main results
 
 * `CollatzPosDens.two_pow_twentyTwo_mul_succ_le_scaleSum`:
-  `2^{22}(n + 1) ≤ B_*(n)` for `n ≥ 2 · 10^{10}`.
+  `2^{22}(n + 1) ≤ B_*(n)` for `n ≥ covGen`.
 
-## Implementation notes
+## References
 
-The statement is in `ℕ`, where both sides naturally live.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- For every natural number `n ≥ 2 · 10^{10}`, `2^{22}(n + 1) ≤ B_*(n)`, where `B_*(n)` is
-`scaleSum n`. -/
+/-- The generation count is small against the scale sum: for every integer `n ≥ covGen`,
+`2^{22}(n + 1) ≤ scaleSum n`. -/
 @[collatz_pos_dens "lem_ck_count_small"]
-theorem two_pow_twentyTwo_mul_succ_le_scaleSum (n : ℕ) (hn : 2 * 10 ^ 10 ≤ n) :
-    2 ^ 22 * (n + 1) ≤ scaleSum n :=
-  le_trans (by omega) ((two_pow_forty_mul_le_scale n hn).trans (scale_le_scaleSum n))
+theorem two_pow_twentyTwo_mul_succ_le_scaleSum (n : ℕ) (hn : covGen ≤ n) :
+    2 ^ 22 * (n + 1) ≤ scaleSum n := by
+  have h1 : 1 ≤ n := covGen_pos.trans_le hn
+  exact le_trans (by omega) ((two_pow_forty_mul_le_scale n hn).trans (scale_le_scaleSum n))
 
 end CollatzPosDens

@@ -14,7 +14,6 @@ public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.CharSum.ChBlockPoint
 public import CollatzPosDens.CharSum.ChInternalWeight
 public import CollatzPosDens.CharSum.ChQfinite
-public import CollatzPosDens.CharSum.ChRaw3Factor
 public import CollatzPosDens.CharSum.ChWhiteFactor
 
 /-!
@@ -44,7 +43,7 @@ The base point `p` ranges over all of `ℤ × ℤ` and the threshold `ε` is arb
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §7.4.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -60,16 +59,6 @@ private lemma chBlockPath_fst_ge (β : List (List ℤ × ℤ)) (i : ℕ) :
   simp only [List.mem_map]
   rintro _ ⟨b, -, rfl⟩
   positivity
-
-/-- The internal weight of a block started at a point `x` with `⌊n/2⌋ ≤ j(x)` is `1`: every
-argument of its factors has first coordinate `> ⌊n/2⌋`, hence is not white. -/
-private lemma chInternalWeight_eq_one_of_le {n : ℕ} (ξ : ResidueGroup n) (ε : ℝ) {x : ℤ × ℤ}
-    (hx : ((n / 2 : ℕ) : ℤ) ≤ bkJ x) (b : List ℤ × ℤ) :
-    chInternalWeight n ξ ε x b = 1 := by
-  refine Finset.prod_eq_one fun i _ ↦ chRaw3Factor_of_not_isBkWhite fun hw ↦ ?_
-  have := hw.bkJ_le
-  simp only [bkJ, Prod.fst_add] at this hx
-  omega
 
 /-- Reading the blocks of a concatenation `Fin.append u v` gives the concatenated block lists. -/
 private lemma ofFn_val_fin_append {α : Type*} {P : α → Prop} {K D : ℕ}

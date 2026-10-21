@@ -7,126 +7,78 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.D
-public import CollatzPosDens.Transfer.Gamma
-public import CollatzPosDens.Transfer.Rho
-public import CollatzPosDens.StoppingTrace.TrGap
+public import CollatzPosDens.Transfer.S02Theta
+public import CollatzPosDens.Transfer.S02RhoUnit
+public import CollatzPosDens.StoppingTrace.TrEntryWord
 public import CollatzPosDens.StoppingTrace.TrKernel
-public import CollatzPosDens.StoppingTrace.TrTheta
-public import CollatzPosDens.StoppingTrace.TrOmegaValue
-public import CollatzPosDens.StoppingTrace.TrDeltaFloor
-public import CollatzPosDens.StoppingTrace.TrDeltaZero
-public import CollatzPosDens.StoppingTrace.TrGapZeroLoss
-public import CollatzPosDens.StoppingTrace.TrGuardGap
-public import CollatzPosDens.StoppingTrace.TrKernelTwoBound
-public import CollatzPosDens.StoppingTrace.TrLossNonneg
-public import CollatzPosDens.StoppingTrace.TrMuValue
+public import CollatzPosDens.StoppingTrace.TrKernelOne
+public import CollatzPosDens.StoppingTrace.TrPath
 
 /-!
-# The two-step rate
+# Powers of the entry kernel
 
-Fix a level `n` and a unit `ξ ∈ G_n`; "black" refers to `(n, ξ, ε_*)`. For every black point
-`v ∈ 𝒫`, the second power of the entry kernel satisfies `m_2(v) ≤ ϱ_*`, where
-`ϱ_* = (1 - d_*)² - Ω_*` is the two-passage rate.
+Fix a level `n` and a unit `ξ ∈ G_n`, and call a point black when it is black for the level
+`n`, the residue `ξ` and the threshold `ε_*`. For every black point `v ∈ 𝒫` and every `k ∈ ℕ`,
+the `k`-th power of the entry kernel satisfies `m_k(v) ≤ θ^en_k = (1 - d_entry)^k = (77/100)^k`.
 
-Let `s = gap(v)`. The two-step bound gives
-`m_2(v) ≤ (1 - d_*)² - (1 - d_*) δ_tr(s) - ∑_{π ∈ Π_s} a(π) Loss(y_π)`, and the series is
-nonnegative since every loss is. If `s ≥ 1`, then `δ_tr(s) ≥ δ_tr(6)` and
-`(1 - d_*) δ_tr(6) > Ω_*`. If `s = 0`, then `δ_tr(0) = 0` and the series is at least
-`e^{-γ_*} θ_∘ (3/16 + 6701/26392)`, which exceeds `(1 - γ_*) θ_∘ (3/16 + 6701/26392) = Ω_*`
-because `e^{-γ_*} > 1 - γ_*` and `θ_∘ > 0`.
+The proof is by induction on `k`, for all black points at once. Since `m_0 = 1 = θ^en_0` the
+base case is trivial. If `m_k ≤ θ^en_k` at every black point, then, since the endpoints
+`x_{|u|}(v, u)` of the entry lists `u ∈ 𝓔(v)` are black points and all terms are nonnegative,
+the recursion for `m_{k+1}(v)` and `θ^en_k ≥ 0` give `m_{k+1}(v) ≤ θ^en_k m_1(v)`, and the
+one-step bound `m_1(v) ≤ 1 - d_entry` gives `m_{k+1}(v) ≤ θ^en_k (1 - d_entry) = θ^en_{k+1}`.
 
 ## Main results
 
-* `CollatzPosDens.trKernel_two_le_rhoStar`: `m_2(v) ≤ ϱ_*` for every black point `v`.
+* `CollatzPosDens.trKernel_two_le_rhoStar`: `m_k(v) ≤ θ^en_k` for every black point `v` and
+  every `k`.
 
 ## Implementation notes
 
-The value `m_2(v)` lies in `[0, ∞]`, and the bound is stated there against `ENNReal.ofReal ϱ_*`;
-since `ϱ_* > 0` this is the source's inequality (and asserts in particular that `m_2(v)` is
-finite). The hypotheses `n ≥ 1` and `J = ⌊n/2⌋` of the source are standing notation and are not
-needed.
+The value `m_k(v)` lies in `[0, ∞]`, and the bound is stated there against
+`ENNReal.ofReal θ^en_k`; since `θ^en_k > 0` this is the real inequality, and it asserts in
+particular that `m_k(v)` is finite. Black points are points of `𝒫` and the residue `ξ` is a
+unit; these standing assumptions are the hypotheses `v ∈ bkPoints` and `IsResidueUnit ξ`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §9.6.
+* [Mazur, *Collatz positive density*], §9.10.
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
+open scoped ENNReal
+
 variable {n : ℕ} {ξ : ResidueGroup n}
 
-/-- The loss series over `Π_s`, read in `[0, ∞]`, is the image of the real loss series. -/
-theorem tsum_trPassage_trBridgeLoss_toENNReal_eq_ofReal (hξ : IsResidueUnit ξ) {v : ℤ × ℤ}
-    (hv : v ∈ bkPoints) (s : ℕ) :
-    ∑' π : trPassage s, ENNReal.ofReal (trListWeight π.1) *
-        ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length)) *
-          (trBridgeLoss n ξ (trPath v π.1 π.1.length)).toENNReal =
-      ENNReal.ofReal (∑' π : trPassage s,
-        trListWeight π.1 * Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length) *
-          (trBridgeLoss n ξ (trPath v π.1 π.1.length)).toReal) := by
-  rw [ENNReal.ofReal_tsum_of_nonneg
-    (fun π ↦ mul_nonneg (mul_nonneg (trListWeight_nonneg _) (Real.exp_pos _).le)
-      (EReal.toReal_nonneg (trBridgeLoss_nonneg n ξ _)))
-    (trKernel_two_le_summable hξ hv s)]
-  refine tsum_congr fun π ↦ ?_
-  have hy := trPath_mem_bkPoints hv π.1 π.1.length
-  rw [(trKernel_two_le_trBridgeLoss_eq hξ hy).1, EReal.real_coe_toENNReal,
-    EReal.toReal_coe, ENNReal.ofReal_mul (mul_nonneg (trListWeight_nonneg _)
-      (Real.exp_pos _).le), ENNReal.ofReal_mul (trListWeight_nonneg _)]
-
-private theorem le_ofReal_of_coe_le {x : ENNReal} {r ρ : ℝ} (hr : (x : EReal) ≤ r) (hrρ : r ≤ ρ)
-    (hρ : 0 ≤ ρ) : x ≤ ENNReal.ofReal ρ := by
-  refine EReal.coe_ennreal_le_coe_ennreal_iff.1 ?_
-  rw [EReal.coe_ennreal_ofReal, max_eq_left hρ]
-  exact hr.trans (EReal.coe_le_coe_iff.2 hrρ)
-
-/-- **The two-step rate.** Let `ξ ∈ G_n` be a unit and `v ∈ 𝒫` a black point. Then
-`m_2(v) ≤ ϱ_*`. -/
+/-- **Powers of the entry kernel.** Let `ξ ∈ G_n` be a unit. For every
+black point `v ∈ 𝒫` and every `k ∈ ℕ`, `m_k(v) ≤ θ^en_k`. -/
 @[collatz_pos_dens "lem_tr_kernel_two"]
-theorem trKernel_two_le_rhoStar (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints)
-    (hb : BkBlack n ξ (epsStar : ℝ) v) :
-    trKernel n ξ 2 v ≤ ENNReal.ofReal (rhoStar : ℝ) := by
-  have hc0 : 0 < 1 - (dStar : ℝ) := by
-    have : (dStar : ℝ) < 1 := by exact_mod_cast dStar_lt_one
-    linarith
-  have hρ : (rhoStar : ℝ) = (1 - (dStar : ℝ)) ^ 2 - (omegaStar : ℝ) := by
-    rw [rhoStar_def]
-    push_cast
-    rfl
-  have hρ0 : (0 : ℝ) ≤ rhoStar := by exact_mod_cast rhoStar_pos.le
-  have hS0 : ∀ s : ℕ, 0 ≤ ∑' π : trPassage s,
-      trListWeight π.1 * Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length) *
-        (trBridgeLoss n ξ (trPath v π.1 π.1.length)).toReal := fun s ↦
-    tsum_nonneg fun π ↦ mul_nonneg (mul_nonneg (trListWeight_nonneg _) (Real.exp_pos _).le)
-      (EReal.toReal_nonneg (trBridgeLoss_nonneg n ξ _))
-  have hbound := trKernel_two_le hξ hv hb
-  rcases Nat.eq_zero_or_pos (trGap n ξ (epsStar : ℝ) v) with hgap | hpos
-  · have hloss := le_tsum_trPassage_zero_trBridgeLoss hξ hv hb hgap
-    rw [hgap, trDelta_zero] at hbound
-    refine le_ofReal_of_coe_le hbound ?_ hρ0
-    have hθ := trTheta_pos
-    have hexp : 1 - (gammaStar : ℝ) < Real.exp (-(gammaStar : ℝ)) := by
-      have := Real.add_one_lt_exp (x := -(gammaStar : ℝ)) (by rw [gammaStar_cast]; norm_num)
-      linarith
-    have hγ : 0 < 1 - (gammaStar : ℝ) := by rw [gammaStar_cast]; norm_num
-    rw [tsum_trPassage_trBridgeLoss_toENNReal_eq_ofReal hξ hv,
-      ENNReal.ofReal_le_ofReal_iff (hS0 0)] at hloss
-    have : (1 - (gammaStar : ℝ)) * trTheta * (3 / 16 + 6701 / 26392) <
-        Real.exp (-(gammaStar : ℝ)) * trTheta * (3 / 16 + 6701 / 26392) := by
-      gcongr
-    rw [hρ, ← omegaStar_eq_trTheta]
-    linarith
-  · refine le_ofReal_of_coe_le hbound ?_ hρ0
-    have h6 := trDelta_six_le hpos
-    have hg := omegaStar_lt_one_sub_dStar_mul_trDelta_six
-    have : (1 - (dStar : ℝ)) * trDelta 6 ≤
-        (1 - (dStar : ℝ)) * trDelta (trGap n ξ (epsStar : ℝ) v) :=
-      mul_le_mul_of_nonneg_left h6 hc0.le
-    have := hS0 (trGap n ξ (epsStar : ℝ) v)
-    rw [hρ]
-    linarith
+theorem trKernel_two_le_rhoStar (hξ : IsResidueUnit ξ) (k : ℕ) {v : ℤ × ℤ}
+    (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v) :
+    trKernel n ξ k v ≤ ENNReal.ofReal (thetaEn k : ℝ) := by
+  induction k generalizing v with
+  | zero => simp
+  | succ k ih =>
+    have hθ : (0 : ℝ) ≤ thetaEn k := by exact_mod_cast (thetaEn_pos_and_le_one k).1.le
+    calc trKernel n ξ (k + 1) v
+        ≤ ∑' u : trEntryWords n ξ (epsStar : ℝ) v,
+            ENNReal.ofReal (trListWeight u.1) *
+              ENNReal.ofReal (Real.exp (-(gammaStar : ℝ) * trCount n ξ v u.1 u.1.length)) *
+                ENNReal.ofReal (thetaEn k : ℝ) :=
+          trKernel_succ_le_of_le k v (fun _ ↦ ENNReal.ofReal (thetaEn k : ℝ)) fun u hu ↦
+            ih (trPath_mem_bkPoints hv u u.length) (trEntryWords_bkBlack hu)
+      _ = ENNReal.ofReal (thetaEn k : ℝ) * trKernel n ξ 1 v := by
+          rw [trKernel_succ, ← ENNReal.tsum_mul_left]
+          refine tsum_congr fun u ↦ ?_
+          rw [trKernel_zero, mul_one, mul_comm]
+      _ ≤ ENNReal.ofReal (thetaEn k : ℝ) * ENNReal.ofReal (1 - (dEntry : ℝ)) := by
+          gcongr
+          exact trKernel_one_le hξ hv hb
+      _ = ENNReal.ofReal (thetaEn (k + 1) : ℝ) := by
+          rw [← ENNReal.ofReal_mul hθ, thetaEn_succ]
+          push_cast
+          ring_nf
 
 end CollatzPosDens

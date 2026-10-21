@@ -8,7 +8,7 @@ module
 public import CollatzPosDens.Attr
 public import CollatzPosDens.CharSum.ChQ
 public import CollatzPosDens.CharSum.ChInternalWeight
-public import CollatzPosDens.CharSum.ChRaw3Factor
+public import CollatzPosDens.CharSum.ChInternalRange
 public import CollatzPosDens.CharSum.ChWhiteFactor
 public import CollatzPosDens.CharSum.ChQRange
 public import CollatzPosDens.CharSum.ChQRecursion

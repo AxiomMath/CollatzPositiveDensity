@@ -13,30 +13,30 @@ public import CollatzPosDens.BlackSet.BkCardinal
 public import CollatzPosDens.BlackSet.BkCornerValue
 
 /-!
-# Neighbours of a canonical triangle below and to the right of its corner are not black
+# Claim (*), case 1: neighbours below and to the right of the corner
 
-Let `ξ` be a unit, `0 < ε < 1/18`, `p` black with canonical triangle `Δ(p) = (j_*, l_*, s)` and
-corner `c = (j_*, l_*)`. Suppose `q ∉ Δ(p)` lies within distance `1` of some `r₀ ∈ Δ(p)`. If
+Let `ξ` be a unit, `0 < ε < 1/27`, `p` black with canonical triangle `Δ(p) = (j_*, l_*, s)` and
+corner `c = (j_*, l_*)`. Suppose `q ∉ Δ(p)` is a cardinal neighbour of some `r₀ ∈ Δ(p)`. If
 `j(q) ≥ j_*` and `l(q) ≤ l_*`, then `q` is not black.
 
-Since `q ≠ r₀`, the two points are cardinal neighbours, so `D = se(c, q)` exceeds
+Since `q` and `r₀` differ by a unit step in one coordinate, `D = se(c, q)` exceeds
 `se(c, r₀) ≤ s` by at most `log 9`. On the other hand `q ∉ Δ(p)` forces `D > s`. The corner
 value `|ϑ(c)| = ε e^{-s}` gives `e^D |ϑ(c)| = ε e^{D - s} ≤ 9ε < 1/2`, so the angle scales
 exactly and `|ϑ(q)| = ε e^{D - s} > ε`.
 
 ## Main results
 
-* `CollatzPosDens.not_bkBlack_of_bkRowStart_le_of_le_bkColTop`: a point `q ∉ Δ(p)` within
-  distance `1` of `Δ(p)` with `j(q) ≥ j_*` and `l(q) ≤ l_*` is not black.
+* `CollatzPosDens.not_bkBlack_of_bkRowStart_le_of_le_bkColTop`: Claim (*), case 1.
 
 ## Implementation notes
 
 The hypothesis `q ∈ 𝒫` is not assumed: it follows from `j(q) ≥ j_* ≥ 1`. The argument only
-needs `9ε < 1/2`, so the statement is made under `ε < 1/18` rather than `ε < 1/27`.
+needs `9ε < 1/2`, so the statement is made under the weaker hypothesis `ε < 1/18` in place of
+`ε < 1/27`.
 
 ## References
 
-* [Mazur, §5.5]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -44,9 +44,9 @@ needs `9ε < 1/2`, so the statement is made under `ε < 1/18` rather than `ε < 
 namespace CollatzPosDens
 
 /-- Moving to a cardinal neighbour raises the weight `se(c, ·)` by at most `log 9`. -/
-theorem bkSe_sub_bkSe_le_log_nine {c q r : ℤ × ℤ} (hqr : q ≠ r) (hdist : bkDist q r ≤ 1) :
+theorem bkSe_sub_bkSe_le_log_nine {c q r : ℤ × ℤ} (hqr : BkCardinalNeighbour q r) :
     bkSe c q - bkSe c r ≤ Real.log 9 := by
-  have hcard := abs_bkJ_sub_add_abs_bkL_sub_eq_one hqr hdist
+  have hcard : |bkJ q - bkJ r| + |bkL q - bkL r| = 1 := hqr
   have hlog2 : 0 ≤ Real.log 2 := Real.log_nonneg (by norm_num)
   have hlog29 : Real.log 2 ≤ Real.log 9 := Real.log_le_log (by norm_num) (by norm_num)
   rw [show bkSe c q - bkSe c r = ((bkJ q - bkJ r : ℤ) : ℝ) * Real.log 9 -
@@ -61,13 +61,14 @@ theorem bkSe_sub_bkSe_le_log_nine {c q r : ℤ × ℤ} (hqr : q ≠ r) (hdist : 
       (sub_nonneg.2 hlog29),
     mul_le_mul_of_nonneg_right (by exact_mod_cast hxy : (x : ℝ) - y ≤ 1) hlog2]
 
-/-- Let `ξ` be a unit, `0 < ε < 1/18`, `p ∈ 𝒫` black, `q ∉ Δ(p)`, and let `r₀ ∈ Δ(p)` with
-`|q - r₀| ≤ 1`. If `j(q) ≥ j_*(p)` and `l(q) ≤ l_*(p)`, then `q` is not black. -/
+/-- **Claim (*), case 1.** Let `ξ` be a unit, `0 < ε < 1/18`, `p ∈ 𝒫` black, `q ∉ Δ(p)`, and
+let `r₀ ∈ Δ(p)` be a cardinal neighbour of `q`. If `j(q) ≥ j_*(p)` and `l(q) ≤ l_*(p)`, then
+`q` is not black. -/
 @[collatz_pos_dens "lem_bk_star_case1"]
 theorem not_bkBlack_of_bkRowStart_le_of_le_bkColTop {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ}
     {p q r₀ : ℤ × ℤ} (hξ : IsResidueUnit ξ) (hε₀ : 0 < ε) (hε : ε < 1 / 18)
     (hp : p ∈ bkPoints) (hb : BkBlack n ξ ε p) (hq : q ∉ bkCanonTriangle n ξ ε p hp)
-    (hr₀ : r₀ ∈ bkCanonTriangle n ξ ε p hp) (hdist : bkDist q r₀ ≤ 1)
+    (hr₀ : r₀ ∈ bkCanonTriangle n ξ ε p hp) (hcard : BkCardinalNeighbour q r₀)
     (hj : bkRowStart n ξ ε p ≤ bkJ q) (hl : bkL q ≤ bkColTop n ξ ε p) :
     ¬BkBlack n ξ ε q := by
   set Δ := bkCanonTriangle n ξ ε p hp
@@ -75,7 +76,7 @@ theorem not_bkBlack_of_bkRowStart_le_of_le_bkColTop {n : ℕ} {ξ : ResidueGroup
   have hF2 : bkSe c r₀ ≤ Δ.s := BkTriangle.bkSe_corner_le_of_mem hr₀
   have hD : Δ.s < bkSe c q := not_le.1 fun h => hq (BkTriangle.mem_iff_bkSe.2 ⟨hj, hl, h⟩)
   have hDr : bkSe c q - bkSe c r₀ ≤ Real.log 9 :=
-    bkSe_sub_bkSe_le_log_nine (fun h => hq (h ▸ hr₀)) hdist
+    bkSe_sub_bkSe_le_log_nine hcard
   have hval : Real.exp (bkSe c q) * |bkTheta n ξ c| = ε * Real.exp (bkSe c q - Δ.s) := by
     rw [abs_bkTheta_bkCanonTriangle_corner hξ hε₀ hp hb, sub_eq_add_neg, Real.exp_add]
     ring

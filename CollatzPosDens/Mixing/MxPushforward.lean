@@ -8,7 +8,7 @@ module
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Characters.FxOffsetLaw
 public import CollatzPosDens.Transfer.GeometricTotal
-public import CollatzPosDens.Transfer.Reduction
+public import CollatzPosDens.Transfer.S02Reduction
 public import CollatzPosDens.Maps.Offset
 
 /-!
@@ -18,11 +18,11 @@ For integers `0 ≤ m ≤ q` and `x ∈ G_m`, the reference law is compatible wi
 `π_{q,m} : G_q → G_m`:
 $$\sum_{y \in G_q,\ \pi_{q,m}(y) = x} \mu_q(y) = \mu_m(x).$$
 
-The map `π_{q,m} ∘ [·]_q : ℤ[1/2] → G_m` is a ring homomorphism, hence equals `[·]_m`. By
-`refLaw_eq_tsum_off`, the left side is `∑_{w ∈ ℤ_{≥1}^q} 2^{-A(w)} [[off(w)]_m = x]`. Splitting
-`w = uv` with `|u| = m`, `|v| = q - m`, the identity `off_append`,
-`off(uv) = off(u) + 3^m 2^{-A(u)} off(v)`, gives `[off(w)]_m = [off(u)]_m`, and summing out `v`
-with `𝐩(ℤ_{≥1}^{q-m}) = 1` leaves `μ_m(x)` by `refLaw_eq_tsum_off` again.
+The map `π_{q,m} ∘ [·]_q : ℤ[1/2] → G_m` is a ring homomorphism, hence equals `[·]_m`. By the
+offset law, the left side is `∑_{w ∈ ℤ_{≥1}^q} 2^{-A(w)} [[off(w)]_m = x]`. Splitting
+`w = uv` with `|u| = m`, `|v| = q - m`, the cocycle identity
+`off(uv) = off(u) + 3^m 2^{-A(u)} off(v)` gives `[off(w)]_m = [off(u)]_m`, and summing out `v`
+with `𝐩(ℤ_{≥1}^{q-m}) = 1` leaves `μ_m(x)` by the offset law again.
 
 ## Main results
 

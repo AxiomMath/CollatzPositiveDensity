@@ -8,7 +8,7 @@ module
 public import Mathlib.Data.ZMod.Units
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.DyadicReduction
+public import CollatzPosDens.Transfer.S02DyadicReduction
 
 /-!
 # The pair point
@@ -32,9 +32,9 @@ dyadic rational, and the *pair point* is its reduction modulo `3^n`,
 ## Implementation notes
 
 The index `j` is a natural number and `j - 1` is truncated subtraction, so `chPairPoint n 0 l`
-agrees with `chPairPoint n 1 l`; the pair point is only of interest for `j ≥ 1`. The power
-`2^{-l}` of the unit `2` of `G_n` is the integer power in the unit group `(ZMod (3 ^ n))ˣ`, the
-unit being `ZMod.unitOfCoprime 2`.
+agrees with `chPairPoint n 1 l`; only `j ≥ 1` is of interest. The power `2^{-l}` of the unit
+`2` of `G_n` is the integer power in the unit group `(ZMod (3 ^ n))ˣ`, the unit being
+`ZMod.unitOfCoprime 2`.
 
 ## References
 
@@ -63,8 +63,7 @@ noncomputable def chPairPoint (n j : ℕ) (l : ℤ) : ResidueGroup n :=
   dyadicRed n ⟨(3 : ℚ) ^ (2 * (j - 1)) * 2 ^ (-l),
     three_pow_mul_two_zpow_mem_dyadicRationals j l⟩
 
-/-- `chPairPoint n j l` is the reduction modulo `3^n` of the dyadic rational
-`3^{2(j-1)} 2^{-l}`. -/
+/-- The pair point is the reduction modulo `3^n` of the dyadic rational `3^{2(j-1)} 2^{-l}`. -/
 theorem chPairPoint_def (n j : ℕ) (l : ℤ) :
     chPairPoint n j l = dyadicRed n ⟨(3 : ℚ) ^ (2 * (j - 1)) * 2 ^ (-l),
       three_pow_mul_two_zpow_mem_dyadicRationals j l⟩ := rfl

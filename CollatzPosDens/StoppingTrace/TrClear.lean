@@ -7,48 +7,49 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.Pstar
-public import CollatzPosDens.Transfer.Beta
-public import CollatzPosDens.Transfer.HDef
+public import CollatzPosDens.Transfer.S02Beta
+public import CollatzPosDens.Transfer.S02HDef
 public import CollatzPosDens.CharSum.ChBlockPoint
 public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.StoppingTrace.TrFreshLaw
 
 /-!
-# The failed clearing window
+# Slow clearing
 
-For `n ≥ 1`, the event `Clr ⊆ 𝒜_n` of a *failed clearing window* consists of the fresh atoms
-`a = ((r, ℓ), β)` for which some window `{q + 1, …, q + h_*(q)}` ending before `P_*` has a small
-total height gain:
-`Clr = {a ∈ 𝒜_n : ∃ q ∈ ℕ, q + h_*(q) ≤ P_* - 1 ∧ ∑_{i=q+1}^{q+h_*(q)} l(β^i) ≤ (13/9) β_*(q)}`,
+For a Fourier index `ι ∈ 𝔍` and `n ≥ 1`, the *slow clearing* event `Clr(ι) ⊆ 𝒜_n` consists of
+the fresh atoms `a = ((r, ℓ), β)` for which some window `{u + 1, …, u + h_*(ι, u)}` ending before
+`P_*(ι)` has a small total height gain:
+`Clr(ι) = {a ∈ 𝒜_n : ∃ u ∈ ℕ, u + h_*(ι, u) ≤ P_*(ι) - 1 ∧
+  ∑_{i=u+1}^{u+h_*(ι,u)} l(β^i) ≤ (13/9) β_*(ι, u)}`,
 where `l(β^i)` is the second coordinate of the block point `bpt(β^i)`.
 
 ## Main definitions
 
 * `CollatzPosDens.trClearGain`: the height gain `∑_{i=q+1}^{q+h} l(β^i)` of a window.
-* `CollatzPosDens.trClear`: the set `Clr`.
+* `CollatzPosDens.trClear`: the set `Clr(ι)`.
 
 ## Main results
 
 * `CollatzPosDens.mem_trClear`: the membership criterion.
-* `CollatzPosDens.trClear_subset_trAtoms`: `Clr ⊆ 𝒜_n`.
+* `CollatzPosDens.trClear_subset_trAtoms`: `Clr(ι) ⊆ 𝒜_n`.
 * `CollatzPosDens.trClearGain_eq_chBlockPath`: inside the list, the window gain is the
   increment `l(Bp_{q+h}(β)) - l(Bp_q(β))` of the block path.
-* `CollatzPosDens.lt_trClearGain_of_notMem_trClear`: outside `Clr`, every admissible window
-  gains more than `(13/9) β_*(q)`.
+* `CollatzPosDens.lt_trClearGain_of_notMem_trClear`: outside `Clr(ι)`, every admissible window
+  gains more than `(13/9) β_*(ι, u)`.
 
 ## Implementation notes
 
 The blocks of `β = (β¹, …, β^N)` are indexed from `1`; the block `β^i` is the list entry
-`β[i - 1]`. Windows with `q + h_*(q) > N` are allowed: for indices `i > N` the block `β^i` does not
-exist, and the gain counts it as `0`, consistently with the block path `Bp`, which is constant
-beyond the end of the list. The gain is an integer and the comparison with `(13/9) β_*(q)` is made
-in `ℝ`; `trClearGain_le_iff` restates it as `9 · gain ≤ 13 β_*(q)` in `ℤ`. The set lives in the
-ambient type `(ℕ × ℤ) × List (List ℤ × ℤ)` of `𝒜_n` and carries the condition `a ∈ 𝒜_n`
-explicitly; the hypothesis `n ≥ 1` plays no role in the definition and is dropped.
+`β[i - 1]`. For indices `i > N` the block `β^i` does not exist, and the gain counts it as `0`,
+consistently with the block path `Bp`, which is constant beyond the end of the list. The gain is an
+integer and the comparison with `(13/9) β_*(ι, u)` is made in `ℝ`; `trClearGain_le_iff` restates it
+as `9 · gain ≤ 13 β_*(ι, u)` in `ℤ`. The set lives in the ambient type
+`(ℕ × ℤ) × List (List ℤ × ℤ)` of `𝒜_n` and carries the condition `a ∈ 𝒜_n` explicitly; the
+hypothesis `n ≥ 1` plays no role in the definition and is dropped.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §9.8.
+* [Mazur, *Collatz positive density*], §9.11.
 -/
 
 @[expose] public section
@@ -61,27 +62,28 @@ of `β` count as `0`. -/
 def trClearGain (β : List (List ℤ × ℤ)) (q h : ℕ) : ℤ :=
   ∑ i ∈ Finset.Ioc q (q + h), ((β[i - 1]?).map fun b => (chBlockPoint b).2).getD 0
 
-/-- The failed clearing window event
-`Clr = {a ∈ 𝒜_n : ∃ q, q + h_*(q) ≤ P_* - 1 ∧ ∑_{i=q+1}^{q+h_*(q)} l(β^i) ≤ (13/9) β_*(q)}`. -/
+/-- The slow clearing event for the Fourier index `ι`:
+`Clr(ι) = {a ∈ 𝒜_n : ∃ u, u + h_*(ι, u) ≤ P_*(ι) - 1 ∧
+  ∑_{i=u+1}^{u+h_*(ι,u)} l(β^i) ≤ (13/9) β_*(ι, u)}`. -/
 @[collatz_pos_dens "def_tr_clear"]
-def trClear (n : ℕ) : Set ((ℕ × ℤ) × List (List ℤ × ℤ)) :=
-  {a | a ∈ trAtoms n ∧ ∃ q : ℕ, q + windowLength q ≤ pStar - 1 ∧
-    (trClearGain a.2 q (windowLength q) : ℝ) ≤ 13 / 9 * (betaStar q : ℝ)}
+def trClear (ι : FIndex) (n : ℕ) : Set ((ℕ × ℤ) × List (List ℤ × ℤ)) :=
+  {a | a ∈ trAtoms n ∧ ∃ u : ℕ, u + windowLength ι u ≤ pStar ι - 1 ∧
+    (trClearGain a.2 u (windowLength ι u) : ℝ) ≤ 13 / 9 * (betaStar ι u : ℝ)}
 
-/-- Membership in `Clr`. -/
-theorem mem_trClear {n : ℕ} {a : (ℕ × ℤ) × List (List ℤ × ℤ)} :
-    a ∈ trClear n ↔ a ∈ trAtoms n ∧ ∃ q : ℕ, q + windowLength q ≤ pStar - 1 ∧
-      (trClearGain a.2 q (windowLength q) : ℝ) ≤ 13 / 9 * (betaStar q : ℝ) :=
+/-- Membership in `Clr(ι)`. -/
+theorem mem_trClear {ι : FIndex} {n : ℕ} {a : (ℕ × ℤ) × List (List ℤ × ℤ)} :
+    a ∈ trClear ι n ↔ a ∈ trAtoms n ∧ ∃ u : ℕ, u + windowLength ι u ≤ pStar ι - 1 ∧
+      (trClearGain a.2 u (windowLength ι u) : ℝ) ≤ 13 / 9 * (betaStar ι u : ℝ) :=
   Iff.rfl
 
-/-- `Clr ⊆ 𝒜_n`. -/
-theorem trClear_subset_trAtoms (n : ℕ) : trClear n ⊆ trAtoms n :=
+/-- `Clr(ι) ⊆ 𝒜_n`. -/
+theorem trClear_subset_trAtoms (ι : FIndex) (n : ℕ) : trClear ι n ⊆ trAtoms n :=
   fun _ ha => ha.1
 
-/-- The comparison `gain ≤ (13/9) β_*(q)` in `ℝ` is `9 · gain ≤ 13 β_*(q)` in `ℤ`. -/
-theorem trClearGain_le_iff (β : List (List ℤ × ℤ)) (q h : ℕ) :
-    (trClearGain β q h : ℝ) ≤ 13 / 9 * (betaStar q : ℝ) ↔
-      9 * trClearGain β q h ≤ 13 * (betaStar q : ℤ) := by
+/-- The comparison `gain ≤ (13/9) β_*(ι, q)` in `ℝ` is `9 · gain ≤ 13 β_*(ι, q)` in `ℤ`. -/
+theorem trClearGain_le_iff (ι : FIndex) (β : List (List ℤ × ℤ)) (q h : ℕ) :
+    (trClearGain β q h : ℝ) ≤ 13 / 9 * (betaStar ι q : ℝ) ↔
+      9 * trClearGain β q h ≤ 13 * (betaStar ι q : ℤ) := by
   rw [← @Int.cast_le ℝ]
   push_cast
   constructor <;> intro <;> linarith
@@ -112,11 +114,12 @@ theorem trClearGain_eq_chBlockPath (β : List (List ℤ × ℤ)) (q h : ℕ)
     simp only [Option.map_some, Option.getD_some, Prod.snd_add]
     ring
 
-/-- Outside `Clr`, an atom of `𝒜_n` gains more than `(13/9) β_*(q)` over every window
-`{q + 1, …, q + h_*(q)}` with `q + h_*(q) ≤ P_* - 1`. -/
-theorem lt_trClearGain_of_notMem_trClear {n : ℕ} {a : (ℕ × ℤ) × List (List ℤ × ℤ)}
-    (ha : a ∈ trAtoms n) (hc : a ∉ trClear n) {q : ℕ} (hq : q + windowLength q ≤ pStar - 1) :
-    13 / 9 * (betaStar q : ℝ) < (trClearGain a.2 q (windowLength q) : ℝ) :=
-  not_le.1 fun h => hc ⟨ha, q, hq, h⟩
+/-- Outside `Clr(ι)`, an atom of `𝒜_n` gains more than `(13/9) β_*(ι, u)` over every window
+`{u + 1, …, u + h_*(ι, u)}` with `u + h_*(ι, u) ≤ P_*(ι) - 1`. -/
+theorem lt_trClearGain_of_notMem_trClear {ι : FIndex} {n : ℕ}
+    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (ha : a ∈ trAtoms n) (hc : a ∉ trClear ι n) {u : ℕ}
+    (hu : u + windowLength ι u ≤ pStar ι - 1) :
+    13 / 9 * (betaStar ι u : ℝ) < (trClearGain a.2 u (windowLength ι u) : ℝ) :=
+  not_le.1 fun h => hc ⟨ha, u, hu, h⟩
 
 end CollatzPosDens

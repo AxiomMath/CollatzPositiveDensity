@@ -8,7 +8,7 @@ module
 public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.DyadicReduction
+public import CollatzPosDens.Transfer.S02DyadicReduction
 
 /-!
 # The reference law on the residue spaces
@@ -19,8 +19,7 @@ $$\mu_{q+1}(y) = \sum_{a \ge 1} 2^{-a} \sum_{z \in G_q,\ [2^{-a}(3\tilde z + 1)]
   \mu_q(z),$$
 where `z̃` is the least nonnegative representative of `z` and `[·]_{q+1}` is the reduction of
 dyadic rationals modulo `3^{q+1}`. This is the law of the random residue `Y_q`, where `Y_0 = 0`
-and `Y_{q+1} = 2^{-A_{q+1}}(3 Y_q + 1) mod 3^{q+1}` with independent `Pr(A_j = a) = 2^{-a}`;
-it is Tao's Syracuse random variable `Syrac(ℤ/3^qℤ)`.
+and `Y_{q+1} = 2^{-A_{q+1}}(3 Y_q + 1) mod 3^{q+1}` with independent `Pr(A_j = a) = 2^{-a}`.
 
 ## Main definitions
 
@@ -38,8 +37,8 @@ it is Tao's Syracuse random variable `Syrac(ℤ/3^qℤ)`.
 
 The weights take values in `ℝ≥0∞`, so that the infinite sum over `a` is always defined. In the
 definition the index `a ≥ 1` is written as `a + 1` with `a : ℕ`; `refLaw_succ` restates the
-recursion with the sum over all `a : ℕ` restricted to `1 ≤ a`. Since `G_0` has the single element
-`0`, `μ_0` is the constant function `1`.
+recursion with the sum over all `a : ℕ` restricted to `1 ≤ a`. Since `G_0` has the single
+element `0`, `μ_0` is the constant function `1`.
 
 ## References
 

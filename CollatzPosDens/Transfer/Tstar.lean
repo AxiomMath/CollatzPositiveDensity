@@ -6,42 +6,51 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import Mathlib.Data.Nat.Notation
+public import CollatzPosDens.Transfer.S02Findex
 
 /-!
-# The low-count threshold `T_*`
+# The low-count threshold `T_*(ι)`
 
-The low-count threshold is the natural number `T_* = 101`, the maximal number of white points
-tolerated along a stopping trace up to time `P_* - 1`. It enters the recipe map
-`CollatzPosDens.recipeMap q = q + h_*(q) + T_* + 1`, and satisfies `T_* + 1 = 102 ≤ 1024 = p_init`.
+For a Fourier parameter index `ι ∈ {o, b}`, the low-count threshold `T_*(ι)` is the natural
+number defined by `T_*(o) = 192` and `T_*(b) = 168`. An admissible start is *low* when its count
+of white points along the stopping trace up to time `P_* - 1` is at most `T_*(ι)`.
 
 ## Main definitions
 
-* `CollatzPosDens.tStar`: the natural number `T_* = 101`.
+* `CollatzPosDens.tStar`: the natural number `T_*(ι)`.
 
 ## Main results
 
-* `CollatzPosDens.tStar_def`: `T_* = 101`.
-* `CollatzPosDens.tStar_add_one`: `T_* + 1 = 102`.
-* `CollatzPosDens.tStar_pos`: `0 < T_*`.
+* `CollatzPosDens.tStar_o`, `CollatzPosDens.tStar_b`: `T_*(o) = 192` and `T_*(b) = 168`.
+* `CollatzPosDens.tStar_o_succ`, `CollatzPosDens.tStar_b_succ`: `T_*(o) + 1 = 193` and
+  `T_*(b) + 1 = 169`.
+* `CollatzPosDens.tStar_pos`: `0 < T_*(ι)`.
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- The low-count threshold `T_* = 101`, the maximal number of white points tolerated along
-a stopping trace. -/
+/-- The low-count threshold `T_*(ι)`, equal to `192` for `ι = o` and `168` for `ι = b`. -/
 @[collatz_pos_dens "def_Tstar"]
-def tStar : ℕ := 101
+def tStar : FIndex → ℕ
+  | .o => 192
+  | .b => 168
 
-/-- The low-count threshold equals `101`. -/
-theorem tStar_def : tStar = 101 := rfl
+/-- The low-count threshold at the original index equals `192`. -/
+@[simp] theorem tStar_o : tStar .o = 192 := rfl
 
-/-- `T_* + 1 = 102`. -/
-theorem tStar_add_one : tStar + 1 = 102 := rfl
+/-- The low-count threshold at the bootstrap index equals `168`. -/
+@[simp] theorem tStar_b : tStar .b = 168 := rfl
+
+/-- `T_*(o) + 1 = 193`. -/
+theorem tStar_o_succ : tStar .o + 1 = 193 := rfl
+
+/-- `T_*(b) + 1 = 169`. -/
+theorem tStar_b_succ : tStar .b + 1 = 169 := rfl
 
 /-- The low-count threshold is positive. -/
-theorem tStar_pos : 0 < tStar := by decide
+theorem tStar_pos (ι : FIndex) : 0 < tStar ι := by
+  cases ι <;> decide
 
 end CollatzPosDens

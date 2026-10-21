@@ -8,7 +8,8 @@ module
 public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkWhite
 public import CollatzPosDens.CharSum.ChBlockPath
-public import CollatzPosDens.Transfer.Kappa
+public import CollatzPosDens.CharSum.ChOldReward
+public import CollatzPosDens.CharSum.ChPaidRewardGeOld
 public import CollatzPosDens.StoppingTrace.TrCount
 public import CollatzPosDens.StoppingTrace.TrPath
 public import CollatzPosDens.StoppingTrace.TrReward
@@ -22,9 +23,10 @@ number of white points among `x_1(o, β), …, x_t(o, β)`:
 ```
 N^*(o, β; t) ≥ #{i ∈ {1, …, t} : x_i(o, β) is white}.
 ```
-Indeed `x_i(o, β) = x_{i-1}(o, β) + bpt(β^i)` for `1 ≤ i ≤ N`, so the first term of the reward
-`rw(x_{i-1}(o, β), β^i)` is the indicator that `x_i(o, β)` is white, and the second term is
-nonnegative since `κ_* ≥ 0`; summing over `i` gives the claim.
+Indeed `x_i(o, β) = x_{i-1}(o, β) + bpt(β^i)` for `1 ≤ i ≤ N`, so the last term of the reward
+`rw(x_{i-1}(o, β), β^i)` is the paid reward `R_e(x_i(o, β))` of the closing letter `e ∈ {4, 5}`
+of `β^i`. At a white point this is at least the baseline reward `R^old_e(x_i(o, β)) = 1`, and
+all other terms of the reward are nonnegative; summing over `i` gives the claim.
 
 ## Main results
 
@@ -33,14 +35,14 @@ nonnegative since `κ_* ≥ 0`; summing over `i` gives the claim.
 
 ## Implementation notes
 
-The statement holds for every base point `o ∈ ℤ × ℤ` and every block list, without the
-hypotheses `o ∈ 𝒫` and that the closing letters lie in `{4, 5}`; both are therefore omitted.
+The block list `β ∈ 𝔅^N` is a `List (List ℤ × ℤ)` with `N = β.length` whose closing letters
+lie in `{4, 5}`; the base point is any `o ∈ ℤ × ℤ`, as the hypothesis `o ∈ 𝒫` plays no role.
 The hypothesis `t ≤ N` cannot be dropped, since the path is constant from time `N` on while the
 count is not.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §9.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -50,10 +52,10 @@ namespace CollatzPosDens
 variable {n : ℕ} {ξ : ResidueGroup n}
 
 /-- The weighted white count `N^*(o, β; t)` is at least the number of indices `i ∈ {1, …, t}`
-for which `x_i(o, β)` is white, for every `t ≤ N`. -/
+for which `x_i(o, β)` is white, for every block list `β ∈ 𝔅^N` and every `t ≤ N`. -/
 @[collatz_pos_dens "lem_tr_count_whites"]
-theorem card_white_le_trCount (o : ℤ × ℤ) (β : List (List ℤ × ℤ)) {t : ℕ}
-    (ht : t ≤ β.length) :
+theorem card_white_le_trCount (o : ℤ × ℤ) (β : List (List ℤ × ℤ))
+    (hβ : ∀ b ∈ β, b.2 ∈ ({4, 5} : Set ℤ)) {t : ℕ} (ht : t ≤ β.length) :
     ((((Finset.Icc 1 t).filter fun i =>
         IsBkWhite n ξ (epsStar : ℝ) (trPath o β i)).card : ℕ) : ℝ) ≤ trCount n ξ o β t := by
   induction t with
@@ -64,7 +66,14 @@ theorem card_white_le_trCount (o : ℤ × ℤ) (β : List (List ℤ × ℤ)) {t 
       Nat.cast_add, trCount_succ o β htN, trPath_succ o β htN]
     gcongr
     · exact ih htN.le
-    · have := indicator_le_trReward (n := n) (ξ := ξ) (trPath o β t) β[t]
-      split_ifs at this ⊢ <;> simpa using this
+    · have hle := chPaidReward_le_trReward (n := n) (ξ := ξ) (trPath o β t) β[t]
+      split_ifs with hw
+      · have he := hβ _ (List.getElem_mem htN)
+        have h1 := chOldReward_of_isBkWhite (n := n) (ξ := ξ) (ε := (epsStar : ℝ)) he hw
+        have h2 := chPaidReward_ge_chOldReward n ξ (epsStar : ℝ) β[t].2
+          (trPath o β t + chBlockPoint β[t])
+        push_cast
+        linarith
+      · simpa using trReward_nonneg (n := n) (ξ := ξ) (trPath o β t) β[t]
 
 end CollatzPosDens

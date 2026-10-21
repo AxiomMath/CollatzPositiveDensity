@@ -12,9 +12,8 @@ public import CollatzPosDens.Main.MainJoint
 /-!
 # The explicit density theorem
 
-For every natural number `N ≥ X_ch = 2^2^2^2^87640`, at least `c_ch · N` of the integers
-`n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps, where
-`c_ch = 1 / 2^2^2^87640`.
+For every natural number `N`, at least `⌊c_ch · N⌋₊` of the integers `n ∈ {0, …, N - 1}` reach
+`1` within `⌊10.46 log n⌋₊` Collatz steps, where `c_ch = 1 / 2 ^ 2 ^ 2 ^ 163` (`collatzDensity`).
 
 This is a corollary of the joint density theorem
 `positive_density_collatz_and_collatzAccel_reaches_one`: the set counted there is contained in
@@ -35,11 +34,12 @@ the set counted here, since each of its elements satisfies the conjunct
 
 open Finset
 
-/-- **The explicit density theorem.** For every `N ≥ X_ch`, at least `c_ch · N` of
-the `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps. -/
+/-- **The explicit density theorem**, ordinary clock: for every `N`, at least `⌊c N⌋` of the
+`n < N` reach `1` in at most `⌊10.46 log n⌋` Collatz steps. A direct corollary of the joint theorem
+`positive_density_collatz_and_collatzAccel_reaches_one`. -/
 @[collatz_pos_dens "thm_main"]
-theorem positive_density_collatz_reaches_one {N : ℕ} (hN : collatzDensityThreshold ≤ N) :
-    collatzDensity * N ≤ #{n ∈ range N | ReachWithin collatz 1 n ⌊(10.46 : ℝ) * Real.log n⌋₊} :=
-  (positive_density_collatz_and_collatzAccel_reaches_one hN).trans <| by
+theorem positive_density_collatz_reaches_one (N : ℕ) :
+    ⌊collatzDensity * N⌋₊ ≤ #{n ∈ range N | ReachWithin collatz 1 n ⌊(10.46 : ℝ) * Real.log n⌋₊} :=
+  (positive_density_collatz_and_collatzAccel_reaches_one N).trans <| by
     gcongr with n _
     exact fun h => h.2.1

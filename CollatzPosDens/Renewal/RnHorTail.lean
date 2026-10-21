@@ -16,39 +16,41 @@ public import CollatzPosDens.Renewal.RnFpMgf
 public import CollatzPosDens.Renewal.RnFpSupport
 public import CollatzPosDens.Renewal.RnHoeffding
 public import CollatzPosDens.Renewal.RnMgfSixteenth
+public import CollatzPosDens.Renewal.RnRawOddSum
 
 /-!
-# Horizontal tail of the first-passage law
+# Horizontal tail bounds for the first-passage law
 
-For `s ∈ ℕ` and real `u`, the mass of the first-passage law `F_s` on the columns `r` far
-from the drift, `|r - s/4| ≥ u`, satisfies
-$$\sum_{|r - s/4| \ge u}\ \sum_{\ell \in \mathbb{Z}} \mathsf F_s(r, \ell)
-  \le 2^{54}\Bigl[\exp\Bigl(-\frac{u^2}{2^{15}(1+s)}\Bigr)
-    + \exp\Bigl(-\frac{u}{256}\Bigr)\Bigr].$$
+For `s ∈ ℕ` and real `u ≥ 2`, this file bounds the mass of the first-passage law `F_s` on the
+columns `r` far from the drift, `|r - s/4| ≥ u`, in two cases.
 
-The left side is at most `1` (total mass), which settles `u ≤ 4096`. For `s ≤ 5` the
-exponential moment `∑ F_s(r, ℓ) e^{r/16} ≤ M₄₅(1/16)^{s+1} ≤ 4` gives the bound `4 e^{-u/16}`.
+For `s ≤ 5` every contributing column has `r ≥ 1`, which together with `u ≥ 2 > 5/4` forces
+`r ≥ u`; the exponential moment `∑ F_s(r, ℓ) e^{r/16} ≤ M₄₅(1/16)^{s+1} ≤ (5/4)^6 ≤ 4` then
+gives the bound `4 e^{-u/16}`.
+
 For `s ≥ 6` put `n = s - 4`; the exact crossing law bounds the column mass by
-`e_n(r - 1) + ∑_j p_n(j) ν₄₅(r - 1 - j)`, and since `e_n ≤ p_n`, the tail is controlled by the
-straddle weights `p_n(j)` with `|j - n/4| ≥ u/2`, which the Hoeffding bound for row `n`
-makes at most `2 e^{-u²/(2n)}`, and by the geometric tail `∑_{H ≥ u/2} ν₄₅(H)`, which the
-exponential moment `M₄₅(1/16) ≤ 5/4` makes at most `(5/4) e^{-u/32}`.
+`e_n(r - 1) + ∑_j p_n(j) ν₄₅(r - 1 - j)`. Since `0 ≤ e_n ≤ p_n`, the tail is at most twice the
+mass of the straddle weights `p_n(j)` with `|j - n/4| ≥ u/2`, plus the total straddle mass
+`∑_j p_n(j) = 1` times the geometric tail `∑_{H ≥ u/2} ν₄₅(H)`. As `u ≥ 2`, both indices
+`k ∈ {2j, 2j + 1}` of such a `j` satisfy `|k - n/2| ≥ u - 1 ≥ u/2`, so the Hoeffding bound for
+row `n` makes the first mass at most `2 e^{-u²/(2n)}`, and the exponential moment
+`M₄₅(1/16) ≤ 5/4` makes the geometric tail at most `(5/4) e^{-u/32}`.
 
 ## Main results
 
 * `CollatzPosDens.summable_firstPassageLaw_hor_tail`: the column masses on
   `|r - s/4| ≥ u` are summable.
-* `CollatzPosDens.tsum_firstPassageLaw_hor_tail_le`: the horizontal tail bound.
+* `CollatzPosDens.tsum_firstPassageLaw_hor_tail_le_four_mul_exp`: the bound `4 e^{-u/16}` for
+  `s ≤ 5` and `u ≥ 2`.
+* `CollatzPosDens.tsum_firstPassageLaw_add_four_hor_tail_le`: the bound
+  `4 e^{-u²/(2n)} + (5/4) e^{-u/32}` for `s = n + 4 ≥ 6` and `u ≥ 2`.
 
 ## Implementation notes
 
 The sum over `r` with `|r - s/4| ≥ u` is the unconditional sum over the subtype of such `r`.
-Since `tsum` of a non-summable family is `0`, summability is stated separately. No hypothesis
-`u ≥ 0` is needed: for `u < 0` the right side exceeds `2^{54}` while the left side is at most
-`1`. In the case `s ≥ 6` the geometric tail of `ν₄₅` is bounded through the exponential moment
-`M₄₅(1/16) ≤ 5/4` rather than summed in closed form, and the total mass `∑_j p_n(j)` through the
-Hoeffding bound at `u = 0`, which gives `2` instead of `1`; the constants obtained,
-`4 e^{-u²/(2n)} + (5/2) e^{-u/32}`, are still far below the stated bound.
+Since `tsum` of a non-summable family is `0`, summability is stated separately. The geometric
+tail of `ν₄₅` is bounded through the exponential moment `M₄₅(1/16) ≤ 5/4` rather than summed in
+closed form.
 
 ## References
 
@@ -83,11 +85,7 @@ private lemma horTail_hasSum_col (s : ℕ) :
   have h := horTail_hasSum_fiber (hasSum_firstPassageLaw s).summable
   rwa [tsum_firstPassageLaw] at h
 
-private lemma horTail_col_nonneg (s : ℕ) (r : ℤ) : 0 ≤ ∑' ℓ : ℤ, firstPassageLaw s (r, ℓ) :=
-  tsum_nonneg fun _ ↦ firstPassageLaw_nonneg _ _
-
 /-- The column masses on `|r - s/4| ≥ u` are summable. -/
-@[collatz_pos_dens "lem_rn_hor_tail"]
 theorem summable_firstPassageLaw_hor_tail (s : ℕ) (u : ℝ) :
     Summable fun r : {r : ℤ // u ≤ |(r : ℝ) - s / 4|} ↦
       ∑' ℓ : ℤ, firstPassageLaw s ((r : ℤ), ℓ) :=
@@ -157,6 +155,19 @@ private lemma horTail_sum_straddle_le (n : ℕ) (hn : 1 ≤ n) (P : ℕ → Prop
           (n.choose k : ℝ) / 2 ^ n := by rw [sum_filter]
     _ ≤ 2 * exp (-(2 * w ^ 2 / n)) := binomial_tail_hoeffding n hn w hw
 
+/-- The straddle weights of row `n` have total mass `1`: the odd-index entries of row `n + 1`
+sum to `2^n`. -/
+private lemma horTail_sum_straddleWeight (n : ℕ) :
+    ∑ j ∈ range (n + 1), straddleWeight n j = 1 := by
+  simp only [straddleWeight_natCast]
+  rw [← sum_div, div_eq_one_iff_eq (by positivity)]
+  have h2 : ∑ i ∈ range (2 * (n + 1)), n.choose i = ∑ i ∈ range (n + 1), n.choose i :=
+    (sum_subset (range_subset_range.2 (by omega)) fun i _ hi ↦ by
+      simp only [mem_range, not_lt] at hi
+      exact Nat.choose_eq_zero_of_lt (by omega)).symm
+  have h := (sum_range_choose_succ_odd n (n + 1)).trans (h2.trans (Nat.sum_range_choose n))
+  exact_mod_cast h
+
 private lemma horTail_mgfNu45_le : mgfNu45 (1 / 16) ≤ ENNReal.ofReal (5 / 4) := by
   refine mgfNu45_one_div_sixteen_le.trans (le_of_eq ?_)
   rw [ENNReal.ofReal_div_of_pos (by norm_num)]
@@ -195,27 +206,9 @@ private lemma horTail_nu45_tail (v : ℝ) :
     _ ≤ exp (-(v / 16)) * (5 / 4) := by gcongr
     _ = 5 / 4 * exp (-(v / 16)) := by ring
 
-/-- The tail of the column masses is at most the total mass `1`. -/
-private lemma horTail_le_one (s : ℕ) (u : ℝ) :
-    ∑' r : {r : ℤ // u ≤ |(r : ℝ) - s / 4|}, ∑' ℓ : ℤ, firstPassageLaw s ((r : ℤ), ℓ) ≤ 1 := by
-  rw [← (horTail_hasSum_col s).tsum_eq]
-  exact tsum_comp_le_tsum_of_inj (horTail_hasSum_col s).summable (horTail_col_nonneg s)
-    Subtype.val_injective
-
-/-- For `u ≤ 4096` and `A ≥ 0`, `1 ≤ 2^{54} (A + e^{-u/256})`. -/
-private lemma horTail_one_le {u A : ℝ} (hu : u ≤ 4096) (hA : 0 ≤ A) :
-    1 ≤ 2 ^ 54 * (A + exp (-(u / 256))) := by
-  have h3 : (1 / 2) ^ 32 ≤ exp (-16) := by
-    have := exp_nat_mul (-(1 / 2)) 32
-    norm_num at this
-    rw [this]
-    exact pow_le_pow_left₀ (by norm_num) (by linarith [add_one_le_exp (-(1 / 2 : ℝ))]) 32
-  have hB : exp (-16) ≤ exp (-(u / 256)) := exp_le_exp.2 (by linarith)
-  norm_num at h3
-  linarith
-
-/-- The case `s ≤ 5`, `u > 4096`: the tail is at most `4 e^{-u/16}`. -/
-private lemma horTail_le_of_le_five {s : ℕ} (hs : s ≤ 5) {u : ℝ} (hu : 4096 < u) :
+/-- For `s ≤ 5` and `u ≥ 2`, the horizontal tail of `F_s` is at most `4 e^{-u/16}`. -/
+theorem tsum_firstPassageLaw_hor_tail_le_four_mul_exp {s : ℕ} (hs : s ≤ 5) {u : ℝ}
+    (hu : 2 ≤ u) :
     ∑' r : {r : ℤ // u ≤ |(r : ℝ) - s / 4|}, ∑' ℓ : ℤ, firstPassageLaw s ((r : ℤ), ℓ) ≤
       4 * exp (-(u / 16)) := by
   set g : ℤ × ℤ → ℝ := fun x ↦ firstPassageLaw s x * exp (1 / 16 * x.1)
@@ -350,11 +343,12 @@ private lemma horTail_col_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 
         rw [← sum_add_distrib]
         exact sum_congr rfl fun j _ ↦ by ring
 
-/-- The case `s = n + 4 ≥ 6`, `u > 4096`. -/
-private lemma horTail_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 4096 < u) :
+/-- For `s = n + 4` with `n ≥ 2` and `u ≥ 2`, the horizontal tail of `F_s` is at most
+`4 e^{-u²/(2n)} + (5/4) e^{-u/32}`. -/
+theorem tsum_firstPassageLaw_add_four_hor_tail_le {n : ℕ} (hn : 2 ≤ n) {u : ℝ} (hu : 2 ≤ u) :
     ∑' r : {r : ℤ // u ≤ |(r : ℝ) - ((n + 4 : ℕ) : ℝ) / 4|},
         ∑' ℓ : ℤ, firstPassageLaw (n + 4 : ℕ) ((r : ℤ), ℓ) ≤
-      2 * (2 * exp (-(2 * (u / 2) ^ 2 / n))) + 5 / 4 * exp (-(u / 2 / 16)) * 2 := by
+      4 * exp (-(u ^ 2 / (2 * n))) + 5 / 4 * exp (-(u / 32)) := by
   set c1 : ℕ → ℝ := fun j ↦ if u / 2 ≤ |(j : ℝ) - n / 4| then straddleWeight n j else 0
   set δ : ℤ → ℝ := fun h ↦ if h = 0 then 1 else 0
   set νt : ℤ → ℝ := fun h ↦ if u / 2 ≤ (h : ℝ) then nu45 h else 0
@@ -385,9 +379,8 @@ private lemma horTail_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 4096
       first
       | exact le_abs'.2 (Or.inl (by linarith))
       | exact le_abs'.2 (Or.inr (by linarith))
-  have hP : ∑ j ∈ range (n + 1), straddleWeight n j ≤ 2 := by
-    simpa using horTail_sum_straddle_le n hn1 (fun _ ↦ True) le_rfl
-      fun j _ ↦ ⟨abs_nonneg _, abs_nonneg _⟩
+  have hP : ∑ j ∈ range (n + 1), straddleWeight n j ≤ 1 :=
+    (horTail_sum_straddleWeight n).le
   calc ∑' r : {r : ℤ // u ≤ |(r : ℝ) - ((n + 4 : ℕ) : ℝ) / 4|},
         ∑' ℓ : ℤ, firstPassageLaw (n + 4 : ℕ) ((r : ℤ), ℓ)
       ≤ ∑' r : {r : ℤ // u ≤ |(r : ℝ) - ((n + 4 : ℕ) : ℝ) / 4|}, B r :=
@@ -398,32 +391,11 @@ private lemma horTail_le_of_two_le (n : ℕ) (hn : 2 ≤ n) {u : ℝ} (hu : 4096
           (∑' h, νt h) * ∑ j ∈ range (n + 1), straddleWeight n j := by
         rw [hB.tsum_eq, sum_add_distrib, ← sum_mul, ← sum_mul]
         ring
-    _ ≤ 2 * (2 * exp (-(2 * (u / 2) ^ 2 / n))) + 5 / 4 * exp (-(u / 2 / 16)) * 2 :=
+    _ ≤ 2 * (2 * exp (-(2 * (u / 2) ^ 2 / n))) + 5 / 4 * exp (-(u / 2 / 16)) * 1 :=
         add_le_add (by linarith)
           (mul_le_mul hνtle hP (sum_nonneg fun _ _ ↦ straddleWeight_nonneg _ _) (by positivity))
-
-/-- **Horizontal tail of the first-passage law.** For `s ∈ ℕ` and real `u`,
-`∑_{|r - s/4| ≥ u} ∑_{ℓ ∈ ℤ} F_s(r, ℓ) ≤ 2^{54} [exp(-u² / (2^{15} (1 + s))) + exp(-u / 256)]`. -/
-@[collatz_pos_dens "lem_rn_hor_tail"]
-theorem tsum_firstPassageLaw_hor_tail_le (s : ℕ) (u : ℝ) :
-    ∑' r : {r : ℤ // u ≤ |(r : ℝ) - s / 4|}, ∑' ℓ : ℤ, firstPassageLaw s ((r : ℤ), ℓ) ≤
-      2 ^ 54 * (exp (-(u ^ 2 / (2 ^ 15 * (1 + s)))) + exp (-(u / 256))) := by
-  have hA : 0 ≤ exp (-(u ^ 2 / (2 ^ 15 * (1 + s)))) := (exp_pos _).le
-  rcases le_or_gt u 4096 with hu | hu
-  · exact (horTail_le_one s u).trans (horTail_one_le hu hA)
-  rcases le_or_gt s 5 with hs | hs
-  · refine (horTail_le_of_le_five hs hu).trans ?_
-    have : exp (-(u / 16)) ≤ exp (-(u / 256)) := exp_le_exp.2 (by linarith)
-    linarith [exp_pos (-(u / 256))]
-  · obtain ⟨n, rfl⟩ : ∃ n, s = n + 4 := ⟨s - 4, by omega⟩
-    refine (horTail_le_of_two_le n (by omega) hu).trans ?_
-    have hn : (2 : ℝ) ≤ n := by exact_mod_cast (by omega : 2 ≤ n)
-    have h1 : exp (-(2 * (u / 2) ^ 2 / n)) ≤
-        exp (-(u ^ 2 / (2 ^ 15 * (1 + ((n + 4 : ℕ) : ℝ))))) := by
-      rw [exp_le_exp, neg_le_neg_iff, show 2 * (u / 2) ^ 2 / n = u ^ 2 / (2 * n) by
-        field_simp]
-      exact div_le_div_of_nonneg_left (sq_nonneg u) (by positivity) (by push_cast; linarith)
-    have h2 : exp (-(u / 2 / 16)) ≤ exp (-(u / 256)) := exp_le_exp.2 (by linarith)
-    linarith [exp_pos (-(u / 256))]
+    _ = 4 * exp (-(u ^ 2 / (2 * n))) + 5 / 4 * exp (-(u / 32)) := by
+        rw [show 2 * (u / 2) ^ 2 / n = u ^ 2 / (2 * n) by ring, show u / 2 / 16 = u / 32 by ring]
+        ring
 
 end CollatzPosDens

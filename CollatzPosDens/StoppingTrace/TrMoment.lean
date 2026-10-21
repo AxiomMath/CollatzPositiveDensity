@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Exp
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Transfer.Gamma
+public import CollatzPosDens.Transfer.S02Gamma
 public import CollatzPosDens.StoppingTrace.TrCount
 public import CollatzPosDens.StoppingTrace.TrPath
 public import CollatzPosDens.StoppingTrace.TrTrace
@@ -23,7 +23,7 @@ point `o ∈ 𝒫`, a block list `β ∈ 𝔅^N`, the path `x = (x_t(o, β))_{t 
 𝒵_R(o, β) = 0                             otherwise,
 ```
 where `τ_R(x)` is the `R`-th stopping time of `x`, `ν(x)` the length of its stopping sequence,
-`N^*(o, β; t)` the weighted white count and `γ_* = 87/200` the trace tilt.
+`N^*(o, β; t)` the weighted white count and `γ_* = 133/3125` the trace tilt.
 
 ## Main definitions
 
@@ -44,14 +44,14 @@ where `τ_R(x)` is the `R`-th stopping time of `x`, `ν(x)` the length of its st
 ## Implementation notes
 
 The stopping time `τ_R(x)` is an `Option ℕ`, which is `some` exactly when `1 ≤ R ≤ ν(x)`
-(`CollatzPosDens.isSome_trStopTime_iff`); the moment is defined by cases on it, and
+(`CollatzPosDens.isSome_trStopTime_iff`), and the moment is defined by cases on it;
 `CollatzPosDens.trMoment_eq_ite` restates it as a case split on `1 ≤ R ≤ ν(x)`. The stopping
-sequence is taken at the colour scale `ε_*`. As for `CollatzPosDens.trPath`, the base point is
-any `o ∈ ℤ × ℤ` and `β` any list of blocks; the length `N` is `β.length`.
+sequence is taken at the colour scale `ε_*`. As for `CollatzPosDens.trPath`, the base point is any
+`o ∈ ℤ × ℤ` and `β` any list of blocks, of length `N = β.length`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §9.2.
 -/
 
 @[expose] public section

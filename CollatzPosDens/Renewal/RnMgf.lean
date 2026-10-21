@@ -14,7 +14,7 @@ public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 # The exponential moment `M₄₅` of the horizontal law
 
 For `t ∈ ℝ` we set `M₄₅(t) = ∑_{r ≥ 1} ν₄₅(r) e^{t r}`, a series of nonnegative terms whose
-value lies in `[0, ∞]`. Since `ν₄₅(1) = 5/16 > 0`, the value is in fact positive.
+value lies in `[0, ∞]`.
 
 ## Main definitions
 
@@ -23,21 +23,14 @@ value lies in `[0, ∞]`. Since `ν₄₅(1) = 5/16 > 0`, the value is in fact p
 
 ## Main results
 
-* `CollatzPosDens.mgfNu45_eq_tsum_pnat`: the value is the sum over `r ≥ 1` exactly as
-  written, indexed by `ℕ+`.
 * `CollatzPosDens.mgfNu45_eq_tsum_int`: the value is the sum over all `r ∈ ℤ`, the terms
   with `r ≤ 0` vanishing.
-* `CollatzPosDens.mgfNu45_pos`: `0 < M₄₅(t)` for every `t`.
 
 ## Implementation notes
 
 The series is summed in `ℝ≥0∞`, so that `M₄₅` is total with values in `[0, ∞]`; each term
 `ν₄₅(r) e^{tr} ≥ 0` is embedded by `ENNReal.ofReal`. The summation index `r ≥ 1` is written as
 `r + 1` with `r : ℕ`.
-
-## References
-
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -56,14 +49,6 @@ noncomputable def mgfNu45 (t : ℝ) : ℝ≥0∞ :=
 lemma mgfNu45_def (t : ℝ) :
     mgfNu45 t = ∑' r : ℕ, ENNReal.ofReal (nu45 ((r : ℤ) + 1) * exp (t * ((r : ℝ) + 1))) := rfl
 
-/-- `M₄₅(t)` as a sum over `r ≥ 1`, indexed by `ℕ+`. -/
-lemma mgfNu45_eq_tsum_pnat (t : ℝ) :
-    mgfNu45 t = ∑' r : ℕ+, ENNReal.ofReal (nu45 (r : ℤ) * exp (t * (r : ℝ))) := by
-  rw [mgfNu45_def, ← Equiv.pnatEquivNat.symm.tsum_eq]
-  congr 1
-  ext r
-  simp [Equiv.pnatEquivNat, Nat.succPNat]
-
 /-- `M₄₅(t)` as a sum over all `r ∈ ℤ`; the terms with `r ≤ 0` vanish. -/
 lemma mgfNu45_eq_tsum_int (t : ℝ) :
     mgfNu45 t = ∑' r : ℤ, ENNReal.ofReal (nu45 r * exp (t * (r : ℝ))) := by
@@ -78,15 +63,5 @@ lemma mgfNu45_eq_tsum_int (t : ℝ) :
       by_contra h
       exact hr ⟨(j - 1).toNat, by simp only; omega⟩
     simp [nu45_of_nonpos this] at hj
-
-/-- The exponential moment `M₄₅(t)` is positive. -/
-lemma mgfNu45_pos (t : ℝ) : 0 < mgfNu45 t := by
-  rw [mgfNu45_def, pos_iff_ne_zero, Ne, ENNReal.tsum_eq_zero, not_forall]
-  exact ⟨0, by
-    rw [ENNReal.ofReal_eq_zero, not_le]
-    exact mul_pos (nu45_pos_iff.mpr (by omega)) (exp_pos _)⟩
-
-/-- The exponential moment `M₄₅(t)` is nonzero. -/
-lemma mgfNu45_ne_zero (t : ℝ) : mgfNu45 t ≠ 0 := (mgfNu45_pos t).ne'
 
 end CollatzPosDens

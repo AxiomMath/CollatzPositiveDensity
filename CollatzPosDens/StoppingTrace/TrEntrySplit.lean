@@ -11,6 +11,7 @@ public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.StoppingTrace.TrEntryWord
 public import CollatzPosDens.StoppingTrace.TrFirstStopSet
 public import CollatzPosDens.StoppingTrace.TrGap
+public import CollatzPosDens.StoppingTrace.TrGapNonneg
 public import CollatzPosDens.StoppingTrace.TrPassage
 public import CollatzPosDens.StoppingTrace.TrPath
 public import CollatzPosDens.StoppingTrace.TrSublist
@@ -34,13 +35,15 @@ concatenation `π b` is an entry list.
 
 * `CollatzPosDens.trEntryWords_bijOn_append`: the map `(π, b) ↦ π b` is a bijection from
   the pairs with `π ∈ Π_s` and `b ∈ 𝒰(x_{|π|}(v, π))` onto `𝓔(v)`.
-* `CollatzPosDens.bkColTop_lt_trPath_iff`: `l(x_t(v, u)) > l_*(v)` iff `l(Bp_t(u)) > gap(v)`.
+* `CollatzPosDens.bkColTop_lt_trPath_iff`: `l(x_t(v, u)) > l_*(v)` iff
+  `l(Bp_t(u)) > gap(v)`, with the gap read in `ℕ`.
 
 ## Implementation notes
 
-In [mazur2026] the splitting is stated for `n ≥ 1`, a unit `ξ` and a black point `v`. None of
-these hypotheses enters the argument, so `CollatzPosDens.trEntryWords_bijOn_append` is stated for
-every `n`, `ξ`, `ε` and every point `v ∈ ℤ × ℤ`. A bijection between sets is expressed as
+The hypotheses `n ≥ 1`, `ξ` a unit and `v` black do not enter the argument, so the bijection is
+stated for every `n`, `ξ`, `ε` and every point `v ∈ ℤ × ℤ`. The gap is an integer and `Π_s` is
+indexed by `s ∈ ℕ`; since the gap is nonnegative (`CollatzPosDens.trGap_nonneg`), the index is
+`s = gap(v).toNat`, which equals `gap(v)` as an integer. A bijection between sets is expressed as
 `Set.BijOn` on the set of pairs `(π, b)` of block lists.
 
 ## References
@@ -55,10 +58,12 @@ namespace CollatzPosDens
 variable {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ}
 
 /-- The path of `u` from `v` is strictly above the column top of `v` at time `t` iff
-`l(Bp_t(u)) > gap(v)`. -/
+`l(Bp_t(u)) > gap(v)`, with the
+  gap read in `ℕ`. -/
 lemma bkColTop_lt_trPath_iff (v : ℤ × ℤ) (u : List (List ℤ × ℤ)) (t : ℕ) :
-    bkColTop n ξ ε v < bkL (trPath v u t) ↔ (trGap n ξ ε v : ℤ) < (chBlockPath u t).2 := by
-  rw [bkColTop_eq_add_trGap, trPath_eq_add_chBlockPath]
+    bkColTop n ξ ε v < bkL (trPath v u t) ↔
+      ((trGap n ξ ε v).toNat : ℤ) < (chBlockPath u t).2 := by
+  rw [bkColTop_eq_add_trGap, trPath_eq_add_chBlockPath, Int.toNat_of_nonneg (trGap_nonneg ..)]
   simp only [bkL, Prod.snd_add]
   omega
 
@@ -75,7 +80,8 @@ private lemma bkL_trPath_mono (o : ℤ × ℤ) {u : List (List ℤ × ℤ)}
 
 /-- A passage from `gap(v)` followed by a first-stop list from its endpoint is an entry list. -/
 theorem append_mem_trEntryWords {v : ℤ × ℤ} {π b : List (List ℤ × ℤ)}
-    (hπ : π ∈ trPassage (trGap n ξ ε v)) (hb : b ∈ trFirstStopSet n ξ ε (trPath v π π.length)) :
+    (hπ : π ∈ trPassage (trGap n ξ ε v).toNat)
+    (hb : b ∈ trFirstStopSet n ξ ε (trPath v π π.length)) :
     π ++ b ∈ trEntryWords n ξ ε v := by
   set k := π.length with hk
   have hc : ∀ x ∈ π ++ b, x.2 ∈ ({4, 5} : Set ℤ) := by
@@ -109,9 +115,9 @@ theorem append_mem_trEntryWords {v : ℤ × ℤ} {π b : List (List ℤ × ℤ)}
 endpoint. -/
 theorem exists_trPassage_append_of_mem_trEntryWords {v : ℤ × ℤ} {u : List (List ℤ × ℤ)}
     (hu : u ∈ trEntryWords n ξ ε v) :
-    ∃ π b, π ∈ trPassage (trGap n ξ ε v) ∧
+    ∃ π b, π ∈ trPassage (trGap n ξ ε v).toNat ∧
       b ∈ trFirstStopSet n ξ ε (trPath v π π.length) ∧ π ++ b = u := by
-  set s := trGap n ξ ε v
+  set s := (trGap n ξ ε v).toNat
   obtain ⟨hc, hl, hq1, ⟨hbl, hab⟩, hnot⟩ := hu
   have hP : ∃ k, (s : ℤ) < (chBlockPath u k).2 :=
     ⟨u.length, (bkColTop_lt_trPath_iff v u _).mp hab⟩
@@ -163,7 +169,7 @@ the set `𝓔(v)` of entry lists. -/
 @[collatz_pos_dens "lem_tr_entry_split"]
 theorem trEntryWords_bijOn_append (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (v : ℤ × ℤ) :
     Set.BijOn (fun p : List (List ℤ × ℤ) × List (List ℤ × ℤ) ↦ p.1 ++ p.2)
-      {p | p.1 ∈ trPassage (trGap n ξ ε v) ∧
+      {p | p.1 ∈ trPassage (trGap n ξ ε v).toNat ∧
         p.2 ∈ trFirstStopSet n ξ ε (trPath v p.1 p.1.length)}
       (trEntryWords n ξ ε v) := by
   refine ⟨fun p hp ↦ append_mem_trEntryWords hp.1 hp.2, ?_, fun u hu ↦ ?_⟩

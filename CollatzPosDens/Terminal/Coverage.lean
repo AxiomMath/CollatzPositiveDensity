@@ -7,14 +7,12 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Recipe.Bht
-public import CollatzPosDens.Recipe.Jstar
-public import CollatzPosDens.Recipe.CalM
-public import CollatzPosDens.Seed.GoodSeed
+public import CollatzPosDens.Recipe.CovExp
+public import CollatzPosDens.Recipe.CovGen
+public import CollatzPosDens.Recipe.S04BhtLe
 public import CollatzPosDens.Seed.EndpointLarge
-public import CollatzPosDens.FirstCrossing.PhRatio
 public import CollatzPosDens.FirstCrossing.RbLower
-public import CollatzPosDens.FirstCrossing.ScalesB42
-public import CollatzPosDens.FirstCrossing.ScalesGrowth
+public import CollatzPosDens.FirstCrossing.Scales
 public import CollatzPosDens.Terminal.AdmissibleScale
 public import CollatzPosDens.Terminal.LowerScale
 public import CollatzPosDens.Terminal.UpperScale
@@ -23,31 +21,31 @@ public import CollatzPosDens.Terminal.Overlap
 public import CollatzPosDens.Terminal.UpperScaleHeight
 
 /-!
-# Coverage of large scales by admissible generations
+# Reachability: coverage of large scales by admissible generations
 
-Let `s ≥ 1`, let `M` be an `s`-good seed and let `X > 2^{B_ht(s)} 𝓜(s)` be real. Then there
-is a generation `n ≥ J_*(s)` such that `X` is admissible for generation `n`, i.e.
-`L_{b_n}(R_h) < X ≤ U_{b_n}(R_h)` for every central history `h ∈ 𝓗_n(M)`.
+Let `t ≥ t_min` (`targetFloor`, equal to `16^{b_0}`) be an odd integer and let
+`X ≥ 2^{Λ_cov} t` be real, where `Λ_cov = 2^{352}` is the coverage exponent (`covExp`). Then
+there is a generation `j ≥ J_c = 23000` (`covGen`) such that `X` is admissible for
+generation `j`, i.e. `L_{b_j}(R_h) < X ≤ U_{b_j}(R_h)` for every central history `h ∈ 𝓗_j(t)`.
 
-Write `J_* = J_*(s)`, `B_ht = B_ht(s)` and `𝓜 = 𝓜(s)`. The proof takes the least generation
-`n ≥ J_*` at which `X ≤ U_{b_n}(R_h)` for every `h ∈ 𝓗_n(M)`. Such generations exist: since
-`16^{b_0} ≤ 16^{b_0} s < M` as `s ≥ 1`, the endpoints satisfy `R_h ≥ 16^{b_n}`; for `n ≥ J_*`
-the scale satisfies `b_n ≥ 256`, so
-`r_{b_n} ≥ 0` and `U_{b_n}(R_h) ≥ 2^{b_n}` because `R_h ≥ 16^{b_n}`, while `b_n ≥ n → ∞`.
-At generation `J_*` every upper scale lies below `2^{⌊2 b_{J_*}/3⌋} 2^{𝓔(J_*)} 𝓜 =
-2^{B_ht} 𝓜 < X`, so if `n = J_*` the family `𝓗_{J_*}(M)` is empty; otherwise the minimality
-of `n` and the overlap of consecutive scale windows give the lower bound `L_{b_n}(R_h) < X`.
+The proof takes the least generation `j ≥ J_c` at which `X ≤ U_{b_j}(R_h)` for every
+`h ∈ 𝓗_j(t)`. Such generations exist: since `t ≥ t_min`, the endpoints satisfy `R_h ≥ 16^{b_n}`;
+every scale satisfies `b_n ≥ 16544 ≥ 256`, so `r_{b_n} ≥ 0` and `U_{b_n}(R_h) ≥ 2^{b_n}`,
+while `b_n ≥ n → ∞`. At generation `J_c` every upper scale lies below
+`2^{⌊2 b_{J_c}/3⌋} 2^{𝓔(J_c)} t = 2^{B_ht} t < 2^{Λ_cov} t ≤ X`, so if `j = J_c` the family
+`𝓗_{J_c}(t)` is empty; otherwise the minimality of `j` and the overlap of consecutive scale
+windows give the lower bound `L_{b_j}(R_h) < X`.
 
 ## Main results
 
-* `CollatzPosDens.exists_isAdmissibleScale_of_goodSeed`: every `X > 2^{B_ht(s)} 𝓜(s)` is
-  admissible for some generation `n ≥ J_*(s)`.
+* `CollatzPosDens.exists_isAdmissibleScale_of_goodSeed`: every `X ≥ 2^{Λ_cov} t` is admissible
+  for some generation `j ≥ J_c`.
 
 ## Implementation notes
 
-Mazur derives `b_n ≥ 256` for `n ≥ J_*` from `b_n ≥ 9 𝗀^n`; here the cruder bound
-`n ≤ b_n`, which follows from the strict monotonicity of the scales, already suffices since
-`J_* ≥ 20 · 10^9`.
+The unboundedness of the scales is usually derived from `b_n ≥ 16544 𝗀^n`; here the cruder
+bound `n ≤ b_n`, which follows from the strict monotonicity of the scales, already suffices.
+The odd integer `t ≥ t_min` is taken in `ℕ`, which loses nothing since `t_min > 0`.
 
 ## References
 
@@ -58,10 +56,9 @@ Mazur derives `b_n ≥ 256` for `n ≥ J_*` from `b_n ≥ 9 𝗀^n`; here the cr
 
 namespace CollatzPosDens
 
-/-- For `n ≥ J_*(s)` the scale satisfies `b_n ≥ 256`. -/
-private theorem coverage_le_scale {s n : ℕ} (hn : finalGenerationThreshold s ≤ n) :
-    256 ≤ scale n :=
-  two_hundred_fifty_six_le_scale (le_trans (by have := le_finalGenerationThreshold s; omega) hn)
+/-- Every scale satisfies `b_n ≥ 256`. -/
+private theorem coverage_le_scale (n : ℕ) : 256 ≤ scale n :=
+  le_trans (by norm_num) (sixteen544_le_scale n)
 
 /-- For `b ≥ 256` and `R ≥ 16^b`, the upper scale satisfies `U_b(R) ≥ 2^b`. -/
 private theorem coverage_two_pow_le_upperScale {b : ℕ} (hb : 256 ≤ b) {R : ℝ}
@@ -83,83 +80,106 @@ private theorem coverage_two_pow_le_upperScale {b : ℕ} (hb : 256 ≤ b) {R : �
         le_mul_of_one_le_right (mul_nonneg (by positivity) (le_trans (by positivity) hR))
           (one_le_zpow₀ (by norm_num) hrb)
 
-/-- For `s ≥ 1`, the endpoint of a central history from an `s`-good seed satisfies
+/-- For odd `t ≥ t_min`, the endpoint of a central history from `t` satisfies
 `R_h ≥ 16^{b_n}`. -/
-private theorem coverage_sixteen_pow_le {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {n : ℕ}
-    {h : Fin n → Word} (hh : h ∈ centralHistories (M : ℚ) n) :
-    (16 : ℝ) ^ scale n ≤ (historyEndpoint (M : ℚ) h : ℝ) := by
-  have hh' : h ∈ centralHistories ((M : ℤ) : ℚ) n := by rwa [Int.cast_natCast]
-  simpa using historyEndpointAt_large_sixteen_pow_le_endpoint (M := (M : ℤ))
-    (by exact_mod_cast hM.odd) (by exact_mod_cast (hM.sixteen_pow_lt hs).le) hh'
+private theorem coverage_sixteen_pow_le {t : ℕ} (hodd : Odd t) (ht : targetFloor ≤ t) {n : ℕ}
+    {h : Fin n → Word} (hh : h ∈ centralHistories (t : ℚ) n) :
+    (16 : ℝ) ^ scale n ≤ (historyEndpoint (t : ℚ) h : ℝ) := by
+  have hh' : h ∈ centralHistories ((t : ℤ) : ℚ) n := by rwa [Int.cast_natCast]
+  obtain ⟨m, hm, -, hle⟩ := historyEndpointAt_large (t := (t : ℤ)) (by exact_mod_cast hodd)
+    (by exact_mod_cast ht) hh' le_rfl
+  have hm' : historyEndpoint (t : ℚ) h = m := by
+    rw [historyEndpoint, ← hm, Int.cast_natCast]
+  rw [hm', Rat.cast_intCast]
+  exact_mod_cast hle
 
-/-- At generation `J_*(s)`, every upper scale of an `s`-good seed lies below
-`X > 2^{B_ht(s)} 𝓜(s)`. -/
-private theorem coverage_upperScale_lt {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {X : ℝ}
-    (hX : (2 : ℝ) ^ heightExponent s * seedBound s < X)
-    {h : Fin (finalGenerationThreshold s) → Word}
-    (hh : h ∈ centralHistories (M : ℚ) (finalGenerationThreshold s)) :
-    upperScale (scale (finalGenerationThreshold s)) (historyEndpoint (M : ℚ) h) < X := by
-  have h16 := coverage_sixteen_pow_le hM hs hh
-  have hR : (0 : ℝ) ≤ historyEndpoint (M : ℚ) h := le_trans (by positivity) h16
-  have hh' : h ∈ centralHistories ((M : ℤ) : ℚ) (finalGenerationThreshold s) := by
+/-- `2^{B_ht} t < 2^{Λ_cov} t` for `t > 0`. -/
+private theorem coverage_two_pow_heightExponent_mul_lt {t : ℕ} (ht : 0 < t) :
+    (2 : ℝ) ^ heightExponent * t < (2 : ℝ) ^ covExp * t := by
+  have htR : (0 : ℝ) < t := by exact_mod_cast ht
+  exact mul_lt_mul_of_pos_right (pow_lt_pow_right₀ (by norm_num) heightExponent_lt_covExp) htR
+
+/-- At every generation `J`, every upper scale from odd `t ≥ t_min` is at most
+`2^{𝓔(J) + ⌊2b_J/3⌋} t`. -/
+private theorem coverage_upperScale_le {t : ℕ} (hodd : Odd t) (ht : targetFloor ≤ t) {J : ℕ}
+    {h : Fin J → Word} (hh : h ∈ centralHistories (t : ℚ) J) :
+    upperScale (scale J) (historyEndpoint (t : ℚ) h) ≤ (2 : ℝ) ^ heightExponentOf J * t := by
+  have h16 := coverage_sixteen_pow_le hodd ht hh
+  have hR : (0 : ℝ) ≤ historyEndpoint (t : ℚ) h := le_trans (by positivity) h16
+  have hh' : h ∈ centralHistories ((t : ℤ) : ℚ) J := by
     rwa [Int.cast_natCast]
-  have hE : (historyEndpoint (M : ℚ) h : ℝ) ≤
-      2 ^ erec (finalGenerationThreshold s) * seedBound s := by
-    have := historyEndpoint_le_two_pow_erec_mul_seedBound (M := (M : ℤ))
-      (by exact_mod_cast hM.odd) (by exact_mod_cast hM.pos) (by exact_mod_cast hM.upper) hh'
+  have hE : (historyEndpoint (t : ℚ) h : ℝ) ≤ 2 ^ erec J * t := by
+    have := historyEndpoint_le_two_pow_erec_mul (t := (t : ℤ))
+      (by exact_mod_cast hodd) (by exact_mod_cast targetFloor_pos.trans_le ht) hh'
     rw [Int.cast_natCast] at this
     exact_mod_cast this
-  refine lt_of_le_of_lt ((upperScale_le_two_pow_two_mul_div_three
-    (coverage_le_scale le_rfl) hR).trans ?_) hX
-  calc (2 : ℝ) ^ (2 * scale (finalGenerationThreshold s) / 3) * (historyEndpoint (M : ℚ) h : ℝ)
-      ≤ 2 ^ (2 * scale (finalGenerationThreshold s) / 3) *
-          (2 ^ erec (finalGenerationThreshold s) * seedBound s) := by gcongr
-    _ = 2 ^ heightExponent s * seedBound s := by
-      rw [heightExponent_def, pow_add]
+  refine (upperScale_le_two_pow_two_mul_div_three (scale J) hR).trans ?_
+  calc (2 : ℝ) ^ (2 * scale J / 3) * (historyEndpoint (t : ℚ) h : ℝ)
+      ≤ 2 ^ (2 * scale J / 3) * (2 ^ erec J * t) := by gcongr
+    _ = 2 ^ heightExponentOf J * t := by
+      rw [heightExponentOf_def, pow_add]
       ring
 
-/-- For an `s`-good seed with `s ≥ 1`, some generation `n ≥ J_*(s)` has all its upper scales at
-least `X`. -/
-private theorem coverage_exists_le_upperScale {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
-    (X : ℝ) :
-    ∃ n, finalGenerationThreshold s ≤ n ∧ ∀ h ∈ centralHistories (M : ℚ) n,
-      X ≤ upperScale (scale n) (historyEndpoint (M : ℚ) h) := by
-  obtain ⟨k, hk⟩ := pow_unbounded_of_one_lt X (by norm_num : (1 : ℝ) < 2)
-  refine ⟨max (finalGenerationThreshold s) k, le_max_left _ _, fun h hh => ?_⟩
-  calc X ≤ 2 ^ k := hk.le
-    _ ≤ 2 ^ scale (max (finalGenerationThreshold s) k) :=
-        pow_le_pow_right₀ (by norm_num) ((le_max_right _ k).trans (scale_strictMono.id_le _))
-    _ ≤ _ := coverage_two_pow_le_upperScale (coverage_le_scale (le_max_left _ _))
-        (coverage_sixteen_pow_le hM hs hh)
+/-- At generation `J_c`, every upper scale from odd `t ≥ t_min` lies below `X ≥ 2^{Λ_cov} t`. -/
+private theorem coverage_upperScale_lt {t : ℕ} (hodd : Odd t) (ht : targetFloor ≤ t) {X : ℝ}
+    (hX : (2 : ℝ) ^ covExp * t ≤ X) {h : Fin covGen → Word}
+    (hh : h ∈ centralHistories (t : ℚ) covGen) :
+    upperScale (scale covGen) (historyEndpoint (t : ℚ) h) < X := by
+  have hle := coverage_upperScale_le hodd ht hh
+  rw [← heightExponent_eq_heightExponentOf] at hle
+  exact (hle.trans_lt (coverage_two_pow_heightExponent_mul_lt
+    (targetFloor_pos.trans_le ht))).trans_le hX
 
-/-- **Coverage.** Let `s ≥ 1`, let `M` be an `s`-good seed and let `X > 2^{B_ht(s)} 𝓜(s)` be
-real. Then there is a generation `n ≥ J_*(s)` such that `X` is admissible for generation `n`. -/
+/-- For odd `t ≥ t_min`, some generation `n ≥ J_c` has all its upper scales at least `X`. -/
+private theorem coverage_exists_le_upperScale {t : ℕ} (hodd : Odd t) (ht : targetFloor ≤ t)
+    (X : ℝ) :
+    ∃ n, covGen ≤ n ∧ ∀ h ∈ centralHistories (t : ℚ) n,
+      X ≤ upperScale (scale n) (historyEndpoint (t : ℚ) h) := by
+  obtain ⟨k, hk⟩ := pow_unbounded_of_one_lt X (by norm_num : (1 : ℝ) < 2)
+  refine ⟨max covGen k, le_max_left _ _, fun h hh => ?_⟩
+  calc X ≤ 2 ^ k := hk.le
+    _ ≤ 2 ^ scale (max covGen k) :=
+        pow_le_pow_right₀ (by norm_num) ((le_max_right _ k).trans (scale_strictMono.id_le _))
+    _ ≤ _ := coverage_two_pow_le_upperScale (coverage_le_scale _)
+        (coverage_sixteen_pow_le hodd ht hh)
+
+/-- `lowerScale_lt_upperScale_of_mem_centralHistories` for a natural-number target `t`. -/
+private theorem coverage_lowerScale_lt_upperScale {t : ℕ} (hodd : Odd t) (ht : targetFloor ≤ t)
+    {j : ℕ} (hj : covGen ≤ j) {h : Fin j → Word}
+    {h' : Fin (j + 1) → Word} (hh : h ∈ centralHistories (t : ℚ) j)
+    (hh' : h' ∈ centralHistories (t : ℚ) (j + 1)) :
+    lowerScale (scale (j + 1)) (historyEndpoint (t : ℚ) h') <
+      upperScale (scale j) (historyEndpoint (t : ℚ) h) := by
+  have hq : ((t : ℤ) : ℚ) = (t : ℚ) := Int.cast_natCast t
+  have := lowerScale_lt_upperScale_of_mem_centralHistories (t := (t : ℤ))
+    (by exact_mod_cast hodd) (by exact_mod_cast ht) hj (hq ▸ hh) (hq ▸ hh')
+  rwa [hq] at this
+
+/-- **Reachability.** Let `t ≥ t_min` (`targetFloor`) be an odd integer. Every real
+`X ≥ 2^{Λ_cov} t`, with `Λ_cov = covExp`, is admissible for some generation `j` with
+`j ≥ J_c = covGen`. -/
 @[collatz_pos_dens "lem_coverage"]
-theorem exists_isAdmissibleScale_of_goodSeed {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {X : ℝ}
-    (hX : (2 : ℝ) ^ heightExponent s * seedBound s < X) :
-    ∃ n ≥ finalGenerationThreshold s, IsAdmissibleScale (M : ℚ) n X := by
+theorem exists_isAdmissibleScale_of_goodSeed {t : ℕ} (hodd : Odd t) (ht : targetFloor ≤ t) {X : ℝ}
+    (hX : (2 : ℝ) ^ covExp * t ≤ X) :
+    ∃ j : ℕ, covGen ≤ j ∧ IsAdmissibleScale (t : ℚ) j X := by
   classical
-  have hex := coverage_exists_le_upperScale hM hs X
-  obtain ⟨n, ⟨hJn, hup⟩, hmin⟩ : ∃ n, (finalGenerationThreshold s ≤ n ∧
-      ∀ h ∈ centralHistories (M : ℚ) n, X ≤ upperScale (scale n) (historyEndpoint (M : ℚ) h)) ∧
-      ∀ m < n, ¬ (finalGenerationThreshold s ≤ m ∧
-        ∀ h ∈ centralHistories (M : ℚ) m,
-          X ≤ upperScale (scale m) (historyEndpoint (M : ℚ) h)) :=
+  have hex := coverage_exists_le_upperScale hodd ht X
+  obtain ⟨n, ⟨hJn, hup⟩, hmin⟩ : ∃ n, (covGen ≤ n ∧
+      ∀ h ∈ centralHistories (t : ℚ) n, X ≤ upperScale (scale n) (historyEndpoint (t : ℚ) h)) ∧
+      ∀ m < n, ¬ (covGen ≤ m ∧
+        ∀ h ∈ centralHistories (t : ℚ) m,
+          X ≤ upperScale (scale m) (historyEndpoint (t : ℚ) h)) :=
     ⟨Nat.find hex, Nat.find_spec hex, fun m hm => Nat.find_min hex hm⟩
-  refine ⟨n, hJn, lt_of_le_of_lt (by positivity) hX, fun h hh => ⟨?_, hup h hh⟩⟩
+  have htpos := targetFloor_pos.trans_le ht
+  refine ⟨n, hJn, lt_of_lt_of_le (by positivity) hX, fun h hh => ⟨?_, hup h hh⟩⟩
   rcases hJn.eq_or_lt with rfl | hlt
-  · exact absurd (hup h hh) (not_le.2 (coverage_upperScale_lt hM hs hX hh))
+  · exact absurd (hup h hh) (not_le.2 (coverage_upperScale_lt hodd ht hX hh))
   · obtain ⟨k, rfl⟩ : ∃ k, n = k + 1 := ⟨n - 1, by omega⟩
-    obtain ⟨h'', hh'', hlt''⟩ : ∃ h ∈ centralHistories (M : ℚ) k,
-        upperScale (scale k) (historyEndpoint (M : ℚ) h) < X := by
+    obtain ⟨h'', hh'', hlt''⟩ : ∃ h ∈ centralHistories (t : ℚ) k,
+        upperScale (scale k) (historyEndpoint (t : ℚ) h) < X := by
       by_contra! H
       exact hmin k k.lt_succ_self ⟨by omega, H⟩
-    have hk : 20 * 10 ^ 9 ≤ k := by have := le_finalGenerationThreshold s; omega
-    have hov := lowerScale_lt_upperScale_of_mem_centralHistories (M := (M : ℤ))
-      (by exact_mod_cast hM.odd) (by exact_mod_cast (hM.sixteen_pow_lt hs).le) hk
-      (by rwa [Int.cast_natCast] : h'' ∈ centralHistories ((M : ℤ) : ℚ) k)
-      (by rwa [Int.cast_natCast] : h ∈ centralHistories ((M : ℤ) : ℚ) (k + 1))
-    simp only [Int.cast_natCast] at hov
-    exact hov.trans hlt''
+    have hk : covGen ≤ k := by omega
+    exact (coverage_lowerScale_lt_upperScale hodd ht hk hh'' hh).trans hlt''
 
 end CollatzPosDens

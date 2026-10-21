@@ -12,15 +12,13 @@ public import CollatzPosDens.Transfer.GeometricTotal
 /-!
 # Extending a prefix-disjoint set of words to a fixed length
 
-Write `𝐩` for the geometric mass `geomMass`, which gives a word `w` the weight
-`2^{-A(w)}`, where `A(w) = Word.valSum w` is the sum of its letters. Let `𝒱` be a
-prefix-disjoint set of words, all of length at most `h`, and let
-`E = {u ∈ ℤ_{≥1}^h : some prefix of u lies in 𝒱}`. Then `𝐩(𝒱) = 𝐩(E)`.
+Let `𝒱` be a prefix-disjoint set of words, all of length at most `h`. Then
+`𝐩(𝒱) = 𝐩({u ∈ ℤ_{≥1}^h : some prefix of u lies in 𝒱})`.
 
-Two prefixes of one word are comparable, so by prefix-disjointness each `u ∈ E` has exactly one
-prefix `w ∈ 𝒱`. Hence `E` is the disjoint union over `w ∈ 𝒱` of the blocks
-`{w v : v ∈ ℤ_{≥1}^{h - |w|}}`, and since `A(wv) = A(w) + A(v)` the block of `w` has mass
-`2^{-A(w)} 𝐩(ℤ_{≥1}^{h-|w|}) = 2^{-A(w)}`.
+Two prefixes of one word are comparable, so by prefix-disjointness each `u` in the right-hand
+set `E` has exactly one prefix `w ∈ 𝒱`. Hence `E` is the disjoint union over `w ∈ 𝒱` of the
+blocks `{w v : v ∈ ℤ_{≥1}^{h - |w|}}`, and since `A(wv) = A(w) + A(v)` the block of `w` has
+mass `2^{-A(w)} 𝐩(ℤ_{≥1}^{h-|w|}) = 2^{-A(w)}`.
 
 ## Main results
 
@@ -42,6 +40,7 @@ the bijection `Σ w ∈ 𝒱, ℤ_{≥1}^{h-|w|} ≃ E`, `(w, v) ↦ w v`.
 
 @[expose] public section
 
+open scoped ENNReal
 open InformationTheory
 
 namespace CollatzPosDens

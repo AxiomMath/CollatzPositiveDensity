@@ -113,12 +113,10 @@ theorem corner_mem_bkPoints (Δ : BkTriangle) : Δ.corner ∈ bkPoints :=
   mem_bkPoints.2 Δ.one_le_j
 
 /-- The corner of a triangle lies in it iff its size is nonnegative. -/
-@[simp]
 theorem corner_mem_iff : Δ.corner ∈ Δ ↔ 0 ≤ Δ.s := by
   simp [mem_iff, corner]
 
-/-- If `Δ` and `Δ'` have the same corner and `s_Δ ≤ s_Δ'`, then every point of `Δ` lies
-in `Δ'`. -/
+/-- A triangle with smaller size is contained in one with larger size and the same corner. -/
 theorem mem_of_mem_of_s_le {Δ' : BkTriangle} (hj : Δ.j = Δ'.j) (hl : Δ.l = Δ'.l)
     (hs : Δ.s ≤ Δ'.s) (h : p ∈ Δ) : p ∈ Δ' :=
   ⟨hj ▸ h.1, hl ▸ h.2.1, hj ▸ hl ▸ h.2.2.trans hs⟩

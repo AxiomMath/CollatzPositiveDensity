@@ -12,13 +12,13 @@ public import CollatzPosDens.Transfer.FxRefLawBounded
 /-!
 # The reference density in the extended nonnegative reals
 
-For every `q ∈ ℕ` and `y ∈ G_q`, the identity `(2/3) · 3^q · μ_q(y) = ρ_q(y)` holds in `[0, ∞]`,
+For every `q ∈ ℕ` and `y ∈ G_q`, the identity `3^q · μ_q(y) = ρ_q(y)` holds in `[0, ∞]`,
 where the real number `ρ_q(y) ≥ 0` is regarded as an element of `[0, ∞)`. Since `μ_q(y) ≤ 1` is
 finite, the truncation `μ_q(y)^ℝ` in the definition of `ρ_q` is `μ_q(y)` itself.
 
 ## Main results
 
-* `CollatzPosDens.refLaw_mul_eq_ofReal_refDensity`: `(2/3) · 3^q · μ_q(y) = ρ_q(y)` in `ℝ≥0∞`.
+* `CollatzPosDens.refLaw_mul_eq_ofReal_refDensity`: `3^q · μ_q(y) = ρ_q(y)` in `ℝ≥0∞`.
 
 ## Implementation notes
 
@@ -26,7 +26,7 @@ The embedding `[0, ∞) → [0, ∞]` of the nonnegative real `ρ_q(y)` is `ENNR
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §3.3.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 open scoped ENNReal
@@ -36,12 +36,11 @@ open scoped ENNReal
 namespace CollatzPosDens
 
 /-- The reference law and the reference density agree in `[0, ∞]`:
-`(2/3) · 3^q · μ_q(y) = ρ_q(y)`. -/
+`3^q · μ_q(y) = ρ_q(y)`. -/
 @[collatz_pos_dens "lem_ref_density_ext"]
 theorem refLaw_mul_eq_ofReal_refDensity (q : ℕ) (y : ResidueGroup q) :
-    2 / 3 * 3 ^ q * refLaw q y = ENNReal.ofReal (refDensity q y) := by
+    3 ^ q * refLaw q y = ENNReal.ofReal (refDensity q y) := by
   rw [refDensity, ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal (refLaw_ne_top q y),
-    ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_div_of_pos (by norm_num),
     ENNReal.ofReal_pow (by norm_num)]
   norm_num
 

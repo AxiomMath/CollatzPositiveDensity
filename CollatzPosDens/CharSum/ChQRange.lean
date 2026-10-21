@@ -12,10 +12,10 @@ public import CollatzPosDens.CharSum.ChQfiniteRange
 /-!
 # The range of the renewal function `Q`
 
-Fix a level `n`, a residue `ξ : ResidueGroup n` and a threshold `ε`. For every point `p`, the
-renewal function satisfies `0 ≤ Q(p) ≤ 1`. Since `Q(p)` is by definition the finite-horizon
-white product `Q^{(J)}(p)` at the horizon `J = ⌊n/2⌋`, this is the range bound for the
-finite-horizon white products at that horizon.
+Fix a level `n`, a residue `ξ ∈ G_n` and a threshold `ε`. For every point `p`, the renewal
+function satisfies `0 ≤ Q(p) ≤ 1`. Since `Q(p)` is by definition the finite-horizon white
+product `Q^{(J)}(p)` at the horizon `J = ⌊n/2⌋`, this is the range bound for the finite-horizon
+white products at that horizon.
 
 ## Main results
 
@@ -25,7 +25,12 @@ finite-horizon white products at that horizon.
 
 ## Implementation notes
 
-The base point `p` ranges over all of `ℤ × ℤ` and the threshold `ε` is arbitrary.
+The base point `p` ranges over all of `ℤ × ℤ`, not only over `𝒫`, and the threshold `ε` is
+arbitrary.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -46,6 +51,6 @@ theorem chQ_mem_Icc (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) 
 @[collatz_pos_dens "lem_ch_Q_range"]
 theorem chQ_range (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
     0 ≤ chQ n ξ ε p ∧ chQ n ξ ε p ≤ 1 :=
-  ⟨chQ_nonneg n ξ ε p, chQ_le_one n ξ ε p⟩
+  (chQFinite_range n ξ ε (n / 2) p).2
 
 end CollatzPosDens

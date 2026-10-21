@@ -10,7 +10,7 @@ public import CollatzPosDens.FirstCrossing.Hb
 public import CollatzPosDens.FirstCrossing.Lb
 public import CollatzPosDens.Maps.Valsum
 public import CollatzPosDens.FirstCrossing.Barrier
-public import CollatzPosDens.FirstCrossing.BarrierMono
+public import CollatzPosDens.FirstCrossing.S03BarrierMono
 public import CollatzPosDens.Transfer.GeometricMass
 public import CollatzPosDens.Transfer.GeometricTotal
 
@@ -38,16 +38,16 @@ This map is injective (the first crossing of the image recovers `s`) and multipl
 
 ## Implementation notes
 
-Here `b` and `K` are natural numbers, with `b = 0` allowed. The prefix `v_{≤ i}` is `v.take i`, and
-the weight `2^{-(K+1)}` is `2⁻¹ ^ (K + 1)` in `ℝ≥0∞`. Rather than decomposing the overshooting
-words by their first crossing and prefix and summing geometric series, the bound is obtained from
-the weight-scaling injection described above, which needs only the monotonicity of the barrier
-(`CollatzPosDens.barrier_le_barrier_succ`) and the total mass `𝐩(ℤ_{≥1}^{h_b}) = 1`
-(`CollatzPosDens.geomMass_setOf_length_eq`).
+Here `b` and `K` are natural numbers, and `b = 0` is allowed. The prefix `v_{≤ i}` is
+`v.take i`, and the weight `2^{-(K+1)}` is `2⁻¹ ^ (K + 1)` in `ℝ≥0∞`. Instead of decomposing
+the overshooting words by their first crossing and prefix and summing geometric series, the
+bound is obtained from the weight-scaling injection described above, which needs only the
+monotonicity of the barrier (`CollatzPosDens.monotone_barrier`) and the total mass
+`𝐩(ℤ_{≥1}^{h_b}) = 1` (`CollatzPosDens.geomMass_setOf_length_eq`).
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*]
 -/
 
 @[expose] public section

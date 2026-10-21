@@ -13,70 +13,61 @@ public import CollatzPosDens.Attr
 # The overshoot caps `K_j`
 
 For a natural number `j`, the overshoot cap at scale `j` is
-$$K_j = 16 + \lfloor j / 32 \rfloor,$$
-a slowly growing sequence of natural numbers that starts at `16` and increases by one every
-thirty-two scales.
+$$K_j = 29 + \lfloor j / 56 \rfloor.$$
+It is a slowly growing sequence of natural numbers that starts at `K_0 = 29` and increases by
+one every fifty-six scales. Since `⌊j/56⌋ ≥ (j - 55)/56`, it satisfies the lower bound
+`29 + j/56 ≤ K_j + 1`.
 
 ## Main definitions
 
-* `CollatzPosDens.cap`: the cap `K_j = 16 + j / 32`.
+* `CollatzPosDens.cap`: the cap `K_j`.
 
 ## Main results
 
-* `CollatzPosDens.cap_def`: the defining formula.
-* `CollatzPosDens.sixteen_le_cap`: every cap is at least `16`.
+* `CollatzPosDens.twentyNine_le_cap`: every cap is at least `29`.
 * `CollatzPosDens.cap_pos`: every cap is positive.
 * `CollatzPosDens.cap_mono`: the caps are monotone in `j`.
-* `CollatzPosDens.cap_of_lt`: `K_j = 16` for `j < 32`.
-* `CollatzPosDens.cap_zero`: `K_0 = 16`.
-* `CollatzPosDens.cap_add_thirtyTwo`: `K_{j+32} = K_j + 1`.
-* `CollatzPosDens.add_le_thirtyTwo_mul_cap_add_one`: `32 * 16 + j ≤ 32 * (K_j + 1)`, i.e.
-  `16 + j / 32 ≤ K_j + 1` in rational arithmetic.
+* `CollatzPosDens.cap_add_fiftySix`: `K_{j+56} = K_j + 1`.
+* `CollatzPosDens.add_le_fiftySix_mul_cap_add_one`: `56 * 29 + j ≤ 56 * (K_j + 1)`, i.e.
+  `29 + j / 56 ≤ K_j + 1` in rational arithmetic.
 
 ## Implementation notes
 
-The floor `⌊j/32⌋` of a natural number is natural-number division `j / 32`.
+The floor of a quotient of natural numbers is natural-number division. The lower bound is stated
+with the denominator cleared, as an inequality of natural numbers.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §14.3.
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- The overshoot cap at scale `j`: `K_j = 16 + ⌊j / 32⌋`. -/
+/-- The overshoot cap at scale `j`: `K_j = 29 + ⌊j / 56⌋`. -/
 @[collatz_pos_dens "def_caps"]
-def cap (j : ℕ) : ℕ := 16 + j / 32
+def cap (j : ℕ) : ℕ := 29 + j / 56
 
-/-- The defining formula of the cap `K_j`. -/
-theorem cap_def (j : ℕ) : cap j = 16 + j / 32 := rfl
-
-/-- Every cap is at least `16`. -/
-theorem sixteen_le_cap (j : ℕ) : 16 ≤ cap j := Nat.le_add_right _ _
+/-- Every cap is at least `29`. -/
+theorem twentyNine_le_cap (j : ℕ) : 29 ≤ cap j := Nat.le_add_right _ _
 
 /-- Every cap is positive. -/
-theorem cap_pos (j : ℕ) : 0 < cap j := Nat.lt_of_lt_of_le (by decide) (sixteen_le_cap j)
+theorem cap_pos (j : ℕ) : 0 < cap j := Nat.lt_of_lt_of_le (by decide) (twentyNine_le_cap j)
 
 /-- The caps are monotone in the scale. -/
-theorem cap_mono : Monotone cap := fun _ _ h => Nat.add_le_add_left (Nat.div_le_div_right h) _
+theorem cap_mono : Monotone cap := fun _ _ h =>
+  Nat.add_le_add_left (Nat.div_le_div_right h) _
 
-/-- The cap at scale `j < 32` is `16`. -/
-theorem cap_of_lt {j : ℕ} (hj : j < 32) : cap j = 16 := by
-  simp [cap, Nat.div_eq_of_lt hj]
-
-/-- The cap at scale `0` is `16`. -/
-@[simp] theorem cap_zero : cap 0 = 16 := rfl
-
-/-- The cap increases by exactly one every thirty-two scales. -/
-theorem cap_add_thirtyTwo (j : ℕ) : cap (j + 32) = cap j + 1 := by
+/-- The cap increases by exactly one every fifty-six scales. -/
+theorem cap_add_fiftySix (j : ℕ) : cap (j + 56) = cap j + 1 := by
   unfold cap
   omega
 
-/-- With denominators cleared, `16 + j / 32 ≤ K_j + 1` in exact division:
-`32 * 16 + j ≤ 32 * (K_j + 1)`. -/
-theorem add_le_thirtyTwo_mul_cap_add_one (j : ℕ) : 32 * 16 + j ≤ 32 * (cap j + 1) := by
+/-- **Lower bound for the caps**, with denominators cleared: `56 * 29 + j ≤ 56 * (K_j + 1)`,
+i.e. `29 + j / 56 ≤ K_j + 1` in exact division. -/
+@[collatz_pos_dens "lem_fc_cap_lower"]
+theorem add_le_fiftySix_mul_cap_add_one (j : ℕ) : 56 * 29 + j ≤ 56 * (cap j + 1) := by
   unfold cap
   omega
 

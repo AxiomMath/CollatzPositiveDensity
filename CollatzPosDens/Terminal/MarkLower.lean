@@ -6,100 +6,81 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Recipe.F
-public import CollatzPosDens.Recipe.Nstar
-public import CollatzPosDens.Recipe.Nt
-public import CollatzPosDens.Recipe.NtTerm
-public import CollatzPosDens.Recipe.NtValue
-public import CollatzPosDens.Recipe.Varrho
-public import CollatzPosDens.Seed.GoodSeed
+public import CollatzPosDens.Recipe.NstarRange
+public import CollatzPosDens.Recipe.TailMargin
+public import CollatzPosDens.Recipe.TargetFloor
+public import CollatzPosDens.Recipe.ZMargin
+public import CollatzPosDens.Recipe.ZMarginRoom
 public import CollatzPosDens.Seed.ZTail
 public import CollatzPosDens.Terminal.AdmissibleScale
 public import CollatzPosDens.Terminal.MarkedMass
-public import CollatzPosDens.Terminal.MarkedMassUnfiltered
-public import CollatzPosDens.Terminal.LengthRemoved
+public import CollatzPosDens.Terminal.S06Tj
+public import CollatzPosDens.Terminal.S06TerminalSmall
 public import CollatzPosDens.Terminal.TerminalTransport
 
 /-!
 # Lower bound for the marked mass
 
-Let `s ≥ 1`, let `M` be an `s`-good seed, `n ≥ N_* + N_t`, and let `X` be admissible for
-generation `n`. Then the marked mass satisfies `Θ_{n,X}(M) > 2^{-25}`.
+Let `t ≥ t_min` (`targetFloor`) be an odd integer with `Z_{N_*}(t) > θ_tl + ε_Z`
+(`tailMargin + centralSumMargin`), let `j ≥ J_c` (`covGen`), and let `X` be admissible for
+generation `j`. Then the marked mass satisfies `Θ_{j,X}(t) > 2^{-29}`.
 
-The proof chains four estimates. An `s`-good seed is odd with `M > 16^{b_0} s ≥ 16^{b_0}` and
-has `Z_{N_*}(M) > 2^{-23}`; the tail bound gives
-`Z_n(M) > Z_{N_*}(M) - (47/32) 2^{-24}`; terminal transport and the length-removal bound give
-`Θ°_{n,X}(M) ≥ Z_n(M) - E` and `Θ_{n,X}(M) ≥ Θ°_{n,X}(M) - E` with `E = F n^{9/2} ϱ^n`. Since
-`n ≥ N_t`, the single term `E` is at most `F ∑_{j ≥ N_t} j^{9/2} ϱ^j < 2^{-30}`. Hence
-`Θ_{n,X}(M) > 2^{-23} - (47/32 + 2/64) 2^{-24} = 2^{-25}`.
+Since `N_* ≤ J_c ≤ j`, the tail bound gives `Z_j(t) > ε_Z`. Terminal transport bounds
+`|Θ_{j,X}(t) - Z_j(t)|` by the terminal majorant `T_j`, which is `< 2^{-29}` for `j ≥ J_c`.
+Hence `Θ_{j,X}(t) > ε_Z - 2^{-29} ≥ 2^{-29}`, the last step because
+`2^{-29} + 2^{-29} ≤ ε_Z`.
 
 ## Main results
 
-* `CollatzPosDens.two_zpow_neg_twentyFive_lt_markedMass`: `2^{-25} < Θ_{n,X}(M)`.
+* `CollatzPosDens.abs_markedMass_sub_weightedCentralSum_lt`: `|Θ_{j,X}(t) - Z_j(t)| < 2^{-29}`
+  for odd `t ≥ t_min`, `j ≥ J_c` and `X` admissible for generation `j`.
+* `CollatzPosDens.two_zpow_neg_twentyNine_lt_markedMass`: `2^{-29} < Θ_{j,X}(t)`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- **Marked mass lower bound**. Let `s ≥ 1`, let `M` be an `s`-good seed,
-`n ≥ N_* + N_t`, and let `X` be admissible for generation `n`. Then `Θ_{n,X}(M) > 2^{-25}`. -/
+/-- For an odd integer `t ≥ targetFloor`, `j ≥ covGen` and `X` admissible for generation `j`,
+`|Θ_{j,X}(t) - Z_j(t)| < 2^{-29}`. -/
+@[collatz_pos_dens "lem_terminal_step"]
+theorem abs_markedMass_sub_weightedCentralSum_lt {t : ℤ} (hodd : Odd t)
+    (ht : (targetFloor : ℤ) ≤ t) {j : ℕ} (hj : covGen ≤ j) {X : ℝ}
+    (hX : IsAdmissibleScale t j X) :
+    |markedMass j X t - weightedCentralSum j t| < (2 : ℝ) ^ (-29 : ℝ) :=
+  (abs_markedMass_sub_weightedCentralSum_le hodd ht hj hX).trans_lt (terminalMajorant_lt hj)
+
+/-- Let `t ≥ targetFloor` be an odd integer with `Z_{N_*}(t) > tailMargin + centralSumMargin`,
+let `j ≥ covGen`, and let `X` be admissible for generation `j`. Then `Θ_{j,X}(t) > 2^{-29}`. -/
 @[collatz_pos_dens "lem_mark_lower"]
-theorem two_zpow_neg_twentyFive_lt_markedMass {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s)
-    {n : ℕ} (hn : generationThreshold + terminalThreshold ≤ n) {X : ℝ}
-    (hX : IsAdmissibleScale M n X) :
-    (2 : ℝ) ^ (-25 : ℤ) < markedMass n X M := by
-  have hodd : Odd (M : ℤ) := by exact_mod_cast hM.odd
-  have hlow : (16 : ℤ) ^ scale 0 ≤ (M : ℤ) := by exact_mod_cast (hM.sixteen_pow_lt hs).le
-  have hcast : ((M : ℤ) : ℚ) = (M : ℚ) := Int.cast_natCast M
-  have hNt := terminalThreshold_eq
-  have hnt : terminalThreshold ≤ n := by omega
-  have hZ := abs_weightedCentralSum_sub_generationThreshold_lt hodd
-    (lt_of_lt_of_le (by positivity) hlow) (n := n) (by omega)
-  have hT := abs_markedMassUnfiltered_sub_weightedCentralSum_le hodd hlow (n := n)
-    (by omega) (X := X) (by rwa [hcast])
-  have hL := markedMassUnfiltered_sub_markedMass_le hodd hlow (n := n) (by omega) X
-  obtain ⟨hsum, htail⟩ := errorPrefactor_mul_terminalTail_lt
-  have hle : (n : ℝ) ^ (9 / 2 : ℝ) * errorDecayRatio ^ n ≤
-      ∑' j : Set.Ici terminalThreshold,
-        ((j : ℕ) : ℝ) ^ (9 / 2 : ℝ) * errorDecayRatio ^ (j : ℕ) :=
-    hsum.le_tsum (⟨n, hnt⟩ : Set.Ici terminalThreshold) fun j _ =>
-      mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) (pow_nonneg errorDecayRatio_nonneg _)
-  have hE : errorPrefactor * (n : ℝ) ^ (9 / 2 : ℝ) * errorDecayRatio ^ n <
-      (2 : ℝ) ^ (-30 : ℝ) := by
-    rw [mul_assoc]
-    exact lt_of_le_of_lt (mul_le_mul_of_nonneg_left hle errorPrefactor_pos.le) htail
-  have h23 := hM.lt_weightedCentralSum
-  have h30 : (2 : ℝ) ^ (-30 : ℝ) = 2 ^ (-30 : ℤ) := by
-    rw [← Real.rpow_intCast]; norm_num
-  rw [h30] at hE
-  rw [hcast] at hZ hT hL
-  rw [abs_lt] at hZ
-  rw [abs_le] at hT
-  have e1 : (2 : ℝ)⁻¹ ^ 23 = 2 ^ (-23 : ℤ) := by norm_num
-  rw [e1] at h23
-  have e2 : (2 : ℝ) ^ (-23 : ℤ) = 2 * 2 ^ (-24 : ℤ) := by norm_num
-  have e3 : (2 : ℝ) ^ (-25 : ℤ) = 2 ^ (-24 : ℤ) / 2 := by norm_num
-  have e4 : (2 : ℝ) ^ (-30 : ℤ) = 2 ^ (-24 : ℤ) / 64 := by norm_num
-  rw [e2] at h23
-  rw [e4] at hE
-  rw [e3]
-  set a : ℝ := (2 : ℝ) ^ (-24 : ℤ)
-  set Zn := weightedCentralSum n (M : ℚ)
-  set Z0 := weightedCentralSum generationThreshold (M : ℚ)
-  set U := markedMassUnfiltered n X (M : ℚ)
-  set E := errorPrefactor * (n : ℝ) ^ (9 / 2 : ℝ) * errorDecayRatio ^ n
-  set T := markedMass n X (M : ℚ)
-  obtain ⟨hZ1, -⟩ := hZ
+theorem two_zpow_neg_twentyNine_lt_markedMass {t : ℤ} (hodd : Odd t)
+    (ht : (targetFloor : ℤ) ≤ t)
+    (hZ : (tailMargin : ℝ) + centralSumMargin < weightedCentralSum generationThreshold t)
+    {j : ℕ} (hj : covGen ≤ j) {X : ℝ} (hX : IsAdmissibleScale t j X) :
+    (2 : ℝ) ^ (-29 : ℤ) < markedMass j X t := by
+  have hNj : generationThreshold ≤ j := selEnd_le_generationThreshold_range.2.trans hj
+  have ht0 : 0 < t := lt_of_lt_of_le (by exact_mod_cast targetFloor_pos) ht
+  have hZj := abs_weightedCentralSum_sub_generationThreshold_lt hodd ht0 hZ hNj
+  have hT := abs_markedMass_sub_weightedCentralSum_lt hodd ht hj hX
+  have e : (2 : ℝ) ^ (-29 : ℝ) = (2 : ℝ)⁻¹ ^ 29 := by
+    rw [show (-29 : ℝ) = ((-29 : ℤ) : ℝ) by norm_num, Real.rpow_intCast, zpow_neg,
+      inv_pow, zpow_ofNat]
+  have hroom : ((2 : ℝ)⁻¹ ^ 29 + 2⁻¹ ^ 29 : ℝ) ≤ centralSumMargin := by
+    have h := (Rat.cast_le (K := ℝ)).2 two_inv_pow_add_two_inv_pow_le_centralSumMargin
+    push_cast at h
+    rwa [centralSumMargin_cast]
+  rw [e, abs_lt] at hT
+  rw [zpow_neg, zpow_ofNat, ← inv_pow]
   obtain ⟨hT1, -⟩ := hT
-  clear_value a Zn Z0 U E T
-  have k1 : Zn - 2 * E ≤ T := by linarith
-  have k2 : Z0 - 47 / 32 * a < Zn := by linarith
-  have k3 : 2 * E < a / 32 := by linarith
+  set a : ℝ := (2 : ℝ)⁻¹ ^ 29
+  set Zj := weightedCentralSum j (t : ℚ)
+  set T := markedMass j X (t : ℚ)
+  set c : ℝ := (centralSumMargin : ℝ)
+  clear_value a Zj T c
   linarith
 
 end CollatzPosDens

@@ -11,15 +11,16 @@ public import CollatzPosDens.Definitions
 public import CollatzPosDens.Maps.CollatzOfInverse
 public import CollatzPosDens.Maps.ConcatAdmissible
 public import CollatzPosDens.Maps.InverseOrbit
-public import CollatzPosDens.OrdinaryTime.FullWord
-public import CollatzPosDens.OrdinaryTime.Log2Sharp
-public import CollatzPosDens.Transfer.Log3Bounds
-public import CollatzPosDens.FirstCrossing.Scales
+public import CollatzPosDens.OrdinaryTime.S07FullWord
+public import CollatzPosDens.Transfer.S03Log3Bounds
+public import CollatzPosDens.Recipe.SeedShift
+public import CollatzPosDens.Recipe.TargetFloor
+public import CollatzPosDens.Transfer.S02Log2Lower
 public import CollatzPosDens.Seed.GoodSeed
 public import CollatzPosDens.Seed.History
 public import CollatzPosDens.Terminal.UnweightedMass
 public import CollatzPosDens.Terminal.Sources
-public import CollatzPosDens.OrdinaryTime.SelectedPair
+public import CollatzPosDens.OrdinaryTime.S07SelectedPair
 public import CollatzPosDens.OrdinaryTime.CkOrdinaryResidual
 public import CollatzPosDens.OrdinaryTime.Kappa
 public import CollatzPosDens.OrdinaryTime.Telescope
@@ -27,28 +28,32 @@ public import CollatzPosDens.OrdinaryTime.Telescope
 /-!
 # Ordinary time bound for counted sources
 
-Let `s ≥ 1`, `M` an `s`-good seed, `n ≥ 2 · 10^10` and `X > 0`. Every source
-`x ∈ 𝒮_{n,X}(M)` reaches `s` under the Collatz map within `⌊(523/50) log (x / s)⌋₊` steps.
+Let `t ≥ 1`, `t₁` a `t`-good seed, `n ≥ covGen = 23000` and `X` real. Every source
+`x ∈ sources n X t₁` reaches `t` under the Collatz map within `⌊(523/50) log (x / t)⌋₊` steps.
 
 Writing `x` as the source of a selected pair `(h, w)` with full word `𝐰` of length `d`, the
-inverse orbit of `𝐰` from `M` is undone by the Collatz map in `d + A(𝐰)` steps, so
-`T^{d + A(𝐰)}(x) = M`; since `M` is odd and `3M + 1 = 2^k s`, a further `1 + k` steps reach
-`s`. As `k log 2 = log (3M + 1) - log s ≤ log M + θ - log s`, the number of steps
-`r = (d + 1) + (A(𝐰) + k)` satisfies
-`r log 2 ≤ (d + 1)(log 2 + θ) + log (x / s) ≤ (κ (log 2 + θ) + 1) log (x / s)`
-by the telescoping bound and the ordinary-time constant `κ = 34881/10000`, where
-`θ = log (3 + 1/4096)`, and `κ (log 2 + θ) + 1 ≤ (523/50) log 2` is an explicit numerical check.
+inverse orbit of `𝐰` from `t₁` is undone by the Collatz map in `d + A(𝐰)` steps, so
+`T^{d + A(𝐰)}(x) = t₁`; since `t₁` is odd and `3t₁ + 1 = 2^a t`, a further `1 + a` steps reach
+`t`. As `a log 2 = log (3t₁ + 1) - log t ≤ log t₁ + c_step - log t`, the number of steps
+`r = (d + 1) + (A(𝐰) + a)` satisfies
+`r log 2 ≤ (d + 1)(log 2 + c_step) + log (x / t) ≤ (c_acc (log 2 + c_step) + 1) log (x / t)`
+by the telescoping bound and the ordinary-time constant `c_acc = 34881/10000`, where
+`c_step = log (3 + 1/4096)` (valid as `t₁ > 2^{σ_sd} t ≥ 4096`), and
+`c_acc (log 2 + c_step) + 1 ≤ (523/50) log 2` is an explicit numerical check.
 
 ## Main results
 
-* `CollatzPosDens.collatzOneWithin_of_mem_sources`: every source `x ∈ 𝒮_{n,X}(M)` reaches `1`
-  within `⌊(523/50) log x⌋₊` Collatz steps.
+* `CollatzPosDens.collatzOneWithin_of_mem_sources`: every counted source reaches `t` within
+  `⌊(523/50) log (x / t)⌋₊` Collatz steps.
 
 ## Implementation notes
 
 Sources are integers while the Collatz map acts on `ℕ`; the statement applies the predicate to
-`x.toNat`, which is `x` itself since every source is positive. The good seed `M` is a natural
-number, cast to `ℚ` as the starting point of the source set.
+`x.toNat`, which is `x` itself since every source is positive. The good seed `t₁` is a natural
+number, cast to `ℚ` as the starting point of the source set. The source states the result for
+`3 ∤ t` and `X > 0`; neither hypothesis is used, so both are dropped. The numerical check uses
+the bounds `log₂ 3 < 317/200` and `693147180/10^9 < log 2`, and
+the exact value of the ordinary-clock residual.
 
 ## References
 
@@ -97,88 +102,94 @@ private theorem time_exists_src_eq_collatz_iterate :
           (1 + (a : ℕ)) + (v.length + Word.valSum v) by ring,
         Function.iterate_add_apply, hpm, hmk, hkR]
 
-/-- If `3M + 1 = 2^k s` with `M` odd, then `T^{1 + k}(M) = s`. -/
-private theorem time_collatz_iterate_seed {s M k : ℕ} (hodd : Odd M)
-    (hk : 3 * M + 1 = 2 ^ k * s) : collatz^[1 + k] M = s := by
+/-- If `3t₁ + 1 = 2^k t` with `t₁` odd, then `T^{1 + k}(t₁) = t`. -/
+private theorem time_collatz_iterate_seed {t t₁ k : ℕ} (hodd : Odd t₁)
+    (hk : 3 * t₁ + 1 = 2 ^ k * t) : collatz^[1 + k] t₁ = t := by
   rw [add_comm, Function.iterate_add_apply, Function.iterate_one, collatz_of_odd hodd, hk,
     collatz_iterate_two_pow_mul]
 
-/-- **Ordinary time bound for counted sources**. Let `s ≥ 1`, `M` an
-`s`-good seed, `n ≥ 2 · 10^10` and `X > 0`. Every `x ∈ 𝒮_{n,X}(M)` reaches `s` under the
-Collatz map within `⌊(523/50) log (x / s)⌋₊` steps. -/
+/-- **Ordinary time bound for counted sources.** Let `t ≥ 1`, `t₁` a `t`-good seed,
+`n ≥ covGen = 23000` and `X` real. Every `x ∈ sources n X t₁` reaches `t` under the Collatz map
+within `⌊(523/50) log (x / t)⌋₊` steps. -/
 @[collatz_pos_dens "lem_time"]
-theorem collatzOneWithin_of_mem_sources {s M : ℕ} (hM : GoodSeed s M) (hs : 0 < s) {n : ℕ}
-    (hn : 2 * 10 ^ 10 ≤ n) {X : ℝ} (hX : 0 < X) {x : ℤ} (hx : x ∈ sources n X (M : ℚ)) :
-    ReachWithin collatz s x.toNat ⌊(523 / 50 : ℝ) * Real.log ((x : ℝ) / s)⌋₊ := by
+theorem collatzOneWithin_of_mem_sources {t t₁ : ℕ} (ht₁ : GoodSeed t t₁) (ht : 0 < t) {n : ℕ}
+    (hn : covGen ≤ n) {X : ℝ} {x : ℤ} (hx : x ∈ sources n X (t₁ : ℚ)) :
+    ReachWithin collatz t x.toNat ⌊(523 / 50 : ℝ) * Real.log ((x : ℝ) / t)⌋₊ := by
   obtain ⟨⟨h, w⟩, hp, hsrc⟩ := mem_sources.1 hx
-  have hp : IsSelectedPair n X M h w := hp
+  have hp : IsSelectedPair n X t₁ h w := hp
   set W := fullWord h w with hW
-  have hadm : Admissible (M : ℚ) W := by
+  have hadm : Admissible (t₁ : ℚ) W := by
     rw [hW, fullWord, admissible_append]
     refine ⟨admissible_concatWord_of_mem_centralHistories hp.mem_centralHistories, ?_⟩
     have := hp.admissible
     rwa [historyEndpoint_eq_src] at this
-  have hsrcW : src W (M : ℚ) = x := by
+  have hsrcW : src W (t₁ : ℚ) = x := by
     rw [← hsrc, historyEndpoint_eq_src, hW, fullWord, src_append]
-  obtain ⟨m, hm, hmM⟩ := time_exists_src_eq_collatz_iterate W hM.pos hM.odd hadm
+  obtain ⟨m, hm, hmM⟩ := time_exists_src_eq_collatz_iterate W ht₁.pos ht₁.odd hadm
   have hxm : x = m := by
     have := hsrcW.symm.trans hm; exact_mod_cast this
   subst hxm
-  obtain ⟨k, hk⟩ := hM.two_pow_mul
-  have hiter : collatz^[(1 + k) + (W.length + Word.valSum W)] m = s := by
-    rw [Function.iterate_add_apply, hmM, time_collatz_iterate_seed hM.odd hk]
+  obtain ⟨k, -, hk⟩ := ht₁.two_pow_mul
+  have hiter : collatz^[(1 + k) + (W.length + Word.valSum W)] m = t := by
+    rw [Function.iterate_add_apply, hmM, time_collatz_iterate_seed ht₁.odd hk]
   refine ⟨_, ?_, by simpa using hiter⟩
-  -- bounding the number of steps
-  have htel := valSum_fullWord_mul_log_two_le hM hs hX hp
-  have hkap := length_fullWord_add_one_le_kappa_mul_log hM hs hn hX hp
+  have hp' : IsSelectedPair n X ((t₁ : ℤ) : ℚ) h w := by rwa [Int.cast_natCast]
+  have ht₁floor : targetFloor ≤ t₁ := by
+    have hσ : (2 : ℕ) ^ seedShift = targetFloor := by
+      rw [seedShift_def, targetFloor_def, pow_mul, show (2 : ℕ) ^ 4 = 16 from rfl]
+    rw [← hσ]
+    exact (Nat.le_mul_of_pos_right _ ht).trans ht₁.lower.le
+  have htel := valSum_fullWord_mul_log_two_le (by exact_mod_cast ht₁.odd)
+    (by exact_mod_cast ht₁floor) hp'
+  simp only [Int.cast_natCast] at htel
+  clear ht₁floor
+  have hkap := length_fullWord_add_one_le_kappa_mul_log ht₁ ht hn hp
   rw [← hW] at htel hkap
-  have hxR : ((selectedPairSource (M : ℚ) h w : ℚ) : ℝ) = (m : ℝ) := by
+  have hxR : ((selectedPairSource (t₁ : ℚ) h w : ℚ) : ℝ) = (m : ℝ) := by
     rw [selectedPairSource, hsrc]; push_cast; rfl
   rw [hxR] at htel hkap
-  have hspos : (0 : ℝ) < s := by exact_mod_cast hs
-  have hMpos : (0 : ℝ) < M := by exact_mod_cast hM.pos
+  clear_value W
+  clear hxR hx hp hp' hsrc hsrcW hadm hW hm
+  have htpos : (0 : ℝ) < t := by exact_mod_cast ht
+  have ht₁pos : (0 : ℝ) < t₁ := by exact_mod_cast ht₁.pos
   have hmpos : (0 : ℝ) < m := by
-    -- `m = 0` would give `M = T^{d + A}(0) = 0`
     have hfix : ∀ j : ℕ, collatz^[j] 0 = 0 := fun j => by
       induction j with
       | zero => rfl
       | succ j ih => rw [Function.iterate_succ_apply', ih]; rfl
     rcases Nat.eq_zero_or_pos m with h0 | h0
-    · subst h0; have := hM.pos; rw [hfix] at hmM; omega
+    · subst h0; have := ht₁.pos; rw [hfix] at hmM; omega
     · exact_mod_cast h0
-  set ℓ := log ((m : ℝ) / s) with hℓ
-  have hℓeq : ℓ = log (m : ℝ) - log s := log_div hmpos.ne' hspos.ne'
+  set ℓ := log ((m : ℝ) / t) with hℓ
+  have hℓeq : ℓ = log (m : ℝ) - log t := log_div hmpos.ne' htpos.ne'
   set d : ℝ := (W.length : ℝ) with hd
   set A : ℝ := (Word.valSum W : ℝ) with hA
   set L := log 2 with hL
   set θ := log (3 + 1 / 4096) with hθ
   have hLpos : 0 < L := log_pos one_lt_two
-  -- `k log 2 ≤ log M + θ - log s`
-  have hM4096 : (4096 : ℝ) ≤ M := by
-    have h16 : ((16 : ℝ) ^ scale 0) * s ≤ M := by exact_mod_cast hM.lower.le
-    have hs1 : (1 : ℝ) ≤ s := by exact_mod_cast hs
-    rw [scale_zero] at h16
-    nlinarith
-  have hseed : (k : ℝ) * L ≤ log M + θ - log s := by
-    have h1 : ((3 * M + 1 : ℕ) : ℝ) = M * (3 + 1 / M) := by
+  have ht₁4096 : (4096 : ℝ) ≤ t₁ := by
+    have h36 : (2 : ℝ) ^ 36 ≤ t₁ := by exact_mod_cast (ht₁.two_pow_thirtySix_lt ht).le
+    linarith [show (4096 : ℝ) ≤ 2 ^ 36 by norm_num]
+  have hseed : (k : ℝ) * L ≤ log t₁ + θ - log t := by
+    have h1 : ((3 * t₁ + 1 : ℕ) : ℝ) = t₁ * (3 + 1 / t₁) := by
       push_cast; field_simp
-    have h2 : (k : ℝ) * L = log ((3 * M + 1 : ℕ) : ℝ) - log s := by
-      rw [hk, Nat.cast_mul, Nat.cast_pow, log_mul (by positivity) hspos.ne', log_pow]
+    have h2 : (k : ℝ) * L = log ((3 * t₁ + 1 : ℕ) : ℝ) - log t := by
+      rw [hk, Nat.cast_mul, Nat.cast_pow, log_mul (by positivity) htpos.ne', log_pow]
       push_cast; ring
-    have h3 : log (3 + 1 / (M : ℝ)) ≤ θ :=
+    have h3 : log (3 + 1 / (t₁ : ℝ)) ≤ θ :=
       log_le_log (by positivity) (by gcongr)
-    rw [h2, h1, log_mul hMpos.ne' (by positivity)]
+    rw [h2, h1, log_mul ht₁pos.ne' (by positivity)]
     linarith
   have hlog3 : log 3 ≤ 317 / 200 * L := by
     have := logb_two_three_bounds.2
-    rw [logb, div_le_iff₀ hLpos] at this
+    rw [logb, div_lt_iff₀ hLpos] at this
     linarith
   have hθhi : θ ≤ log 3 + 1 / 12288 := by
     have hθeq : θ = log 3 + log (1 + 1 / 12288) := by
       rw [hθ, ← log_mul (by norm_num) (by norm_num)]; norm_num
     have := log_le_sub_one_of_pos (show (0 : ℝ) < 1 + 1 / 12288 by norm_num)
     linarith
-  have hL2 := log_two_gt_sharp
+  have hL2 := log_two_gt_693147180
   have hres := ckOrdinaryResidual_eq (K := ℝ)
   have hθpos : 0 < θ := log_pos (by norm_num)
   have hℓ0 : 0 ≤ ℓ := by

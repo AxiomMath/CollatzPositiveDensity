@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Sqrt
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Recipe.Clog
+public import CollatzPosDens.Recipe.S04Clog
 
 /-!
 # The width `wd(b)`
@@ -23,7 +23,7 @@ where `lg b = ⌈log₂ b⌉` is the binary ceiling logarithm.
 
 ## Main results
 
-* `CollatzPosDens.wd_le_ceil_sqrt`, `CollatzPosDens.wd_le_floor_sub_one`: the two
+* `CollatzPosDens.wd_le_sqrt_ceil`, `CollatzPosDens.wd_le_floor_sub_one`: the two
   upper bounds.
 * `CollatzPosDens.le_wd_iff`: `k ≤ wd b` exactly when `k` is below both bounds.
 * `CollatzPosDens.ceil_le_wd`: if `x ≤ √(32 b lg b)` and `⌈x⌉₊ ≤ ⌊3b/5⌋ - 1` then
@@ -32,14 +32,13 @@ where `lg b = ⌈log₂ b⌉` is the binary ceiling logarithm.
 
 ## Implementation notes
 
-The width is defined for every natural number `b`, with truncated subtraction in
-`⌊3b/5⌋ - 1`. For `b ≥ 2` one has `⌊3b/5⌋ ≥ 1`, so the truncated difference is the integer
-one and the definition agrees with the formula above; for `b ∈ {0, 1}` it gives `wd b = 0`.
+The width is defined for every natural number `b`, with truncated subtraction in `⌊3b/5⌋ - 1`.
+For `b ≥ 2` one has `⌊3b/5⌋ ≥ 1`, so the truncated difference is the integer one and the definition
+agrees with the formula above; for `b ∈ {0, 1}` it gives `wd b = 0`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026],
-  §15.2.
+* [Mazur, *Collatz positive density*, §15.2]
 -/
 
 @[expose] public section
@@ -56,7 +55,7 @@ theorem wd_def (b : ℕ) :
     wd b = min ⌈√(32 * (b : ℝ) * (lg b : ℝ))⌉₊ (3 * b / 5 - 1) := rfl
 
 /-- The width is at most `⌈√(32 b lg b)⌉`. -/
-theorem wd_le_ceil_sqrt (b : ℕ) : wd b ≤ ⌈√(32 * (b : ℝ) * (lg b : ℝ))⌉₊ :=
+theorem wd_le_sqrt_ceil (b : ℕ) : wd b ≤ ⌈√(32 * (b : ℝ) * (lg b : ℝ))⌉₊ :=
   min_le_left _ _
 
 /-- The width is at most `⌊3b/5⌋ - 1`. -/

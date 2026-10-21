@@ -36,12 +36,14 @@ right-hand side is `ν₄₅(↑j)`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §6.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
+
+open Finset
 
 /-- The factorised weight of a word of length `n + 1`. -/
 private noncomputable def wordW (n : ℕ) (c : Fin (n + 1) → ℤ) : ℝ :=

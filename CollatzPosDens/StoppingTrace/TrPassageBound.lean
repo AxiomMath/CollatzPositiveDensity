@@ -7,68 +7,82 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.CharSum.ChBlockPath
-public import CollatzPosDens.CharSum.ChRaw
-public import CollatzPosDens.Renewal.RnP3
-public import CollatzPosDens.Renewal.RnP45
-public import CollatzPosDens.Renewal.RnFpMass
-public import CollatzPosDens.Renewal.RnP45Mass
-public import CollatzPosDens.Transfer.D
-public import CollatzPosDens.Transfer.Gamma
-public import CollatzPosDens.Transfer.Kappa
+public import CollatzPosDens.Transfer.S02Gamma
+public import CollatzPosDens.Transfer.S02Z
+public import CollatzPosDens.Transfer.EpsStar
+public import CollatzPosDens.BlackSet.BkCanonTriangle
+public import CollatzPosDens.BlackSet.BkExitWidth
+public import CollatzPosDens.BlackSet.BkEpsStarRange
+public import CollatzPosDens.CharSum.ChRawFactor
+public import CollatzPosDens.CharSum.ChOddDyadicExit
+public import CollatzPosDens.CharSum.ChOddDyadicExitStrip
+public import CollatzPosDens.CharSum.ChPaidRewardCap
+public import CollatzPosDens.CharSum.ChPaidRewardNonneg
 public import CollatzPosDens.StoppingTrace.TrCount
-public import CollatzPosDens.StoppingTrace.TrDelta
 public import CollatzPosDens.StoppingTrace.TrGap
+public import CollatzPosDens.StoppingTrace.TrGapNonneg
 public import CollatzPosDens.StoppingTrace.TrListWeight
 public import CollatzPosDens.StoppingTrace.TrPassage
-public import CollatzPosDens.StoppingTrace.TrPath
+public import CollatzPosDens.StoppingTrace.TrCapFactor
+public import CollatzPosDens.StoppingTrace.TrRaw3Cap
 public import CollatzPosDens.StoppingTrace.TrRaw3Witness
-public import CollatzPosDens.StoppingTrace.TrReward
-public import CollatzPosDens.StoppingTrace.TrE8Bound
-public import CollatzPosDens.StoppingTrace.TrPassageLaw
-public import CollatzPosDens.StoppingTrace.TrPassageRaw3
-public import CollatzPosDens.StoppingTrace.TrRaw3LastBlock
-public import CollatzPosDens.StoppingTrace.TrWitnessWhite
+public import CollatzPosDens.StoppingTrace.TrRepCoeff
+public import CollatzPosDens.StoppingTrace.TrDirectCrossing
+public import CollatzPosDens.StoppingTrace.TrPacketRange
+public import CollatzPosDens.StoppingTrace.TrPhi2Small
+public import CollatzPosDens.StoppingTrace.TrGapOneCells
+public import CollatzPosDens.StoppingTrace.TrCrossingReward
+public import CollatzPosDens.StoppingTrace.TrExitReward
+public import CollatzPosDens.StoppingTrace.TrPassageDeficit
 
 /-!
 # One passage from a black point
 
-Fix a level `n`, a unit `ξ ∈ G_n`, and let "white" refer to `(n, ξ, ε_*)`. Let `v ∈ 𝒫` be black
-and `s = gap(v)`. Then the tilted mass of one passage of the block path above level `s`, started
-from `v`, is at most `1 - d_* - δ_tr(s)`:
+Fix a level `n` and a unit `ξ ∈ G_n`, and let "white" and "black" refer to the colour scale
+`ε_*`. Let `v ∈ 𝒫` be black and `s = gap(v)`. Then the tilted mass of one passage of the block
+path above level `s`, started from `v`, is at most `1 - D_cr(s)`:
 ```
-∑_{π ∈ Π_s} bw^⊗(π) exp(-γ_* N^*(v, π; |π|)) ≤ 1 - d_* - δ_tr(s).
+∑_{π ∈ Π_s} bw^⊗(π) exp(-γ_* N^*(v, π; |π|)) ≤ 1 - D_cr(s).
 ```
 
-The proof splits `Π_s` according to how the last block crosses level `s`. With
-`f = ⌊(5s + 16)/16⌋` and `V = {(r, l) : 1 ≤ r ≤ f, s + 1 ≤ l ≤ s + 4}`, let
-`𝒜₄₅ = {π ∈ Π_s : Bp_{|π|}(π) ∈ V}`. The passage law gives the masses `∑_{Π_s} bw^⊗ = 1` and
-`∑_{𝒜₄₅} bw^⊗ = p₄₅(s)`, and `∑_{𝒜₃(s)} bw^⊗ = p₃(s)`. The sets `𝒜₄₅` and `𝒜₃(s)` are disjoint.
-On `𝒜₄₅` the last block ends at the white point `v + Bp_{|π|}(π)`, so its reward is at least `1`;
-on `𝒜₃(s)` the last block has a letter `3` landing on a white point, so its reward is at least
-`κ_*`. Summing `e^{-γ_* N^*} ≤ 1 - (1 - e^{-γ_*}) 1_{𝒜₄₅} - (1 - e^{-κ_* γ_*}) 1_{𝒜₃(s)}` against
-`bw^⊗` and using `E₈(t) < 1 - e^{-t}` for `t > 0` gives the bound.
+The gap is a natural number. Let `I` be the set of triples `(c, o, r)` with `3 ≤ c ≤ 16`,
+`1 ≤ o ≤ c` and `1 ≤ r ≤ f_s`. On the first raw crossing event `𝒳_{c,o,r}(s)` the count
+`N^*(v, π; |π|)` is at least the paid reward `R_c(y)` at the exit point `y = v + (r, s + o)`,
+and `γ_* = z_* > 0`, so it suffices to show `e^{-z_* R_c(y)} ≤ 1 - δ^{rep}_{s,c,o}`.
+
+* Off the exceptional cases `exp_neg_zStar_mul_chPaidReward_le_one_sub_trPacketDeficit` gives
+  `e^{-z_* R_c(y)} ≤ 1 - δ^{pk}_{c,o} = 1 - δ^{rep}_{s,c,o}`.
+* At an exit point the angle is an odd dyadic point up to a small error:
+  `ϑ(y) = (b + β) / 2^o` with `b` odd and `|β| ≤ 9^{f_s} ε_* 2^{-s}`, and
+  `exp_neg_zStar_mul_chPaidReward_le` gives `e^{-z_* R_c(y)} ≤ Φ^cap_c(ϑ(y))`.
+* For `(c, o) = (3, 1)`, `Φ_2((b + β)/2) ≤ (11/7)|β|`, so `e^{-z_* R_3(y)} ≤ ς_s`; together with
+  the bound `e^{-z_* R_3(y)} ≤ 1 - δ^{pk}_{3,1}` this is
+  `e^{-z_* R_3(y)} ≤ min {1 - δ^{pk}_{3,1}, ς_s} = 1 - δ^{rep}_{s,3,1}`.
+* For `(c, o) = (4, 1)` and `s ∈ {12, 19}`, `|β| < 1/12`, resp. `|β| < 1/24`, and
+  `chPacketFn_gap_one_cells` gives `Φ^cap_4(ϑ(y)) < 21/50`, resp. `< 9/25`.
+
+Then `tsum_trPassage_mul_exp_neg_trCount_le_one_sub` bounds the passage series by
+`1 - ∑_{(c,o,r) ∈ I} δ^{rep}_{s,c,o} ϖ(c) 𝖱(r - 1, s + o - c) = 1 - D_cr(s)`.
 
 ## Main results
 
 * `CollatzPosDens.summable_trPassage_mul_exp_neg_trCount`: the series converges.
+* `CollatzPosDens.exp_neg_zStar_mul_chPaidReward_le_one_sub_trRepCoeff`: the reward at an exit
+  point is at least the replaced crossing coefficient,
+  `e^{-z_* R_c(v + (r, s + o))} ≤ 1 - δ^{rep}_{s,c,o}`.
 * `CollatzPosDens.tsum_trPassage_mul_exp_neg_trCount_le`: the one-passage bound.
 
 ## Implementation notes
 
 The sum over `Π_s` is the real `tsum` over the subtype `trPassage s`; its summability is proved
-separately, so the bound is not an artefact of the junk value of a divergent `tsum`. No
-hypothesis `n ≥ 1` and no half-level `J = ⌊n/2⌋` is needed. The point `v` is required to lie in
+separately, so the bound is not an artefact of the junk value of a divergent `tsum`. The gap is
+an integer-valued function; the level of the passage is its natural-number value
+`gap(v).toNat`, which equals `gap(v)` because the gap is nonnegative. The point `v` is taken in
 `𝒫` (`v ∈ bkPoints`).
-
-The disjointness of `𝒜₄₅` and `𝒜₃(s)` is argued with the last block `(c, e)` directly: on `𝒜₃(s)`
-the raw crossing of level `s` happens at a letter of `c`, and the remaining letters of the block
-are nonnegative and the closing letter is at least `4`, so the endpoint lies strictly above
-level `s + 4`, outside `V`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §9.3.
+* [Mazur, *Collatz positive density*], §9.4.
 -/
 
 @[expose] public section
@@ -76,202 +90,6 @@ level `s + 4`, outside `V`.
 namespace CollatzPosDens
 
 open Finset
-
-/-- A real series of nonnegative terms whose `ℝ≥0∞`-valued sum is `ofReal c`, `c ≥ 0`, has sum
-`c`. -/
-private lemma hasSum_of_tsum_ofReal {α : Type*} {g : α → ℝ} (hg : ∀ a, 0 ≤ g a) {c : ℝ}
-    (hc : 0 ≤ c) (h : ∑' a, ENNReal.ofReal (g a) = ENNReal.ofReal c) : HasSum g c := by
-  have hne : ∑' a, ENNReal.ofReal (g a) ≠ ⊤ := by simp [h]
-  have hs := ENNReal.summable_toReal hne
-  simp only [ENNReal.toReal_ofReal (hg _)] at hs
-  convert hs.hasSum
-  rw [← ENNReal.toReal_ofReal hc, ← h, ENNReal.tsum_toReal_eq (fun _ ↦ ENNReal.ofReal_ne_top)]
-  simp [ENNReal.toReal_ofReal (hg _)]
-
-/-- The finite set `V = {(r, s + O) : 1 ≤ r ≤ ⌊(5s+16)/16⌋, 1 ≤ O ≤ 4}` of closing exits. -/
-private def exitSet (s : ℕ) : Finset (ℤ × ℤ) :=
-  (Icc 1 ((5 * s + 16) / 16) ×ˢ Icc (1 : ℤ) 4).image fun p ↦ ((p.1 : ℤ), (s : ℤ) + p.2)
-
-private lemma sum_exitSet (s : ℕ) : ∑ x ∈ exitSet s, firstPassageLaw s x = p45 s := by
-  rw [exitSet, sum_image, sum_product]
-  · exact sum_firstPassageLaw_eq_p45 s
-  · rintro ⟨r, O⟩ - ⟨r', O'⟩ - h
-    simp only [Prod.mk.injEq] at h ⊢
-    exact ⟨mod_cast h.1, by omega⟩
-
-/-- The total mass of the passage lists is `1`. -/
-private lemma hasSum_trListWeight_trPassage (s : ℕ) :
-    HasSum (fun π : trPassage s ↦ trListWeight π.1) 1 := by
-  refine hasSum_of_tsum_ofReal (fun π ↦ trListWeight_nonneg _) zero_le_one ?_
-  have h := tsum_trPassage_eq_tsum_firstPassageLaw s (fun _ ↦ 1)
-  simp only [mul_one] at h
-  rw [h, ← ENNReal.ofReal_tsum_of_nonneg (fun x ↦ firstPassageLaw_nonneg _ x)
-    (summable_firstPassageLaw s), tsum_firstPassageLaw]
-
-/-- The mass of the closing exits `𝒜₄₅` is `p₄₅(s)`. -/
-private lemma hasSum_trListWeight_exitSet (s : ℕ) :
-    HasSum (fun π : trPassage s ↦
-      if chBlockPath π.1 π.1.length ∈ exitSet s then trListWeight π.1 else 0) (p45 s) := by
-  classical
-  refine hasSum_of_tsum_ofReal (fun π ↦ by split_ifs <;> simp [trListWeight_nonneg])
-    (p45_nonneg s) ?_
-  have h := tsum_trPassage_eq_tsum_firstPassageLaw s
-    (fun x ↦ if x ∈ exitSet s then 1 else 0)
-  have hl : ∀ π : trPassage s, ENNReal.ofReal
-      (if chBlockPath π.1 π.1.length ∈ exitSet s then trListWeight π.1 else 0) =
-      ENNReal.ofReal (trListWeight π.1) *
-        (if chBlockPath π.1 π.1.length ∈ exitSet s then 1 else 0) := fun π ↦ by
-    split_ifs <;> simp
-  simp_rw [hl]
-  rw [h, tsum_eq_sum (s := exitSet s) (fun x hx ↦ by simp [hx]),
-    ← sum_exitSet, ENNReal.ofReal_sum_of_nonneg (fun x _ ↦ firstPassageLaw_nonneg _ x)]
-  exact sum_congr rfl fun x hx ↦ by simp [hx]
-
-/-- The mass of the raw-three witnesses, as a series over the passage lists. -/
-private lemma hasSum_trListWeight_trRawThreeWitness' (s : ℕ) :
-    HasSum (fun π : trPassage s ↦ (trRawThreeWitness s).indicator trListWeight π.1) (p3 s) := by
-  have h := (hasSum_subtype_iff_indicator (f := trListWeight)).mp
-    (hasSum_trListWeight_trRawThreeWitness s)
-  refine (hasSum_subtype_iff_indicator
-    (f := (trRawThreeWitness s).indicator trListWeight)).mpr ?_
-  rwa [Set.indicator_indicator, Set.inter_eq_right.mpr (trRawThreeWitness_subset_trPassage s)]
-
-/-- The sets `𝒜₄₅` and `𝒜₃(s)` are disjoint. -/
-private lemma not_mem_exitSet_of_mem_trRawThreeWitness {s : ℕ} {π : List (List ℤ × ℤ)}
-    (hπ : π ∈ trRawThreeWitness s) : chBlockPath π π.length ∉ exitSet s := by
-  intro hV
-  have hP := trRawThreeWitness_mem_trPassage hπ
-  have hlt := trRawThreeWitness_lt_trRawSum hπ
-  obtain ⟨π₀, ⟨c, e⟩, rfl⟩ :=
-    (List.eq_nil_or_concat' π).resolve_left (ne_nil_of_mem_trPassage hP)
-  obtain ⟨i, -, hic, -, hI⟩ := trRawThreeWitness_lastBlock hπ (List.getLast?_concat)
-  have he : e ∈ ({4, 5} : Set ℤ) := trPassage_closing_mem hP (b := (c, e)) (by simp)
-  have hlive := trLive_of_mem_trPassage hP
-  have hdrop : 0 ≤ (c.drop i).sum := List.sum_nonneg fun x hx ↦
-    zero_le_two.trans (two_le_of_chBlockWeight_ne_zero (β := (c, e)) (hlive (c, e) (by simp))
-      (List.mem_of_mem_drop hx))
-  have hsplit := congrArg List.sum (List.take_append_drop i c)
-  rw [List.sum_append] at hsplit
-  rw [show (π₀ ++ [(c, e)]).length - 1 = π₀.length by simp] at hI
-  have hI2 := congrArg Prod.snd hI
-  have hk : (π₀ ++ [(c, e)]).length = π₀.length + 1 := by simp
-  have hstep := chBlockPath_succ (π₀ ++ [(c, e)]) (i := π₀.length) (by simp)
-  rw [hk, hstep] at hV
-  simp only [List.getElem_concat_length, exitSet, mem_image, mem_product, mem_Icc] at hV
-  obtain ⟨⟨r, O⟩, ⟨-, -, hO⟩, hpt⟩ := hV
-  have h2 := congrArg Prod.snd hpt
-  simp only [Prod.snd_add, chBlockPoint_snd] at h2 hI2
-  simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at he
-  omega
-
-/-- A block whose `i`-th nonclosing letter is a `3` landing on a white point has reward at
-least `κ_*`. -/
-private lemma kappaStar_le_trReward {n : ℕ} {ξ : ResidueGroup n} {x : ℤ × ℤ} {c : List ℤ}
-    {e : ℤ} {i : ℕ} (hi : 1 ≤ i) (hic : i ≤ c.length) (h3 : c[i - 1]? = some 3)
-    (hw : IsBkWhite n ξ (epsStar : ℝ) (x + ((i : ℤ), (c.take i).sum))) :
-    (kappaStar : ℝ) ≤ trReward n ξ x (c, e) := by
-  have hmem : i ∈ (Icc 1 c.length).filter fun i ↦
-      c.getD (i - 1) 0 = 3 ∧ IsBkWhite n ξ (epsStar : ℝ) (x + ((i : ℤ), (c.take i).sum)) := by
-    simp only [mem_filter, mem_Icc, List.getD_eq_getElem?_getD, h3, Option.getD_some]
-    exact ⟨⟨hi, hic⟩, trivial, hw⟩
-  have hcard : (1 : ℝ) ≤ (((Icc 1 c.length).filter fun i ↦
-      c.getD (i - 1) 0 = 3 ∧
-        IsBkWhite n ξ (epsStar : ℝ) (x + ((i : ℤ), (c.take i).sum))).card : ℝ) := by
-    exact_mod_cast Finset.card_pos.mpr ⟨i, hmem⟩
-  have hk : (0 : ℝ) ≤ kappaStar := by exact_mod_cast kappaStar_nonneg
-  rw [trReward_def]
-  have : (0 : ℝ) ≤ if IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint (c, e)) then 1 else 0 := by
-    split_ifs <;> norm_num
-  nlinarith
-
-/-- The count of a passage list is at least the reward of its last block. -/
-private lemma trReward_le_trCount_concat {n : ℕ} {ξ : ResidueGroup n} (v : ℤ × ℤ)
-    (π₀ : List (List ℤ × ℤ)) (b : List ℤ × ℤ) :
-    trReward n ξ (v + chBlockPath (π₀ ++ [b]) π₀.length) b ≤
-      trCount n ξ v (π₀ ++ [b]) (π₀ ++ [b]).length := by
-  rw [show (π₀ ++ [b]).length = π₀.length + 1 by simp, trCount_succ v _ (by simp),
-    ← trPath_eq_add_chBlockPath]
-  simp only [List.getElem_concat_length]
-  linarith [trCount_nonneg (n := n) (ξ := ξ) v (π₀ ++ [b]) π₀.length]
-
-/-- On `𝒜₃(s)`, `s = gap(v)`, the count is at least `κ_*`. -/
-private lemma kappaStar_le_trCount_of_mem_trRawThreeWitness {n : ℕ} {ξ : ResidueGroup n}
-    (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v)
-    {π : List (List ℤ × ℤ)} (h3 : π ∈ trRawThreeWitness (trGap n ξ (epsStar : ℝ) v)) :
-    (kappaStar : ℝ) ≤ trCount n ξ v π π.length := by
-  generalize hs : trGap n ξ (epsStar : ℝ) v = s at h3
-  obtain ⟨π₀, ⟨c, e⟩, rfl⟩ := (List.eq_nil_or_concat' π).resolve_left
-    (ne_nil_of_mem_trPassage (trRawThreeWitness_mem_trPassage h3))
-  obtain ⟨i, hi, hic, hi3, hI⟩ := trRawThreeWitness_lastBlock h3 (List.getLast?_concat)
-  have hlt := trRawThreeWitness_lt_trRawSum h3
-  have hle := trRawThreeWitness_trRawSum_le h3
-  have hf := trRawThreeWitness_trFirstRaw_le h3
-  have hwhite := isBkWhite_add_of_bkBlack_trGap hξ hv hb
-    (r := (trFirstRaw s (π₀ ++ [(c, e)]) : ℤ))
-    (O := trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) - s) (by positivity)
-    (by rw [hs]; exact_mod_cast hf) (by omega) (by omega)
-  rw [hs, show (s : ℤ) + (trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) - s) =
-    trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) by ring] at hwhite
-  rw [show (π₀ ++ [(c, e)]).length - 1 = π₀.length by simp] at hI
-  have hwhite' : IsBkWhite n ξ (epsStar : ℝ)
-      (v + chBlockPath (π₀ ++ [(c, e)]) π₀.length + ((i : ℤ), (c.take i).sum)) := by
-    rwa [add_assoc, ← hI]
-  linarith [kappaStar_le_trReward (e := e) hi hic hi3 hwhite',
-    trReward_le_trCount_concat (n := n) (ξ := ξ) v π₀ (c, e)]
-
-/-- On `𝒜₄₅`, `s = gap(v)`, the count is at least `1`. -/
-private lemma one_le_trCount_of_mem_exitSet {n : ℕ} {ξ : ResidueGroup n}
-    (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v)
-    {π : List (List ℤ × ℤ)} (hπ : π ∈ trPassage (trGap n ξ (epsStar : ℝ) v))
-    (hV : chBlockPath π π.length ∈ exitSet (trGap n ξ (epsStar : ℝ) v)) :
-    1 ≤ trCount n ξ v π π.length := by
-  generalize hs : trGap n ξ (epsStar : ℝ) v = s at hπ hV
-  obtain ⟨π₀, b, rfl⟩ := (List.eq_nil_or_concat' π).resolve_left (ne_nil_of_mem_trPassage hπ)
-  simp only [exitSet, mem_image, mem_product, mem_Icc] at hV
-  obtain ⟨⟨r, O⟩, ⟨⟨hr1, hr⟩, hO1, hO4⟩, hpt⟩ := hV
-  have hwhite := isBkWhite_add_of_bkBlack_trGap hξ hv hb (r := (r : ℤ)) (O := O)
-    (by positivity) (by rw [hs]; exact_mod_cast hr) hO1 hO4
-  simp only at hpt
-  rw [hs, hpt, show (π₀ ++ [b]).length = π₀.length + 1 by simp,
-    chBlockPath_succ _ (by simp)] at hwhite
-  simp only [List.getElem_concat_length, ← add_assoc] at hwhite
-  linarith [one_le_trReward (n := n) (ξ := ξ) _ _ hwhite,
-    trReward_le_trCount_concat (n := n) (ξ := ξ) v π₀ b]
-
-/-- The pointwise bound
-`bw^⊗(π) e^{-γ_* N^*} ≤ bw^⊗(π) - (1 - e^{-γ_*}) bw^⊗(π) 1_{𝒜₄₅}
-  - (1 - e^{-κ_* γ_*}) bw^⊗(π) 1_{𝒜₃(s)}` for a passage list `π ∈ Π_s`, `s = gap(v)`. -/
-private lemma trListWeight_mul_exp_le {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ)
-    {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v)
-    {π : List (List ℤ × ℤ)} (hπ : π ∈ trPassage (trGap n ξ (epsStar : ℝ) v)) :
-    trListWeight π * Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤
-      trListWeight π -
-        (1 - Real.exp (-(gammaStar : ℝ))) *
-          (if chBlockPath π π.length ∈ exitSet (trGap n ξ (epsStar : ℝ) v) then
-            trListWeight π else 0) -
-        (1 - Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ))) *
-          (trRawThreeWitness (trGap n ξ (epsStar : ℝ) v)).indicator trListWeight π := by
-  have hw0 := trListWeight_nonneg π
-  have hγ : (0 : ℝ) < gammaStar := by exact_mod_cast gammaStar_pos
-  have hN0 := trCount_nonneg (n := n) (ξ := ξ) v π π.length
-  by_cases h3 : π ∈ trRawThreeWitness (trGap n ξ (epsStar : ℝ) v)
-  · have hR := kappaStar_le_trCount_of_mem_trRawThreeWitness hξ hv hb h3
-    rw [ite_eq_right_iff.mpr (fun h ↦ absurd h (not_mem_exitSet_of_mem_trRawThreeWitness h3)),
-      Set.indicator_of_mem h3]
-    have hexp : Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤
-        Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ)) :=
-      Real.exp_le_exp.mpr (by push_cast; nlinarith)
-    nlinarith [mul_le_mul_of_nonneg_left hexp hw0]
-  · rw [Set.indicator_of_notMem h3, mul_zero, sub_zero]
-    split_ifs with hV
-    · have hR := one_le_trCount_of_mem_exitSet hξ hv hb hπ hV
-      have hexp : Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤
-          Real.exp (-(gammaStar : ℝ)) :=
-        Real.exp_le_exp.mpr (by nlinarith)
-      nlinarith [mul_le_mul_of_nonneg_left hexp hw0]
-    · have hexp : Real.exp (-(gammaStar : ℝ) * trCount n ξ v π π.length) ≤ 1 :=
-        Real.exp_le_one_iff.mpr (by nlinarith)
-      nlinarith [mul_le_mul_of_nonneg_left hexp hw0]
 
 /-- The tilted passage series `∑_{π ∈ Π_s} bw^⊗(π) e^{-γ_* N^*(v, π; |π|)}` converges, for any
 base point `v` and level `s`. -/
@@ -285,30 +103,142 @@ theorem summable_trPassage_mul_exp_neg_trCount {n : ℕ} (ξ : ResidueGroup n) (
   refine mul_le_of_le_one_right (trListWeight_nonneg _) (Real.exp_le_one_iff.mpr ?_)
   nlinarith [trCount_nonneg (n := n) (ξ := ξ) v π.1 π.1.length]
 
+/-- At an exit point `y = v + (r, s + o)` of a black point `v` of gap `s`, with `r ≤ f_s`, the
+angle is `ϑ(y) = (b + β) / 2^o` with `b` odd and `|β| ≤ 9^{f_s} ε_* 2^{-s}`, and
+`e^{-z_* R_c(y)} ≤ Φ^cap_c(ϑ(y))` for `3 ≤ c ≤ 16`. -/
+private theorem exists_exp_neg_zStar_mul_chPaidReward_le_trCapFactor {n : ℕ}
+    {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints)
+    (hb : BkBlack n ξ (epsStar : ℝ) v) {r : ℕ}
+    (hr : r ≤ bkExitWidth (trGap n ξ (epsStar : ℝ) v).toNat) {c o : ℕ}
+    (hc₁ : 3 ≤ c) (hc₂ : c ≤ 16) (ho : 1 ≤ o) :
+    ∃ b : ℤ, Odd b ∧ ∃ β : ℝ,
+      |β| ≤ 9 ^ bkExitWidth (trGap n ξ (epsStar : ℝ) v).toNat * (epsStar : ℝ) *
+        (2 : ℝ) ^ (-((trGap n ξ (epsStar : ℝ) v).toNat : ℤ)) ∧
+      Real.exp (-(zStar : ℝ) * chPaidReward n ξ (epsStar : ℝ) c
+        (v + ((r : ℤ), trGap n ξ (epsStar : ℝ) v + o))) ≤ trCapFactor c ((b + β) / 2 ^ o) := by
+  obtain ⟨hε₀, hε⟩ := epsStar_mem_bkRange (K := ℝ)
+  set s := (trGap n ξ (epsStar : ℝ) v).toNat with hs_def
+  have hs : (s : ℤ) = trGap n ξ (epsStar : ℝ) v := Int.toNat_of_nonneg (trGap_nonneg ..)
+  have hω : bkL v + s = (bkCanonTriangle n ξ (epsStar : ℝ) v hv).l := by
+    rw [bkCanonTriangle_l, bkColTop_eq_add_trGap, hs]
+  have hy : v + ((r : ℤ), trGap n ξ (epsStar : ℝ) v + o) =
+      (bkJ v + r, (bkCanonTriangle n ξ (epsStar : ℝ) v hv).l + o) := by
+    rw [← hω, ← hs]
+    ext
+    · simp [bkJ]
+    · simp [bkL]; ring
+  rw [hy]
+  have hJ := bkJ_add_le_of_le_bkExitWidth hξ hε₀ hε hv hb hω hr
+  obtain ⟨b, hbodd, β, hβ, hθ⟩ := exists_odd_bkTheta_dyadic_exit hξ hε₀ hε hv hb s hω r o ho
+  refine ⟨b, hbodd, β, hβ.trans ?_, ?_⟩
+  · have h9 : (9 : ℝ) ^ r ≤ 9 ^ bkExitWidth s := pow_le_pow_right₀ (by norm_num) hr
+    have hpos : (0 : ℝ) ≤ (epsStar : ℝ) * (2 : ℝ) ^ (-(s : ℤ)) := by positivity
+    nlinarith
+  · have hcap := exp_neg_zStar_mul_chPaidReward_le (n := n) (ξ := ξ) (ε := (epsStar : ℝ))
+      (c := (c : ℤ)) (p := (bkJ v + r, (bkCanonTriangle n ξ (epsStar : ℝ) v hv).l + o))
+      (by exact_mod_cast hc₁) (by exact_mod_cast hc₂) hJ
+    rwa [chRawFactor_of_two_le n ξ (by omega), hθ,
+      ← trCapFactor_of_mem (by exact_mod_cast hc₁) (by exact_mod_cast hc₂)] at hcap
+
+/-- **The reward at an exit point, with the replaced coefficient.** Let `ξ ∈ G_n` be a unit,
+`v ∈ 𝒫` black and `s = gap(v)`. For `1 ≤ r ≤ f_s`, `3 ≤ c ≤ 16` and `o ≥ 1`,
+`e^{-z_* R_c(v + (r, s + o))} ≤ 1 - δ^{rep}_{s,c,o}`. -/
+theorem exp_neg_zStar_mul_chPaidReward_le_one_sub_trRepCoeff {n : ℕ} {ξ : ResidueGroup n}
+    (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v)
+    {r : ℕ} (hr : r ≤ bkExitWidth (trGap n ξ (epsStar : ℝ) v).toNat) {c o : ℕ}
+    (hc₁ : 3 ≤ c) (hc₂ : c ≤ 16) (ho : 1 ≤ o) :
+    Real.exp (-(zStar : ℝ) * chPaidReward n ξ (epsStar : ℝ) c
+        (v + ((r : ℤ), trGap n ξ (epsStar : ℝ) v + o))) ≤
+      1 - (trRepCoeff (trGap n ξ (epsStar : ℝ) v).toNat c o : ℝ) := by
+  have hpk := exp_neg_zStar_mul_chPaidReward_le_one_sub_trPacketDeficit hξ hv hb hr hc₁ hc₂ ho
+  obtain ⟨b, hbodd, β, hβ, hcap⟩ :=
+    exists_exp_neg_zStar_mul_chPaidReward_le_trCapFactor hξ hv hb hr hc₁ hc₂ ho
+  have hz : (0 : ℝ) < zStar := by exact_mod_cast zStar_pos
+  have hE1 : Real.exp (-(zStar : ℝ) * chPaidReward n ξ (epsStar : ℝ) c
+      (v + ((r : ℤ), trGap n ξ (epsStar : ℝ) v + o))) ≤ 1 :=
+    Real.exp_le_one_iff.mpr (by nlinarith [mul_nonneg hz.le (zero_le_chPaidReward n ξ
+      (epsStar : ℝ) c (v + ((r : ℤ), trGap n ξ (epsStar : ℝ) v + o)))])
+  generalize Real.exp (-(zStar : ℝ) * chPaidReward n ξ (epsStar : ℝ) c
+    (v + ((r : ℤ), trGap n ξ (epsStar : ℝ) v + o))) = E at hpk hcap hE1 ⊢
+  generalize (trGap n ξ (epsStar : ℝ) v).toNat = s at hβ ⊢
+  by_cases h₃ : c = 3 ∧ o = 1
+  · obtain ⟨rfl, rfl⟩ := h₃
+    rw [trRepCoeff_three_one, Rat.cast_max, Rat.cast_sub, Rat.cast_one, le_sub_comm]
+    refine max_le (by linarith) ?_
+    suffices hς : E ≤ (trRaw3Cap s : ℝ) by linarith
+    rw [trRaw3Cap_def]
+    push_cast
+    refine le_min hE1 (hcap.trans ?_)
+    rw [trCapFactor_of_mem (by norm_num) (by norm_num), max_comm]
+    refine max_le_max le_rfl ?_
+    rw [show (((3 : ℕ) : ℤ) - 1).toNat = 2 from rfl, pow_one]
+    refine (chPacketFn_two_odd_add_div_two_le hbodd β).trans ?_
+    linarith
+  by_cases h₄ : c = 4 ∧ o = 1 ∧ (s = 12 ∨ s = 19)
+  · obtain ⟨rfl, rfl, rfl | rfl⟩ := h₄
+    · rw [trRepCoeff_four_one_twelve]
+      have hβ' : |β| ≤ 1 / 12 := hβ.trans (by norm_num [bkExitWidth, epsStar_cast])
+      have h := chPacketFn_gap_one_cells (4, 1, 1 / 12, 21 / 50) (by simp) b hbodd β hβ'
+      push_cast at hcap h ⊢
+      linarith
+    · rw [trRepCoeff_four_one_nineteen]
+      have hβ' : |β| ≤ 1 / 24 := hβ.trans (by norm_num [bkExitWidth, epsStar_cast])
+      have h := chPacketFn_gap_one_cells (4, 1, 1 / 24, 9 / 25) (by simp) b hbodd β hβ'
+      push_cast at hcap h ⊢
+      linarith
+  · rw [trRepCoeff_of_ne h₃ h₄]
+    exact hpk
+
 /-- **One passage from a black point.** Let `ξ ∈ G_n` be a unit, `v ∈ 𝒫` black (at the colour
 scale `ε_*`) and `s = gap(v)`. Then
-`∑_{π ∈ Π_s} bw^⊗(π) exp(-γ_* N^*(v, π; |π|)) ≤ 1 - d_* - δ_tr(s)`. -/
+`∑_{π ∈ Π_s} bw^⊗(π) exp(-γ_* N^*(v, π; |π|)) ≤ 1 - D_cr(s)`. -/
 @[collatz_pos_dens "lem_tr_passage_bound"]
 theorem tsum_trPassage_mul_exp_neg_trCount_le {n : ℕ} {ξ : ResidueGroup n}
     (hξ : IsResidueUnit ξ) {v : ℤ × ℤ} (hv : v ∈ bkPoints) (hb : BkBlack n ξ (epsStar : ℝ) v) :
-    ∑' π : trPassage (trGap n ξ (epsStar : ℝ) v),
+    ∑' π : trPassage (trGap n ξ (epsStar : ℝ) v).toNat,
         trListWeight π.1 * Real.exp (-(gammaStar : ℝ) * trCount n ξ v π.1 π.1.length) ≤
-      1 - (dStar : ℝ) - trDelta (trGap n ξ (epsStar : ℝ) v) := by
-  set s := trGap n ξ (epsStar : ℝ) v
-  set a := 1 - Real.exp (-(gammaStar : ℝ))
-  set b := 1 - Real.exp (-((kappaStar * gammaStar : ℚ) : ℝ))
-  have hsum := ((hasSum_trListWeight_trPassage s).sub
-    ((hasSum_trListWeight_exitSet s).mul_left a)).sub
-    ((hasSum_trListWeight_trRawThreeWitness' s).mul_left b)
-  have hle := hasSum_le (fun π : trPassage s ↦ trListWeight_mul_exp_le hξ hv hb π.2)
-    (summable_trPassage_mul_exp_neg_trCount ξ v s).hasSum hsum
-  have hγ : (0 : ℝ) < gammaStar := by exact_mod_cast gammaStar_pos
-  have hκγ : (0 : ℝ) < ((kappaStar * gammaStar : ℚ) : ℝ) := by
-    exact_mod_cast mul_pos kappaStar_pos gammaStar_pos
-  have hE1 := (E8_lt_one_sub_exp_neg hγ).le
-  have hE2 := (E8_lt_one_sub_exp_neg hκγ).le
-  rw [one_sub_dStar_sub_trDelta]
-  nlinarith [mul_le_mul_of_nonneg_right hE1 (p45_nonneg s),
-    mul_le_mul_of_nonneg_right hE2 (p3_nonneg s)]
+      1 - trDirectCrossing (trGap n ξ (epsStar : ℝ) v).toNat := by
+  set s := (trGap n ξ (epsStar : ℝ) v).toNat with hs_def
+  have hs : (s : ℤ) = trGap n ξ (epsStar : ℝ) v := Int.toNat_of_nonneg (trGap_nonneg ..)
+  set J : Finset (Σ _ : ℕ, ℕ × ℕ) :=
+    (Icc 3 16).sigma fun c ↦ Icc 1 c ×ˢ Icc 1 (bkExitWidth s) with hJ
+  set e : (Σ _ : ℕ, ℕ × ℕ) → ℤ × ℤ × ℕ := fun t ↦ ((t.1 : ℤ), (t.2.1 : ℤ), t.2.2) with he
+  have hinj : Set.InjOn e J := by
+    rintro ⟨c, o, r⟩ - ⟨c', o', r'⟩ - h
+    simp only [he, Prod.mk.injEq, Nat.cast_inj] at h
+    obtain ⟨rfl, rfl, rfl⟩ := h
+    rfl
+  have hmemJ : ∀ t ∈ J, 3 ≤ t.1 ∧ t.1 ≤ 16 ∧ 1 ≤ t.2.1 ∧ t.2.1 ≤ t.1 ∧ 1 ≤ t.2.2 ∧
+      t.2.2 ≤ bkExitWidth s := by
+    rintro ⟨c, o, r⟩ ht
+    simp only [hJ, mem_sigma, mem_product, mem_Icc] at ht ⊢
+    omega
+  set b : ℤ × ℤ × ℕ → ℝ := fun t ↦ 1 - (trRepCoeff s t.1.toNat t.2.1.toNat : ℝ) with hb_def
+  have h := tsum_trPassage_mul_exp_neg_trCount_le_one_sub ξ v s (J.image e) b ?_ ?_
+  · convert h using 2
+    rw [sum_image hinj, trDirectCrossing_eq_sum_sum_sum, sum_sigma]
+    refine sum_congr rfl fun c _ ↦ ?_
+    rw [sum_product]
+    refine sum_congr rfl fun o _ ↦ sum_congr rfl fun r _ ↦ ?_
+    simp only [hb_def, he, Int.toNat_natCast]
+    ring
+  · simp only [mem_image]
+    rintro _ ⟨t, ht, rfl⟩
+    have := hmemJ t ht
+    simp only [he]
+    omega
+  · simp only [mem_image]
+    rintro _ ⟨⟨c, o, r⟩, ht, rfl⟩ π hπ
+    obtain ⟨hc3, hc16, ho1, -, hr1, hrf⟩ := hmemJ _ ht
+    simp only [he, hb_def, Int.toNat_natCast] at hπ ⊢
+    have hR := chPaidReward_le_trCount_of_mem_trRawThreeWitness ξ v hr1 hπ
+    have hE := exp_neg_zStar_mul_chPaidReward_le_one_sub_trRepCoeff hξ hv hb
+      (r := r) hrf hc3 hc16 ho1
+    rw [← hs_def, ← hs] at hE
+    have hγ : (gammaStar : ℝ) = zStar := by rw [gammaStar_cast, zStar_cast]
+    have hz : (0 : ℝ) < zStar := by exact_mod_cast zStar_pos
+    refine le_trans (Real.exp_le_exp.mpr ?_) hE
+    rw [hγ]
+    nlinarith
 
 end CollatzPosDens

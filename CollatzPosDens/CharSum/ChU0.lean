@@ -24,14 +24,15 @@ estimate at a white closing letter `4` evaluates the polynomial `14u - 28u² + 1
 ## Main results
 
 * `CollatzPosDens.chU0_eq`: the exact value
-  `u∘ = 12254388567529692463509142969 / 917700473724336914062500000000`.
+  `u∘ = 31050328920360089874510917627596494556224966400010644321 /
+  2304000000000000000000000000000000000000000000000000000000`.
 * `CollatzPosDens.chV0_sub_cube_pos`: `0 < v∘ - v∘³ / 6`.
 * `CollatzPosDens.chU0_pos`: `0 < u∘`.
 
 ## Implementation notes
 
 `u∘` is a concrete element of `ℚ`, defined from `chV0`; consumers cast it to `ℝ` where needed.
-The definition is exposed, so `norm_num [chU0, chV0]` decides polynomial inequalities in it;
+The definition is exposed, so `norm_num [chU0, chV0_def]` decides polynomial inequalities in it;
 alternatively rewrite with `chU0_eq` first.
 
 ## References
@@ -53,12 +54,13 @@ theorem chU0_def : chU0 = (chV0 - chV0 ^ 3 / 6) ^ 2 := rfl
 
 /-- The exact value of `u∘`. -/
 theorem chU0_eq :
-    chU0 = 12254388567529692463509142969 / 917700473724336914062500000000 := by
-  norm_num [chU0, chV0]
+    chU0 = 31050328920360089874510917627596494556224966400010644321 /
+      2304000000000000000000000000000000000000000000000000000000 := by
+  norm_num [chU0, chV0_def]
 
 /-- The cubic Taylor lower bound for `sin v∘` is positive. -/
 theorem chV0_sub_cube_pos : 0 < chV0 - chV0 ^ 3 / 6 := by
-  norm_num [chV0]
+  norm_num [chV0_def]
 
 /-- The rational `u∘` is positive. -/
 theorem chU0_pos : 0 < chU0 := chU0_def ▸ pow_pos chV0_sub_cube_pos 2

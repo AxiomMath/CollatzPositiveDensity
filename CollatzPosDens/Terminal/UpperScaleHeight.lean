@@ -18,49 +18,47 @@ public import CollatzPosDens.Terminal.UpperScale
 /-!
 # The height of the upper scale
 
-For every integer `u ≥ 256` and real `R ≥ 0`, the upper scale satisfies
-$$U_u(R) \le 2^{\lfloor 2u/3 \rfloor} R.$$
-Writing `U_u(R) = 2^{r_u} 4^u R / (4 · 3^u)`, the bound `2^{19} ≤ 3^{12}` gives both
-`2^{⌊19u/12⌋} ≤ 3^u`, so that `4^u / 3^u ≤ 2^{t(u)}`, and `B(w_u) ≥ 19 w_u / 12`. The claim
-then reduces to the integer inequality `r_u + t(u) - 2 ≤ ⌊2u/3⌋`, which follows from
-`w_u ≤ 3u/5` and `e_u = ⌈u/100⌉ ≥ u/100` (valid for `u ≥ 256`).
+For every natural number `u` and real `R ≥ 0`, the upper scale `upperScale u R` satisfies
+$$\mathrm{upperScale}(u, R) \le 2^{\lfloor 2u/3 \rfloor} R.$$
+Writing `upperScale u R = 4 ^ u * R * 2 ^ rb u / (4 * 3 ^ u)`, the bound `2^{19} ≤ 3^{12}` gives
+both `2^{⌊19u/12⌋} ≤ 3^u`, so that `4^u / 3^u ≤ 2^{texp u}`, and
+`19 * wb u ≤ 12 * ceilLog3 (wb u)`. The claim then reduces to the integer inequality
+`rb u + texp u - 2 ≤ ⌊2u/3⌋`, which follows from `5 * wb u ≤ 3 * u` and
+`eb u = ⌈u/100⌉ ≥ u/100`.
 
 ## Main results
 
 * `CollatzPosDens.upperScale_le_two_pow_two_mul_div_three`:
-  `U_u(R) ≤ 2^{⌊2u/3⌋} R` for `u ≥ 256` and `R ≥ 0`.
+  `upperScale u R ≤ 2^{⌊2u/3⌋} R` for every `u` and `R ≥ 0`.
 
 ## Implementation notes
 
-The bound is stated for `R ≥ 0` rather than `R > 0`. The floor `⌊2u/3⌋` is the natural-number
-division `2 * u / 3`, and `t(u)` enters through `texp_add_div`, `t(u) + ⌊19u/12⌋ = 2u`.
-
-## References
-
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+The statement holds for every natural number `u` and every `R ≥ 0`. The floor `⌊2u/3⌋` is the
+natural-number division `2 * u / 3`, and `texp u` enters through `texp_add_div`,
+`texp u + ⌊19u/12⌋ = 2u`.
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- From `2^{19} ≤ 3^{12}`: `19 j ≤ 12 B(j)`, i.e. `B(j) ≥ (19/12) j`. -/
+/-- For every `j`, `19 * j ≤ 12 * ceilLog3 j`, a consequence of `2^{19} ≤ 3^{12}`. -/
 private lemma upperScaleHeight_nineteen_mul_le_ceilLog3 (j : ℕ) :
     19 * j ≤ 12 * ceilLog3 j := by
-  refine (Nat.pow_le_pow_iff_right one_lt_two).1 ?_
+  refine (Nat.pow_le_pow_iff_right (show 1 < 2 by norm_num)).1 ?_
   calc 2 ^ (19 * j) = (2 ^ 19) ^ j := by rw [pow_mul]
     _ ≤ (3 ^ 12) ^ j := Nat.pow_le_pow_left (by norm_num) j
     _ = (3 ^ j) ^ 12 := by rw [← pow_mul, ← pow_mul, mul_comm]
     _ ≤ (2 ^ ceilLog3 j) ^ 12 := Nat.pow_le_pow_left (three_pow_le_two_pow_ceilLog3 j) 12
     _ = 2 ^ (12 * ceilLog3 j) := by rw [← pow_mul, mul_comm]
 
-/-- The height of the upper scale: for `u ≥ 256` and `R ≥ 0`, `U_u(R) ≤ 2^{⌊2u/3⌋} R`. -/
+/-- The height of the upper scale: for every `u` and `R ≥ 0`, `U_u(R) ≤ 2^{⌊2u/3⌋} R`. -/
 @[collatz_pos_dens "lem_upper_scale_height"]
-theorem upperScale_le_two_pow_two_mul_div_three {u : ℕ} (hu : 256 ≤ u) {R : ℝ} (hR : 0 ≤ R) :
+theorem upperScale_le_two_pow_two_mul_div_three (u : ℕ) {R : ℝ} (hR : 0 ≤ R) :
     upperScale u R ≤ 2 ^ (2 * u / 3) * R := by
   have hB := upperScaleHeight_nineteen_mul_le_ceilLog3 (wb u)
   have hw := five_mul_wb_le u
-  have he := eb_of_le hu
+  have he := eb_eq u
   have ht := texp_add_div u
   have hint : 2 * (u : ℤ) + rb u ≤ 2 + ((2 * u / 3 : ℕ) : ℤ) + ((19 * u / 12 : ℕ) : ℤ) := by
     rw [rb_def, he]

@@ -15,7 +15,8 @@ public import Mathlib.Data.List.Sublists
 For a list `β = (β¹, …, βᴺ)` and integers `a, b` with `1 ≤ a ≤ b + 1 ≤ N + 1`, the sublist
 `β_{[a,b]}` is the contiguous window `(βᵃ, …, βᵇ)`, a list of length `b - a + 1`; it is the empty
 list when `b = a - 1`. The two windows of a concatenation `uf` at the cut recover the pieces:
-`(uf)_{[1,|u|]} = u` and `(uf)_{[|u|+1,|u|+|f|]} = f`.
+`(uf)_{[1,|u|]} = u` and `(uf)_{[|u|+1,|u|+|f|]} = f`, which is what splitting a sum over block
+lists of length `a + b` into a double sum uses.
 
 ## Main definitions
 
@@ -26,7 +27,7 @@ list when `b = a - 1`. The two windows of a concatenation `uf` at the cut recove
 * `CollatzPosDens.length_trSublist`: for `b ≤ N`, `β_{[a,b]}` has length `b + 1 - a`.
 * `CollatzPosDens.getElem_trSublist`: the `i`-th entry (0-indexed) of `β_{[a,b]}` is
   `β^{a+i}`, i.e. the 0-indexed entry `a - 1 + i` of `β`.
-* `CollatzPosDens.trSublist_eq_nil_of_lt`: `β_{[a,a-1]}` is empty.
+* `CollatzPosDens.trSublist_eq_nil_of_le`: `β_{[a,a-1]}` is empty.
 * `CollatzPosDens.trSublist_append_left`, `CollatzPosDens.trSublist_append_right`:
   `(uf)_{[1,|u|]} = u` and `(uf)_{[|u|+1,|u|+|f|]} = f`.
 * `CollatzPosDens.trSublist_append_trSublist`: `β_{[a,b]} β_{[b+1,c]} = β_{[a,c]}`.
@@ -34,16 +35,16 @@ list when `b = a - 1`. The two windows of a concatenation `uf` at the cut recove
 
 ## Implementation notes
 
-The source's `𝔅^N` is modelled by lists (of an arbitrary element type `α`) of length `N`; the
-blocks themselves play no role in the definition. The window is `(β.drop (a - 1)).take (b + 1 - a)`
-with natural-number indices. Outside the source's range `1 ≤ a ≤ b + 1 ≤ N + 1` this is still
-defined (truncated: `b < a - 1` gives the empty list, `b > N` cuts the window at the end of `β`,
-and `a = 0` reads as `a = 1`), and the length formula and the entry formula carry the hypotheses
-of the source that they need.
+The set `𝔅^N` of block sequences is modelled by lists (of an arbitrary element type `α`) of
+length `N`; the blocks themselves play no role in the definition. The window is
+`(β.drop (a - 1)).take (b + 1 - a)` with natural-number indices. Outside the range
+`1 ≤ a ≤ b + 1 ≤ N + 1` this is still defined (truncated: `b < a - 1` gives the empty list,
+`b > N` cuts the window at the end of `β`, and `a = 0` reads as `a = 1`), and the length formula
+and the entry formula carry the range hypotheses that they need.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §9.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -82,8 +83,8 @@ lemma getElem_trSublist {β : List α} {a b i : ℕ} (hi : i < (trSublist β a b
       β[a - 1 + i]'(by simp [trSublist] at hi; omega) := by
   simp [trSublist]
 
-/-- For `b < a` (in particular `b = a - 1`), `β_{[a,b]}` is the empty list. -/
-lemma trSublist_eq_nil_of_lt (β : List α) {a b : ℕ} (hab : b < a) :
+/-- For `b = a - 1` (or smaller), `β_{[a,b]}` is the empty list. -/
+lemma trSublist_eq_nil_of_le (β : List α) {a b : ℕ} (hab : b + 1 ≤ a) :
     trSublist β a b = [] := by
   simp [trSublist, Nat.sub_eq_zero_of_le hab]
 

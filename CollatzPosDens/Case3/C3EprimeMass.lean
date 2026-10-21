@@ -6,55 +6,39 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Case3.C3Eprime
-public import CollatzPosDens.Case3.C3Exc
 public import CollatzPosDens.Case3.C3HorSmall
+public import CollatzPosDens.Case3.C3InitEvent
 public import CollatzPosDens.Renewal.RnFpMass
-public import CollatzPosDens.Renewal.RnListHorTail
-public import CollatzPosDens.Renewal.RnListMarginal
-public import CollatzPosDens.Renewal.RnListVerTail
+public import CollatzPosDens.Renewal.RnHorTailSharp
 public import CollatzPosDens.Renewal.RnOvershootTail
-public import CollatzPosDens.Renewal.RnThreefifthsTail
-public import CollatzPosDens.StoppingTrace.TrFreshMarginal
+public import CollatzPosDens.Transfer.S02UoLem
+public import Mathlib.Algebra.Order.Group.Indicator
 
 /-!
-# Mass of the exceptional event
+# Mass of the initial deviation set
 
-Let `J = ⌊n/2⌋`, `G ∈ ℕ` with `G ≥ 2^160`, `v ≤ J`, `X = 136 (v + 1)` and let `s` be a real
-number with `4096 X ≤ s` and `s^2 < 2G`. Then the exceptional event of the fresh law has mass
-`μ_{e,G}(Ex_{e,G,v,X}) ≤ 1/s + Exc(v)`.
+Let `ι ∈ 𝔍` be a Fourier index and `g ≥ 2^32` an integer. The initial deviation set `𝓘_g(ι)`
+(`c3InitEvent ι g`) has first-passage mass `∑_{x ∈ 𝓘_g(ι)} F_g(x) ≤ U_o(ι) + (2g)^{-1/2}`.
 
-The event `Ex_{e,G,v,X}` is the union of four events, each depending either on the displacement
-`x = (r, ℓ)` of the first passage alone, or on the block points `h = (bpt(β¹), …, bpt(βᵛ))` of
-the first `v` blocks alone. By the displacement marginal of the fresh law, the mass of an event
-`{(x, h) ∈ S}` is `∑_x F_G(x) ∑_{h ∈ 𝒫^v} η^{⊗v}(h) 1_S(x, h)`. As `F_G` and `η^{⊗v}` have total
-mass at most `1`, the four masses are bounded by
-* (i) `ℓ - G ≥ X`: the overshoot tail, `9 (25/27)^X`;
-* (ii) `∑_{k ≤ v} l(βᵏ) ≥ X`: the vertical tail of `η^{⊗v}`, `8^v (25/27)^X` (and `0` if `v = 0`);
-* (iii) `|r - G/4| ≥ G^{3/5}`: the `G^{3/5}`-tail of `F_G`, `2^55 exp(-G^{1/5}/65536)`, which is
-  less than `(2G)^{-1/2} < 1/s`;
-* (iv) `∑_{k ≤ v} j(βᵏ) ≥ G^{3/5}`: the horizontal tail of `η^{⊗v}`, `exp(v/2 - G^{3/5}/16)`,
-  which is at most `e^{-14(v+1)}` since `G^{3/5} > s/2 ≥ 2048 X` (and `0` if `v = 0`).
-Adding up gives `1/s + Exc(v)`.
+The set `𝓘_g(ι)` is the union of two events, and the union bound reduces the claim to two tails
+of the first-passage law `F_g`:
+* the overshoot `ℓ - g ≥ X_o(ι)`, where `X_o(ι) ∈ {194, 182}`: as `g ≥ 64` and `X_o(ι) ≥ 1`, the
+  overshoot tail of `F_g` has mass at most `9 (25/27)^{X_o(ι)} ≤ U_o(ι)`;
+* the horizontal deviation `|r - g/4| ≥ g/32`: as `g ≥ 6` and `u = g/32 ≥ 2`, the sharp
+  horizontal tail of `F_g` at `u` has mass at most `4 exp(-u²/(2(g - 4))) + 2 exp(-u/256)`. As
+  `0 < 2(g - 4) < 2g`, the first exponent is at most `-g/2048 ≤ -g/8192`, and `u/256 = g/8192`,
+  so this is at most `6 exp(-g/8192) < (2g)^{-1/2}`.
 
 ## Main results
 
-* `CollatzPosDens.tsum_trFreshLaw_c3Exceptional_le`: the mass bound, as a sum in `[0, ∞]`.
-* `CollatzPosDens.summable_trFreshLaw_c3Exceptional`: the fresh law is summable on
-  the exceptional event.
-* `CollatzPosDens.tsum_trFreshLaw_c3Exceptional_le_real`: the mass bound, as a real sum.
-
-## Implementation notes
-
-The mass `μ_{e,G}(Ex_{e,G,v,X})` is the unconditional sum over the subtype of the event of
-`ENNReal.ofReal (trFreshLaw n e G a)`, as in the displacement marginal of the fresh law; this
-form makes no summability assumption, and the real-valued form follows. The statements take
-`X = 136 (v + 1)` explicitly, and they hold without the hypothesis `e ∈ 𝒫`. In event (iv) the
-horizontal tail is applied with the real threshold `10 G^{3/5}`, with no integer ceiling.
+* `CollatzPosDens.tsum_firstPassageLaw_c3InitEvent_le`:
+  `∑_{x ∈ 𝓘_g(ι)} F_g(x) ≤ U_o(ι) + (2g)^{-1/2}` for `g ≥ 2^32`.
+* `CollatzPosDens.tsum_ofReal_firstPassageLaw_c3InitEvent_le`: the same bound, as a sum in
+  `[0, ∞]`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §10.3.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -64,301 +48,110 @@ namespace CollatzPosDens
 open scoped ENNReal
 open Real
 
-/-- The sum over the first `v` entries of a list, as a sum over `Fin v`. -/
-private lemma c3EprimeMass_sum_take {α : Type*} (f : α → ℤ) (β : List α) {v : ℕ}
-    (hv : v ≤ β.length) :
-    ((β.take v).map f).sum = ∑ i : Fin v, f (β[(i : ℕ)]'(lt_of_lt_of_le i.2 hv)) := by
-  have h : β.take v = List.ofFn fun i : Fin v ↦ β[(i : ℕ)]'(lt_of_lt_of_le i.2 hv) := by
-    apply List.ext_getElem
-    · simp [hv]
-    · intro i h1 h2
-      simp
-  rw [h, List.map_ofFn, List.sum_ofFn]
-  rfl
-
-/-- Event (i): the overshoot `ℓ - G ≥ X` has `F_G`-mass at most `9 (25/27)^X`. -/
-private lemma c3EprimeMass_overshoot {G X : ℕ} (hG : 64 ≤ G) (hX : 1 ≤ X) :
-    ∑' x : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw G ((x.1 : ℤ), x.2)) *
-        {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}.indicator 1 x ≤
+/-- The overshoot part: `ℓ - g ≥ X` has `F_g`-mass at most `9 (25/27)^X`, for `g ≥ 64`,
+`X ≥ 1`. -/
+private lemma c3EprimeMass_overshoot {g X : ℕ} (hg : 64 ≤ g) (hX : 1 ≤ X) :
+    ∑' x : ℤ × ℤ, {x : ℤ × ℤ | (X : ℤ) ≤ x.2 - g}.indicator
+        (fun x ↦ ENNReal.ofReal (firstPassageLaw g x)) x ≤
       ENNReal.ofReal (9 * (25 / 27) ^ X) := by
-  rw [ENNReal.tsum_prod (f := fun (r : ℕ) (ℓ : ℤ) ↦ ENNReal.ofReal (firstPassageLaw G (r, ℓ)) *
-    {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}.indicator 1 (r, ℓ))]
-  have h : ∀ r : ℕ, ∑' ℓ : ℤ, ENNReal.ofReal (firstPassageLaw G (r, ℓ)) *
-      {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}.indicator 1 (r, ℓ) =
-      ∑' ℓ : {ℓ : ℤ // (G : ℤ) + X ≤ ℓ}, ENNReal.ofReal (firstPassageLaw G (((r : ℕ) : ℤ), ℓ)) := by
-    intro r
-    refine Eq.trans (tsum_congr fun ℓ ↦ ?_) (tsum_subtype {ℓ : ℤ | (G : ℤ) + X ≤ ℓ}
-      (fun ℓ ↦ ENNReal.ofReal (firstPassageLaw G (((r : ℕ) : ℤ), ℓ)))).symm
-    have hiff : (X : ℝ) ≤ (ℓ : ℝ) - G ↔ (G : ℤ) + X ≤ ℓ := by
-      rw [← Int.cast_le (R := ℝ)]
-      push_cast
-      constructor <;> intro <;> linarith
-    by_cases hℓ : (G : ℤ) + X ≤ ℓ
-    · rw [Set.indicator_of_mem (show ((r, ℓ) : ℕ × ℤ) ∈ {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}
-        from hiff.2 hℓ), Set.indicator_of_mem (show ℓ ∈ {ℓ : ℤ | (G : ℤ) + X ≤ ℓ} from hℓ),
-        Pi.one_apply, mul_one]
-    · rw [Set.indicator_of_notMem (show ((r, ℓ) : ℕ × ℤ) ∉ {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}
-        from fun h1 ↦ hℓ (hiff.1 h1)),
-        Set.indicator_of_notMem (show ℓ ∉ {ℓ : ℤ | (G : ℤ) + X ≤ ℓ} from hℓ), mul_zero]
-  simp_rw [h]
-  calc _ ≤ ∑' r : ℤ, ∑' ℓ : {ℓ : ℤ // (G : ℤ) + X ≤ ℓ},
-        ENNReal.ofReal (firstPassageLaw G (r, ℓ)) :=
-        ENNReal.tsum_comp_le_tsum_of_injective Nat.cast_injective
-          (fun r : ℤ ↦ ∑' ℓ : {ℓ : ℤ // (G : ℤ) + X ≤ ℓ}, ENNReal.ofReal (firstPassageLaw G (r, ℓ)))
-    _ ≤ _ := (tsum_firstPassageLaw_overshoot_lt G X hG hX).le
+  refine (ENNReal.tsum_prod (f := fun r ℓ ↦ {x : ℤ × ℤ | (X : ℤ) ≤ x.2 - g}.indicator
+    (fun x ↦ ENNReal.ofReal (firstPassageLaw g x)) (r, ℓ))).trans_le ?_
+  refine le_trans (le_of_eq (tsum_congr fun r ↦ ?_))
+    (tsum_firstPassageLaw_overshoot_lt g X hg hX).le
+  refine Eq.trans ?_ (tsum_subtype {ℓ : ℤ | (g : ℤ) + X ≤ ℓ}
+    fun ℓ ↦ ENNReal.ofReal (firstPassageLaw g (r, ℓ))).symm
+  refine tsum_congr fun ℓ ↦ ?_
+  simp only [Set.indicator_apply, Set.mem_ofPred_eq]
+  congr 1
+  exact propext (by omega)
 
-/-- Event (iii): `|r - G/4| ≥ G^{3/5}` has `F_G`-mass at most `2^55 exp(-G^{1/5}/65536)`. -/
-private lemma c3EprimeMass_threeFifths {G : ℕ} (hG : 1 ≤ G) :
-    ∑' x : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw G ((x.1 : ℤ), x.2)) *
-        {x : ℕ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤ |(x.1 : ℝ) - (G : ℝ) / 4|}.indicator 1 x ≤
-      ENNReal.ofReal (2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536))) := by
-  set S : Set ℤ := {r : ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤ |(r : ℝ) - (G : ℝ) / 4|} with hS
-  set f : ℤ → ℝ≥0∞ := fun r ↦ ∑' ℓ : ℤ, ENNReal.ofReal (firstPassageLaw G (r, ℓ)) with hf
-  rw [ENNReal.tsum_prod (f := fun (r : ℕ) (ℓ : ℤ) ↦ ENNReal.ofReal (firstPassageLaw G (r, ℓ)) *
-    {x : ℕ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤ |(x.1 : ℝ) - (G : ℝ) / 4|}.indicator 1 (r, ℓ))]
-  have h : ∀ r : ℕ, ∑' ℓ : ℤ, ENNReal.ofReal (firstPassageLaw G (r, ℓ)) *
-      {x : ℕ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤ |(x.1 : ℝ) - (G : ℝ) / 4|}.indicator 1 (r, ℓ) =
-      S.indicator f ((r : ℕ) : ℤ) := by
-    intro r
-    by_cases hr : (G : ℝ) ^ ((3 : ℝ) / 5) ≤ |(r : ℝ) - (G : ℝ) / 4|
-    · have hr' : ((r : ℕ) : ℤ) ∈ S := by
-        simpa only [hS, Set.mem_ofPred_eq, Int.cast_natCast] using hr
-      rw [Set.indicator_of_mem hr', hf]
-      refine tsum_congr fun ℓ ↦ ?_
-      rw [Set.indicator_of_mem (show ((r, ℓ) : ℕ × ℤ) ∈ {x : ℕ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤
-        |(x.1 : ℝ) - (G : ℝ) / 4|} from hr), Pi.one_apply, mul_one]
-    · have hr' : ((r : ℕ) : ℤ) ∉ S := by
-        simpa only [hS, Set.mem_ofPred_eq, Int.cast_natCast] using hr
-      rw [Set.indicator_of_notMem hr']
-      refine ENNReal.tsum_eq_zero.2 fun ℓ ↦ ?_
-      rw [Set.indicator_of_notMem (show ((r, ℓ) : ℕ × ℤ) ∉ {x : ℕ × ℤ | (G : ℝ) ^ ((3 : ℝ) / 5) ≤
-        |(x.1 : ℝ) - (G : ℝ) / 4|} from hr), mul_zero]
-  simp_rw [h]
-  have hF := summable_firstPassageLaw G
-  calc _ ≤ ∑' r : ℤ, S.indicator f r :=
-        ENNReal.tsum_comp_le_tsum_of_injective Nat.cast_injective (S.indicator f)
+/-- The horizontal part: for `g ≥ 6` and `u ≥ 2`, `|r - g/4| ≥ u` has `F_g`-mass at most
+`4 exp(-u²/(2(g - 4))) + 2 exp(-u/256)`. -/
+private lemma c3EprimeMass_hor {g : ℕ} (hg : 6 ≤ g) {u : ℝ} (hu : 2 ≤ u) :
+    ∑' x : ℤ × ℤ, {x : ℤ × ℤ | u ≤ |(x.1 : ℝ) - g / 4|}.indicator
+        (fun x ↦ ENNReal.ofReal (firstPassageLaw g x)) x ≤
+      ENNReal.ofReal (4 * exp (-(u ^ 2 / (2 * ((g : ℝ) - 4)))) + 2 * exp (-(u / 256))) := by
+  set S : Set ℤ := {r : ℤ | u ≤ |(r : ℝ) - g / 4|}
+  set f : ℤ → ℝ≥0∞ := fun r ↦ ∑' ℓ : ℤ, ENNReal.ofReal (firstPassageLaw g (r, ℓ)) with hf
+  have hF := summable_firstPassageLaw g
+  refine (ENNReal.tsum_prod (f := fun r ℓ ↦ {x : ℤ × ℤ | u ≤ |(x.1 : ℝ) - g / 4|}.indicator
+    (fun x ↦ ENNReal.ofReal (firstPassageLaw g x)) (r, ℓ))).trans_le ?_
+  calc _ = ∑' r : ℤ, S.indicator f r := by
+        refine tsum_congr fun r ↦ ?_
+        by_cases hr : r ∈ S
+        · rw [Set.indicator_of_mem hr, hf]
+          exact tsum_congr fun ℓ ↦ Set.indicator_of_mem (show ((r, ℓ) : ℤ × ℤ) ∈
+            {x : ℤ × ℤ | u ≤ |(x.1 : ℝ) - g / 4|} from hr) _
+        · rw [Set.indicator_of_notMem hr]
+          exact ENNReal.tsum_eq_zero.2 fun ℓ ↦ Set.indicator_of_notMem (show ((r, ℓ) : ℤ × ℤ) ∉
+            {x : ℤ × ℤ | u ≤ |(x.1 : ℝ) - g / 4|} from hr) _
     _ = ∑' r : S, f r := (tsum_subtype S f).symm
-    _ = ∑' r : S, ENNReal.ofReal (∑' ℓ : ℤ, firstPassageLaw G (r, ℓ)) := by
+    _ = ∑' r : S, ENNReal.ofReal (∑' ℓ : ℤ, firstPassageLaw g (r, ℓ)) := by
         refine tsum_congr fun r ↦ ?_
         rw [hf, ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ firstPassageLaw_nonneg _ _)
           (hF.prod_factor r.1)]
-    _ = ENNReal.ofReal (∑' r : S, ∑' ℓ : ℤ, firstPassageLaw G (r, ℓ)) :=
+    _ = ENNReal.ofReal (∑' r : S, ∑' ℓ : ℤ, firstPassageLaw g (r, ℓ)) :=
         (ENNReal.ofReal_tsum_of_nonneg
-          (fun _ ↦ tsum_nonneg fun _ ↦ firstPassageLaw_nonneg _ _) (hF.prod.subtype S)).symm
-    _ ≤ _ := ENNReal.ofReal_le_ofReal (tsum_firstPassageLaw_threeFifths_tail_le G hG)
+          (fun _ ↦ tsum_nonneg fun _ ↦ firstPassageLaw_nonneg _ _)
+          (summable_firstPassageLaw_hor_tail g u)).symm
+    _ ≤ _ := ENNReal.ofReal_le_ofReal (tsum_firstPassageLaw_hor_tail_le_of_six_le hg hu)
 
-/-- If `T` is at least `1` on an event `S ⊆ 𝒜_n`, the fresh-law mass of `S` is bounded by the
-integral of `T` against the displacement marginal. -/
-theorem tsum_trFreshLaw_le_of_one_le {n : ℕ} (e : ℤ × ℤ) (g : ℕ) {v : ℕ} (hv : v ≤ n / 2)
-    {S : Set ((ℕ × ℤ) × List (List ℤ × ℤ))} (hS : S ⊆ trAtoms n)
-    (T : ℕ × ℤ → (Fin v → ℤ × ℤ) → ℝ≥0∞)
-    (hT : ∀ a ∈ S, (ha : a ∈ trAtoms n) → 1 ≤ T a.1 (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(by
-      have := (mem_trAtoms.1 ha).1; omega)))) :
-    ∑' a : S, ENNReal.ofReal (trFreshLaw n e g a) ≤
-      ∑' rl : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw g ((rl.1 : ℤ), rl.2)) *
-        ∑' h : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
-          ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) * T rl h.1 := by
-  rw [← tsum_trFreshLaw_mul_chBlockPoint n e g v hv T]
-  calc _ ≤ ∑' a : S, (fun b : trAtoms n ↦ ENNReal.ofReal (trFreshLaw n e g b) *
-          T b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
-            have := (mem_trAtoms.1 b.2).1; omega)))) (Set.inclusion hS a) :=
-        ENNReal.tsum_le_tsum fun a ↦ le_mul_of_one_le_right' (hT a.1 a.2 (hS a.2))
-    _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective (Set.inclusion_injective hS)
-        (fun b : trAtoms n ↦ ENNReal.ofReal (trFreshLaw n e g b) *
-          T b.1.1 (fun i ↦ chBlockPoint (b.1.2[(i : ℕ)]'(by
-            have := (mem_trAtoms.1 b.2).1; omega))))
+/-- At `u = g/32` the sharp horizontal tail bound is at most `6 exp(-g/8192)`, for `g > 4`. -/
+private lemma c3EprimeMass_horTail_le {g : ℝ} (hg : 4 < g) :
+    4 * exp (-((g / 32) ^ 2 / (2 * (g - 4)))) + 2 * exp (-(g / 32 / 256)) ≤
+      6 * exp (-g / 8192) := by
+  have h1 : exp (-((g / 32) ^ 2 / (2 * (g - 4)))) ≤ exp (-g / 8192) := by
+    rw [exp_le_exp, neg_div, neg_le_neg_iff, div_le_div_iff₀ (by norm_num) (by linarith)]
+    nlinarith
+  have h2 : exp (-(g / 32 / 256)) = exp (-g / 8192) := by
+    congr 1; ring
+  linarith
 
-/-- Integrating a sum `A x + B x + (C h + D h)` against a product of two sub-probability weights
-is bounded by the sum of the four separate integrals. -/
-theorem tsum_mul_tsum_mul_add_le {α β : Type*} {F : α → ℝ≥0∞} {η : β → ℝ≥0∞}
-    (hF : ∑' x, F x ≤ 1) (hη : ∑' h, η h ≤ 1) (A B : α → ℝ≥0∞) (C D : β → ℝ≥0∞) :
-    ∑' x, F x * ∑' h, η h * (A x + B x + (C h + D h)) ≤
-      ∑' x, F x * A x + ∑' x, F x * B x + (∑' h, η h * C h + ∑' h, η h * D h) := by
-  have hinner : ∀ x, ∑' h, η h * (A x + B x + (C h + D h)) ≤
-      A x + B x + (∑' h, η h * C h + ∑' h, η h * D h) := by
+/-- **Mass of the initial deviation set**, as a sum in `[0, ∞]`: for `ι ∈ 𝔍` and `g ≥ 2^32`,
+`∑_{x ∈ 𝓘_g(ι)} F_g(x) ≤ U_o(ι) + (2g)^{-1/2}`. -/
+theorem tsum_ofReal_firstPassageLaw_c3InitEvent_le (ι : FIndex) {g : ℕ} (hg : 2 ^ 32 ≤ g) :
+    ∑' x : c3InitEvent ι g, ENNReal.ofReal (firstPassageLaw g x) ≤
+      ENNReal.ofReal (Uo ι + (2 * g) ^ (-1 / 2 : ℝ)) := by
+  set F : ℤ × ℤ → ℝ≥0∞ := fun x ↦ ENNReal.ofReal (firstPassageLaw g x)
+  set A : Set (ℤ × ℤ) := {x | (overshootAllowance ι : ℤ) ≤ x.2 - g}
+  set B : Set (ℤ × ℤ) := {x | (g : ℝ) / 32 ≤ |(x.1 : ℝ) - g / 4|}
+  have hg64 : 64 ≤ g := le_trans (by norm_num) hg
+  have hgR : (2 : ℝ) ^ 32 ≤ g := by exact_mod_cast hg
+  have hunion : ∀ x, (c3InitEvent ι g).indicator F x ≤ A.indicator F x + B.indicator F x := by
     intro x
-    calc ∑' h, η h * (A x + B x + (C h + D h)) =
-          ∑' h, (η h * (A x + B x) + (η h * C h + η h * D h)) :=
-          tsum_congr fun h ↦ by ring
-      _ = (∑' h, η h) * (A x + B x) + (∑' h, η h * C h + ∑' h, η h * D h) := by
-          rw [ENNReal.tsum_add, ENNReal.tsum_add, ENNReal.tsum_mul_right]
-      _ ≤ 1 * (A x + B x) + (∑' h, η h * C h + ∑' h, η h * D h) := by gcongr
-      _ = _ := by rw [one_mul]
-  calc _ ≤ ∑' x, F x * (A x + B x + (∑' h, η h * C h + ∑' h, η h * D h)) :=
-        ENNReal.tsum_le_tsum fun x ↦ mul_le_mul_right (hinner x) _
-    _ = ∑' x, (F x * A x + F x * B x + F x * (∑' h, η h * C h + ∑' h, η h * D h)) :=
-        tsum_congr fun x ↦ by ring
-    _ = ∑' x, F x * A x + ∑' x, F x * B x +
-          (∑' x, F x) * (∑' h, η h * C h + ∑' h, η h * D h) := by
-        rw [ENNReal.tsum_add, ENNReal.tsum_add, ENNReal.tsum_mul_right]
-    _ ≤ ∑' x, F x * A x + ∑' x, F x * B x + 1 * (∑' h, η h * C h + ∑' h, η h * D h) := by
+    by_cases hA : x ∈ A
+    · rw [Set.indicator_of_mem hA]
+      exact le_add_right (Set.indicator_le_self _ _ x)
+    · by_cases hB : x ∈ B
+      · rw [Set.indicator_of_mem hB]
+        exact le_add_left (Set.indicator_le_self _ _ x)
+      · have : x ∉ c3InitEvent ι g := fun h ↦ h.elim hA hB
+        rw [Set.indicator_of_notMem this]
+        exact bot_le
+  calc ∑' x : c3InitEvent ι g, F x = ∑' x, (c3InitEvent ι g).indicator F x := tsum_subtype _ F
+    _ ≤ ∑' x, (A.indicator F x + B.indicator F x) := ENNReal.tsum_le_tsum hunion
+    _ = ∑' x, A.indicator F x + ∑' x, B.indicator F x := ENNReal.tsum_add
+    _ ≤ ENNReal.ofReal (9 * (25 / 27) ^ overshootAllowance ι) +
+          ENNReal.ofReal (4 * exp (-(((g : ℝ) / 32) ^ 2 / (2 * ((g : ℝ) - 4)))) +
+            2 * exp (-((g : ℝ) / 32 / 256))) :=
+        add_le_add (c3EprimeMass_overshoot hg64 (overshootAllowance_pos ι))
+          (c3EprimeMass_hor (by omega) (by rw [le_div_iff₀ (by norm_num)]; linarith))
+    _ ≤ ENNReal.ofReal (Uo ι) + ENNReal.ofReal ((2 * g) ^ (-1 / 2 : ℝ)) := by
         gcongr
-    _ = _ := by rw [one_mul]
+        · exact nine_mul_pow_overshootAllowance_le_Uo_cast ι
+        · exact ((c3EprimeMass_horTail_le (lt_of_lt_of_le (by norm_num) hgR)).trans_lt
+            (c3HorSmall hgR)).le
+    _ = _ := (ENNReal.ofReal_add (by exact_mod_cast (Uo_pos ι).le) (by positivity)).symm
 
-/-- Event (ii): `∑_{k ≤ v} l(βᵏ) ≥ X` has `η^{⊗v}`-mass at most `8^v (25/27)^X`, and none if
-`v = 0`. -/
-private lemma c3EprimeMass_verTail (v X : ℕ) (hX : 1 ≤ X) :
-    ∑' h : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
-        ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) *
-          {h : Fin v → ℤ × ℤ | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)}.indicator 1 h.1 ≤
-      ENNReal.ofReal (if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ X else 0) := by
-  rcases Nat.eq_zero_or_pos v with rfl | hv0
-  · refine (ENNReal.tsum_eq_zero.2 fun h ↦ ?_).trans_le zero_le
-    have : h.1 ∉ {h : Fin 0 → ℤ × ℤ | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)} := by
-      simp only [Set.mem_ofPred_eq, not_le, Finset.univ_eq_empty, Finset.sum_empty]
-      exact_mod_cast hX
-    rw [Set.indicator_of_notMem this, mul_zero]
-  · simp only [show 1 ≤ v from hv0, ↓reduceIte]
-    refine (tsum_holdListLaw_bkPoints_mul_indicator_le (fun h ↦ (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ))
-      (fun u ↦ (X : ℝ) ≤ ∑ i, ((u i).2 : ℝ)) (fun h _ hh ↦ hh)).trans ?_
-    refine (tsum_holdListLaw_verTail_le v X).trans (le_of_eq ?_)
-    rw [Real.rpow_natCast]
-
-/-- Event (iv): `∑_{k ≤ v} j(βᵏ) ≥ t` has `η^{⊗v}`-mass at most `e^{-14(v+1)}` once
-`t > 2048 · 136 (v + 1)`, and none if `v = 0`. -/
-private lemma c3EprimeMass_horTail (v : ℕ) {t : ℝ} (ht : 2048 * (136 * ((v : ℝ) + 1)) < t) :
-    ∑' h : {h : Fin v → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
-        ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) *
-          {h : Fin v → ℤ × ℤ | t ≤ ∑ i, ((h i).1 : ℝ)}.indicator 1 h.1 ≤
-      ENNReal.ofReal (if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0) := by
-  have hv : (0 : ℝ) ≤ v := by positivity
-  have ht0 : 0 < t := by linarith
-  rcases Nat.eq_zero_or_pos v with rfl | hv0
-  · refine (ENNReal.tsum_eq_zero.2 fun h ↦ ?_).trans_le zero_le
-    have : h.1 ∉ {h : Fin 0 → ℤ × ℤ | t ≤ ∑ i, ((h i).1 : ℝ)} := by
-      simpa only [Set.mem_ofPred_eq, not_le, Finset.univ_eq_empty, Finset.sum_empty] using ht0
-    rw [Set.indicator_of_notMem this, mul_zero]
-  · simp only [show 1 ≤ v from hv0, ↓reduceIte]
-    refine (tsum_holdListLaw_bkPoints_mul_indicator_le (fun h ↦ t ≤ ∑ i, ((h i).1 : ℝ))
-      (fun u ↦ 10 * t ≤ 10 * ∑ i, ((u i).1 : ℝ)) (fun h hP hh ↦ ?_)).trans ?_
-    · have hsum : ∑ i, (((h i).1.toNat : ℕ) : ℝ) = ∑ i, ((h i).1 : ℝ) := by
-        refine Finset.sum_congr rfl fun i _ ↦ ?_
-        have := hP i
-        simp only [mem_bkPoints, bkJ] at this
-        have h0 : (((h i).1.toNat : ℕ) : ℤ) = (h i).1 := Int.toNat_of_nonneg (by omega)
-        exact_mod_cast h0
-      change 10 * t ≤ 10 * ∑ i, (((h i).1.toNat : ℕ) : ℝ)
-      rw [hsum]
-      linarith
-    · refine (tsum_holdListLaw_horTail_le v (10 * t)).trans (ENNReal.ofReal_le_ofReal ?_)
-      rw [exp_le_exp]
-      linarith
-
-/-- Event (iii) is below `1/s`: `2^55 exp(-G^{1/5}/65536) ≤ 1/s` when `G ≥ 2^160` and
-`s^2 < 2G`. -/
-private lemma c3EprimeMass_threeFifths_le_one_div {G : ℕ} (hG : (2 : ℝ) ^ 160 ≤ G)
-    {s : ℝ} (hs : 0 < s) (hsG : s ^ 2 < 2 * G) :
-    2 ^ 55 * exp (-((G : ℝ) ^ (1 / 5 : ℝ) / 65536)) ≤ 1 / s := by
-  have h1 := c3HorSmall hG
-  rw [neg_div] at h1
-  refine h1.le.trans ?_
-  have h2G : (0 : ℝ) ≤ 2 * G := by positivity
-  rw [show (-1 / 2 : ℝ) = -(1 / 2) by ring, Real.rpow_neg h2G, ← Real.sqrt_eq_rpow, one_div]
-  exact inv_anti₀ hs ((Real.lt_sqrt hs.le).2 hsG).le
-
-/-- `s/2 < G^{3/5}` when `s^2 < 2G`. -/
-private lemma c3EprimeMass_half_lt_rpow {G : ℕ} (hG : 1 ≤ G) {s : ℝ} (hsG : s ^ 2 < 2 * G) :
-    s / 2 < (G : ℝ) ^ ((3 : ℝ) / 5) := by
-  have hG0 : (0 : ℝ) ≤ G := by positivity
-  have htsq : (G : ℝ) ≤ ((G : ℝ) ^ ((3 : ℝ) / 5)) ^ 2 := by
-    rw [← Real.rpow_natCast, ← Real.rpow_mul hG0]
-    exact (Real.rpow_one _).symm.le.trans
-      (Real.rpow_le_rpow_of_exponent_le (by exact_mod_cast hG) (by norm_num))
-  refine lt_of_pow_lt_pow_left₀ 2 (by positivity) ?_
-  rw [show (s / 2) ^ 2 = s ^ 2 / 4 by ring]
-  linarith
-
-/-- The four bounds add up to `1/s + Exc(v)`. -/
-private lemma c3EprimeMass_add_le (v : ℕ) {p s : ℝ} (hp : 0 ≤ p) (hps : p ≤ 1 / s) :
-    ENNReal.ofReal (9 * (25 / 27) ^ (136 * (v + 1))) + ENNReal.ofReal p +
-        (ENNReal.ofReal (if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ (136 * (v + 1)) else 0) +
-          ENNReal.ofReal (if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0)) ≤
-      ENNReal.ofReal (1 / s + c3Exc v) := by
-  have hi1 : (0 : ℝ) ≤ if 1 ≤ v then 8 ^ v * (25 / 27 : ℝ) ^ (136 * (v + 1)) else 0 := by
-    split_ifs <;> positivity
-  have hi2 : (0 : ℝ) ≤ if 1 ≤ v then exp (-14 * ((v : ℝ) + 1)) else 0 := by
-    split_ifs <;> positivity
-  rw [← ENNReal.ofReal_add (by positivity) hp, ← ENNReal.ofReal_add hi1 hi2,
-    ← ENNReal.ofReal_add (add_nonneg (by positivity) hp) (add_nonneg hi1 hi2)]
-  refine ENNReal.ofReal_le_ofReal ?_
-  rw [c3Exc]
-  split_ifs <;> linarith
-
-private lemma c3EprimeMass_pos {v : ℕ} {s : ℝ} (hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ s) :
-    0 < s := by
-  have : (0 : ℝ) ≤ v := by positivity
-  linarith
-
-/-- **Mass of the exceptional event.** For `G ≥ 2^160`, `v ≤ ⌊n/2⌋` and a real `s` with
-`4096 · 136 (v + 1) ≤ s` and `s^2 < 2G`, `μ_{e,G}(Ex_{e,G,v,136(v+1)}) ≤ 1/s + Exc(v)`. -/
+/-- **Mass of the initial deviation set.** For `ι ∈ 𝔍` and `g ≥ 2^32`,
+`∑_{x ∈ 𝓘_g(ι)} F_g(x) ≤ U_o(ι) + (2g)^{-1/2}`. -/
 @[collatz_pos_dens "lem_c3_eprime_mass"]
-theorem tsum_trFreshLaw_c3Exceptional_le {n : ℕ} (e : ℤ × ℤ) {G v : ℕ} (hG : 2 ^ 160 ≤ G)
-    (hv : v ≤ n / 2) {s : ℝ} (hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ s)
-    (hsG : s ^ 2 < 2 * G) :
-    ∑' a : c3Exceptional n e G v (136 * ((v : ℝ) + 1)), ENNReal.ofReal (trFreshLaw n e G a) ≤
-      ENNReal.ofReal (1 / s + c3Exc v) := by
-  set X : ℕ := 136 * (v + 1) with hXdef
-  have hXr : (136 * ((v : ℝ) + 1)) = (X : ℝ) := by
-    push_cast [hXdef]
-    ring
-  rw [hXr]
-  have hX1 : 1 ≤ X := by omega
-  have hG1 : 1 ≤ G := Nat.one_le_two_pow.trans hG
-  have ht2 := c3EprimeMass_half_lt_rpow hG1 hsG
-  set t : ℝ := (G : ℝ) ^ ((3 : ℝ) / 5)
-  set SA : Set (ℕ × ℤ) := {x : ℕ × ℤ | (X : ℝ) ≤ (x.2 : ℝ) - G}
-  set SB : Set (ℕ × ℤ) := {x : ℕ × ℤ | t ≤ |(x.1 : ℝ) - (G : ℝ) / 4|}
-  set SC : Set (Fin v → ℤ × ℤ) := {h | (X : ℝ) ≤ ∑ i, ((h i).2 : ℝ)} with hSC
-  set SD : Set (Fin v → ℤ × ℤ) := {h | t ≤ ∑ i, ((h i).1 : ℝ)} with hSD
-  set T : ℕ × ℤ → (Fin v → ℤ × ℤ) → ℝ≥0∞ := fun x h ↦
-    SA.indicator 1 x + SB.indicator 1 x + (SC.indicator 1 h + SD.indicator 1 h)
-  have hcover : ∀ a ∈ c3Exceptional n e G v X, (ha : a ∈ trAtoms n) →
-      1 ≤ T a.1 (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(by
-          have := (mem_trAtoms.1 ha).1; omega))) := by
-    intro a hex ha
-    have hlen : v ≤ a.2.length := by have := (mem_trAtoms.1 ha).1; omega
-    obtain ⟨-, h1 | h2 | h3 | h4⟩ := hex
-    · exact le_add_right (le_add_right (Set.indicator_of_mem (show a.1 ∈ SA from h1) 1).ge)
-    · have hmem : (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(lt_of_lt_of_le i.2 hlen))) ∈ SC := by
-        simp only [hSC, Set.mem_ofPred_eq]
-        rw [c3EprimeMass_sum_take (fun b ↦ bkL (chBlockPoint b)) a.2 hlen] at h2
-        exact_mod_cast h2
-      exact le_add_left (le_add_right (Set.indicator_of_mem hmem 1).ge)
-    · exact le_add_right (le_add_left (Set.indicator_of_mem (show a.1 ∈ SB from h3) 1).ge)
-    · have hmem : (fun i : Fin v ↦ chBlockPoint (a.2[(i : ℕ)]'(lt_of_lt_of_le i.2 hlen))) ∈ SD := by
-        simp only [hSD, Set.mem_ofPred_eq]
-        rw [c3EprimeMass_sum_take (fun b ↦ bkJ (chBlockPoint b)) a.2 hlen] at h4
-        exact_mod_cast h4
-      exact le_add_left (le_add_left (Set.indicator_of_mem hmem 1).ge)
-  calc _ ≤ _ := (tsum_trFreshLaw_le_of_one_le e G hv (c3Exceptional_subset_trAtoms n e G v X)
-        T hcover).trans (tsum_mul_tsum_mul_add_le (tsum_ofReal_firstPassageLaw_natCast_le_one G)
-          (tsum_ofReal_holdListLaw_bkPoints_le_one v) (SA.indicator 1) (SB.indicator 1)
-          (fun h ↦ SC.indicator 1 h) (fun h ↦ SD.indicator 1 h))
-    _ ≤ _ := add_le_add (add_le_add (c3EprimeMass_overshoot (le_trans (by norm_num) hG) hX1)
-        (c3EprimeMass_threeFifths hG1))
-        (add_le_add (c3EprimeMass_verTail v X hX1) (c3EprimeMass_horTail v (by linarith)))
-    _ ≤ _ := c3EprimeMass_add_le v (by positivity)
-        (c3EprimeMass_threeFifths_le_one_div (by exact_mod_cast hG) (c3EprimeMass_pos hs) hsG)
-
-/-- The fresh law is summable on the exceptional event, under the hypotheses of
-`tsum_trFreshLaw_c3Exceptional_le`. -/
-theorem summable_trFreshLaw_c3Exceptional {n : ℕ} (e : ℤ × ℤ) {G v : ℕ}
-    (hG : 2 ^ 160 ≤ G) (hv : v ≤ n / 2) {s : ℝ} (hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ s)
-    (hsG : s ^ 2 < 2 * G) :
-    Summable fun a : c3Exceptional n e G v (136 * ((v : ℝ) + 1)) ↦ trFreshLaw n e G a :=
-  summable_trFreshLaw_of_tsum_ofReal_ne_top
-    ((tsum_trFreshLaw_c3Exceptional_le e hG hv hs hsG).trans_lt ENNReal.ofReal_lt_top).ne
-
-/-- **Mass of the exceptional event**, as a real sum:
-`μ_{e,G}(Ex_{e,G,v,136(v+1)}) ≤ 1/s + Exc(v)`. -/
-theorem tsum_trFreshLaw_c3Exceptional_le_real {n : ℕ} (e : ℤ × ℤ) {G v : ℕ}
-    (hG : 2 ^ 160 ≤ G) (hv : v ≤ n / 2) {s : ℝ} (hs : 4096 * (136 * ((v : ℝ) + 1)) ≤ s)
-    (hsG : s ^ 2 < 2 * G) :
-    ∑' a : c3Exceptional n e G v (136 * ((v : ℝ) + 1)), trFreshLaw n e G a ≤ 1 / s + c3Exc v := by
-  have h := tsum_trFreshLaw_c3Exceptional_le e hG hv hs hsG
-  rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ trFreshLaw_nonneg _ _ _ _)
-    (summable_trFreshLaw_c3Exceptional e hG hv hs hsG)] at h
+theorem tsum_firstPassageLaw_c3InitEvent_le (ι : FIndex) {g : ℕ} (hg : 2 ^ 32 ≤ g) :
+    ∑' x : c3InitEvent ι g, firstPassageLaw g x ≤ Uo ι + (2 * g) ^ (-1 / 2 : ℝ) := by
+  have h := tsum_ofReal_firstPassageLaw_c3InitEvent_le ι hg
+  rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ firstPassageLaw_nonneg _ _)
+    ((summable_firstPassageLaw g).subtype _)] at h
   exact (ENNReal.ofReal_le_ofReal_iff
-    (add_pos (one_div_pos.2 (c3EprimeMass_pos hs)) (c3Exc_pos v)).le).1 h
+    (add_nonneg (by exact_mod_cast (Uo_pos ι).le) (by positivity))).1 h
 
 end CollatzPosDens

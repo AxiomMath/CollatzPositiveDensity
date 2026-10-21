@@ -12,25 +12,30 @@ public import CollatzPosDens.CharSum.ChPiLower
 /-!
 # The rational angle `v∘` lies below the colour angle
 
-The rational point `v∘ = 6283 / 54250` satisfies `0 < v∘ < 8π / 217`. Indeed
-`v∘ = (6283 / 2000) · (8 / 217)` because `2000 · 217 = 434000 = 8 · 54250`, and
-`6283 / 2000 < π`.
+The rational point `v∘ = (6283 / 2000) · ε_* = 232703471 / 2000000000` satisfies
+`0 < v∘ < π ε_*`: it is positive, and since `6283 / 2000 < π` and `ε_* > 0`, multiplying
+by `ε_*` gives `v∘ < π ε_*`.
 
 ## Main results
 
-* `CollatzPosDens.chV0_pos_lt`: `0 < v∘ ∧ v∘ < 8π / 217`, with `v∘` cast to `ℝ`.
+* `CollatzPosDens.chV0_pos_lt`: `0 < v∘ ∧ v∘ < π ε_*`, with `v∘` and `ε_*` cast to `ℝ`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- `0 < v∘ < 8π / 217`. -/
+/-- `0 < v∘ < π ε_*`. -/
 @[collatz_pos_dens "lem_ch_v0_lower"]
-theorem chV0_pos_lt : 0 < (chV0 : ℝ) ∧ (chV0 : ℝ) < 8 * Real.pi / 217 := by
+theorem chV0_pos_lt : 0 < (chV0 : ℝ) ∧ (chV0 : ℝ) < Real.pi * (epsStar : ℝ) := by
   refine ⟨by exact_mod_cast chV0_pos, ?_⟩
-  rw [chV0_def]
+  have heps : (0 : ℝ) < epsStar := by exact_mod_cast epsStar_pos
+  rw [chV0_eq_mul]
   push_cast
-  linarith [pi_gt_6283_div_2000]
+  exact mul_lt_mul_of_pos_right pi_gt_6283_div_2000 heps
 
 end CollatzPosDens
