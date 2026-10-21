@@ -7,8 +7,8 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkBlack
-public import CollatzPosDens.Transfer.Gamma
-public import CollatzPosDens.Transfer.Kappa
+public import CollatzPosDens.Transfer.S02Gamma
+public import CollatzPosDens.Transfer.S02Kappa
 public import CollatzPosDens.StoppingTrace.TrBridgeMass
 public import CollatzPosDens.StoppingTrace.TrFirstStopSet
 public import CollatzPosDens.StoppingTrace.TrReward
@@ -18,14 +18,12 @@ public import CollatzPosDens.StoppingTrace.TrPrefixFreeMass
 /-!
 # The bridge mass is at most one
 
-Fix a level `n` and a residue `ξ : ResidueGroup n`, and write `ε_*` for `CollatzPosDens.epsStar`
-and `γ_*` for `CollatzPosDens.gammaStar`; "black" refers to `(n, ξ, ε_*)`. Let `𝒰(y)` be the set
-`CollatzPosDens.trFirstStopSet n ξ ε_* y` of first-stop lists from `y`. For every base point `y`,
-the bridge mass `CollatzPosDens.trBridgeMass n ξ y`, that is
-`g_br(y) = ∑_{b ∈ 𝒰(y)} bw^⊗(b) e^{-γ_* N^*(y, b; |b|)}`, is at most `1`.
+Fix a level `n` and a residue `ξ ∈ G_n`. For every base point `y`, the bridge mass
+`trBridgeMass n ξ y`, that is `g_br(y) = ∑_{b ∈ 𝒰(y)} bw^⊗(b) e^{-γ_* N^*(y, b; |b|)}` where
+`𝒰(y)` is the first-stop set `trFirstStopSet`, is at most `1`.
 
 Rewards are nonnegative and `γ_* > 0`, so every tilt factor is at most `1` and
-`g_br(y) ≤ ∑_{b ∈ 𝒰(y)} bw^⊗(b)`. A first-stop list `b` ends at a black point, whose
+`g_br(y) ≤ ∑_{b ∈ 𝒰(y)} bw^⊗(b)`. A first-stop list `b` ends at a black point (`BkBlack`), whose
 `j`-coordinate is at most `J = ⌊n/2⌋`; since the `j`-coordinate grows by at least one per block,
 `j(y) + |b| ≤ J`, so the lengths of the lists in `𝒰(y)` are bounded. The set `𝒰(y)` is
 prefix-free, so the Kraft-type inequality for prefix-free families of block lists bounds the
@@ -40,12 +38,12 @@ untilted sum by `1`.
 ## Implementation notes
 
 The bound is usually stated for `y ∈ 𝒫`. The proof only needs the lengths of the lists in `𝒰(y)`
-to be bounded, and `|b| ≤ ⌊n/2⌋ - j(y)` holds for every `y ∈ ℤ × ℤ`; so the hypothesis `y ∈ 𝒫`
-is dropped and the bound is stated for every `y : ℤ × ℤ`.
+to be bounded, and `|b| ≤ ⌊n/2⌋ - j(y)` holds for every `y ∈ ℤ × ℤ`; so the bound is stated for
+every `y : ℤ × ℤ`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §9.5.
 -/
 
 @[expose] public section

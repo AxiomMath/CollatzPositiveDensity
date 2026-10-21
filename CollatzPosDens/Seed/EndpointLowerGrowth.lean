@@ -12,7 +12,7 @@ public import CollatzPosDens.Maps.Admissible
 public import CollatzPosDens.Maps.AffineIdentity
 public import CollatzPosDens.FirstCrossing.Rb
 public import CollatzPosDens.FirstCrossing.WeightUpper
-public import CollatzPosDens.Seed.OffsetSmall
+public import CollatzPosDens.Seed.S05OffsetSmall
 
 /-!
 # Growth of endpoints: the lower bound
@@ -62,7 +62,7 @@ theorem endpoint_lower_growth_of_two_mul_two_pow_le {b K : ℕ} {w : Word}
         rw [div_pow, div_pow]
         field_simp
         ring
-    _ ≤ (R - off w) / w.weight := div_le_div₀ (by linarith) (by linarith) hω0 hω
+    _ ≤ (R - off w) / w.weight := div_le_div₀ (by linarith) (by linarith) hω0 hω.le
 
 /-- **Growth of endpoints (lower bound).** Let `b ≥ 1`, `K ≥ 0`, let `R` be an odd integer with
 `R ≥ 16^b`, and let `w ∈ 𝒲(b, r_b, K)` be admissible from `R`. Then

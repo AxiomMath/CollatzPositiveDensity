@@ -8,10 +8,8 @@ module
 public import CollatzPosDens.Attr
 public import CollatzPosDens.CharSum.ChQfinite
 public import CollatzPosDens.CharSum.ChInternalWeight
-public import CollatzPosDens.CharSum.ChRaw3Factor
 public import CollatzPosDens.CharSum.ChWhiteFactor
-public import CollatzPosDens.Transfer.Kappa
-public import CollatzPosDens.Transfer.Z
+public import CollatzPosDens.Transfer.S02Z
 public import CollatzPosDens.CharSum.ChBlockListMass
 
 /-!
@@ -19,11 +17,12 @@ public import CollatzPosDens.CharSum.ChBlockListMass
 
 Fix a level `n`, a residue `ξ ∈ G_n` and a threshold `ε`. For every horizon `K ∈ ℕ` and every
 point `p`, the series defining the finite-horizon white product `Q^{(K)}(p)` converges and
-`0 ≤ Q^{(K)}(p) ≤ 1`. Indeed, the white factor `w` and the raw-three factor `w₃` take values in
-`(0, 1]`, hence so does the internal weight `I`, and every product of `w`- and `I`-factors lies
-in `(0, 1]`. The weights `∏_k bw(βᵏ)` are nonnegative and sum to `1` over `𝔅^K`, so the
-defining series is dominated termwise by a convergent series of sum `1`, and `Q^{(K)}(p)` is an
-average of numbers in `[0, 1]`.
+`0 ≤ Q^{(K)}(p) ≤ 1`. Indeed, the white factor `w` and the internal weight `I` are nonnegative,
+and on a block of nonzero weight the white factor at its end point compensates its internal
+weight, so every product of `w`- and `I`-factors along a block path lies in `[0, 1]`.
+The weights `∏_k bw(βᵏ)` are nonnegative and sum to `1` over `𝔅^K`, so the defining series is
+dominated termwise by a convergent series of sum `1`, and `Q^{(K)}(p)` is an average of numbers
+in `[0, 1]`.
 
 ## Main results
 
@@ -34,14 +33,13 @@ average of numbers in `[0, 1]`.
 
 ## Implementation notes
 
-The base point `p` ranges over all of `ℤ × ℤ`, and the threshold `ε` is an arbitrary real
-number; no restriction on `p` is needed. The convergence of the defining series is stated for
-its summand written out exactly as in `CollatzPosDens.chQFinite`; it is definitionally
-`CollatzPosDens.chQFiniteTerm`.
+The base point `p` ranges over all of `ℤ × ℤ`, and the threshold `ε` is arbitrary. The convergence
+of the defining series is stated for its summand written out exactly as in
+`CollatzPosDens.chQFinite`; it is definitionally `CollatzPosDens.chQFiniteTerm`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §7.4.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section

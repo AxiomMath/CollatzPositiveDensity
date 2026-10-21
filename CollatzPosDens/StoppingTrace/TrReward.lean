@@ -6,27 +6,22 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.BlackSet.BkWhite
 public import CollatzPosDens.CharSum.ChBlockPoint
+public import CollatzPosDens.CharSum.ChPaidReward
 public import CollatzPosDens.Transfer.EpsStar
-public import CollatzPosDens.Transfer.Gamma
-public import CollatzPosDens.Transfer.Kappa
-public import Mathlib.Analysis.SpecialFunctions.Exp
 public import Mathlib.Data.List.GetD
 
 /-!
 # The reward of a block
 
-Fix a level `n` and a residue `ξ ∈ G_n`, and call a point *white* when it satisfies
-`CollatzPosDens.IsBkWhite n ξ ε_*`, with `ε_* = CollatzPosDens.epsStar`. For a point `x ∈ 𝒫`
-and a block `β = (c, e)` with `c = (c₁, …, c_m)`, the *reward* of `β` at `x` is
+Fix a level `n` and a residue `ξ ∈ G_n`, and write `R_a(p)` for the paid reward of
+`(n, ξ, ε_*)`. For a point `x ∈ 𝒫` and a block `β = (c, e)` with `c = (c₁, …, c_m)`, put
+`a_i = c_i` for `1 ≤ i ≤ m` and `a_{m+1} = e`. The *reward* of `β` at `x` is
 ```
-rw(x, β) = [x + bpt(β) is white]
-  + κ_* · #{i ∈ {1, …, m} : cᵢ = 3 and x + (i, c₁ + ⋯ + cᵢ) is white}.
+rw(x, β) = ∑_{i=1}^{m+1} R_{a_i}(x + (i, a₁ + ⋯ + a_i)),
 ```
-The first term rewards the block for ending at a white point; the second rewards, with the
-smaller weight `κ_* = 4/25`, every intermediate letter `3` of the block that lands on a white
-point.
+the sum of the paid rewards collected at the successive points visited by the block, the last
+of which is `x + bpt(β)`.
 
 ## Main definitions
 
@@ -34,136 +29,71 @@ point.
 
 ## Main results
 
+* `CollatzPosDens.trReward_eq_sum_add`: the reward splits as the rewards of the nonclosing
+  letters plus `R_e(x + bpt(β))`.
 * `CollatzPosDens.trReward_nonneg`: rewards are nonnegative.
-* `CollatzPosDens.indicator_le_trReward`: `[x + bpt(β) is white] ≤ rw(x, β)`.
-* `CollatzPosDens.trReward_nil`: a block with no nonclosing letters has reward
-  `[x + bpt(β) is white]`.
+* `CollatzPosDens.chPaidReward_le_trReward`: `R_e(x + bpt(β)) ≤ rw(x, β)`.
+* `CollatzPosDens.trReward_nil`: a block with no nonclosing letters has reward `R_e(x + (1, e))`.
 
 ## Implementation notes
 
 As for `CollatzPosDens.chBlockPoint`, blocks are modelled as pairs `(c, e) : List ℤ × ℤ` and
-points of `𝒫` as elements of `ℤ × ℤ`; the reward is defined for all of them, and the
-mathematical definition is recovered by restricting to `x ∈ 𝒫` and `e ∈ {4, 5}`. The letter
-`cᵢ` (for `1 ≤ i ≤ m`) is `c.getD (i - 1) 0` and the partial sum `c₁ + ⋯ + cᵢ` is
-`(c.take i).sum`. The reward is real-valued, `κ_*` being cast from `ℚ`. The hypothesis that `ξ`
-is a unit plays no role in the definition and is omitted.
+points of `𝒫` as elements of `ℤ × ℤ`; the reward is defined for all of them, and is used for
+`x ∈ 𝒫` and blocks of `𝔅`. The word `(a₁, …, a_{m+1})` is the list `c ++ [e]`, indexed from `0`:
+the summand of index `i ∈ [0, m]` is the summand `i + 1` of the displayed sum, with letter
+`(c ++ [e]).getD i 0` and partial sum `((c ++ [e]).take (i + 1)).sum`. The definition does not
+need `ξ` to be a unit, and does not assume it.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §9.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- The reward of a block `β = (c, e)` with `c = (c₁, …, c_m)` at a point `x`: the indicator
-that `x + bpt(β)` is white, plus `κ_*` times the number of `i ∈ [1, m]` with `cᵢ = 3` and
-`x + (i, c₁ + ⋯ + cᵢ)` white, where white means `IsBkWhite n ξ ε_*`. -/
+/-- The reward `rw(x, β) = ∑_{i=1}^{m+1} R_{a_i}(x + (i, a₁ + ⋯ + a_i))` of a block
+`β = (c, e)` at a point `x`, where `(a₁, …, a_{m+1}) = (c₁, …, c_m, e)` and `R` is the paid
+reward of `(n, ξ, ε_*)`. -/
 @[collatz_pos_dens "def_tr_reward"]
 noncomputable def trReward (n : ℕ) (ξ : ResidueGroup n) (x : ℤ × ℤ) (β : List ℤ × ℤ) : ℝ :=
-  (if IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint β) then 1 else 0) +
-    (kappaStar : ℝ) *
-      (((Finset.Icc 1 β.1.length).filter fun i =>
-        β.1.getD (i - 1) 0 = 3 ∧
-          IsBkWhite n ξ (epsStar : ℝ) (x + ((i : ℤ), (β.1.take i).sum))).card : ℝ)
+  ∑ i ∈ Finset.range (β.1.length + 1),
+    chPaidReward n ξ (epsStar : ℝ) ((β.1 ++ [β.2]).getD i 0)
+      (x + ((i : ℤ) + 1, ((β.1 ++ [β.2]).take (i + 1)).sum))
 
 variable {n : ℕ} {ξ : ResidueGroup n}
 
-/-- The reward `rw(x, β)` unfolds to the endpoint indicator plus `κ_*` times the number of
-intermediate letters `3` landing on a white point. -/
-lemma trReward_def (x : ℤ × ℤ) (β : List ℤ × ℤ) :
-    trReward n ξ x β =
-      (if IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint β) then 1 else 0) +
-        (kappaStar : ℝ) *
-          (((Finset.Icc 1 β.1.length).filter fun i =>
-            β.1.getD (i - 1) 0 = 3 ∧
-              IsBkWhite n ξ (epsStar : ℝ) (x + ((i : ℤ), (β.1.take i).sum))).card : ℝ) :=
-  rfl
-
-/-- The inner reward of a word `c = (c₁, …, c_m)` at `x`: `κ_*` times the number of
-`i ∈ [1, m]` with `cᵢ = 3` and `x + (i, c₁ + ⋯ + cᵢ)` white. It is the part of the reward of a
-block `(c, e)` that does not depend on the closing letter `e`. -/
-noncomputable def trInnerReward (n : ℕ) (ξ : ResidueGroup n) (x : ℤ × ℤ) (c : List ℤ) : ℝ :=
-  (kappaStar : ℝ) *
-    (((Finset.Icc 1 c.length).filter fun i =>
-      c.getD (i - 1) 0 = 3 ∧ IsBkWhite n ξ (epsStar : ℝ) (x + ((i : ℤ), (c.take i).sum))).card : ℝ)
-
-/-- The reward of a block `(c, e)` is the endpoint indicator plus the inner reward of `c`. -/
-lemma trReward_eq_add_trInnerReward (x : ℤ × ℤ) (c : List ℤ) (e : ℤ) :
+/-- The reward of `(c, e)` is the sum of the paid rewards of the nonclosing letters `cᵢ` at
+`x + (i, c₁ + ⋯ + cᵢ)`, plus the paid reward `R_e(x + bpt(c, e))` of the closing letter. -/
+theorem trReward_eq_sum_add (x : ℤ × ℤ) (c : List ℤ) (e : ℤ) :
     trReward n ξ x (c, e) =
-      (if IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint (c, e)) then 1 else 0) +
-        trInnerReward n ξ x c :=
-  rfl
-
-/-- The inner reward is nonnegative. -/
-lemma trInnerReward_nonneg (x : ℤ × ℤ) (c : List ℤ) : 0 ≤ trInnerReward n ξ x c :=
-  mul_nonneg (by exact_mod_cast kappaStar_nonneg) (Nat.cast_nonneg _)
-
-open Finset in
-/-- The inner reward of the word `(v₀, …, v_{m-1})` is at most `κ_*` times its number of
-letters `3`. -/
-lemma trInnerReward_ofFn_le (x : ℤ × ℤ) {m : ℕ} (v : Fin m → ℤ) :
-    trInnerReward n ξ x (List.ofFn v) ≤ (kappaStar : ℝ) * ((#{i | v i = 3} : ℕ) : ℝ) := by
-  rw [trInnerReward]
-  gcongr
-  · exact_mod_cast kappaStar_nonneg
-  calc _ ≤ ((Finset.univ.filter fun i => v i = 3).image fun i : Fin m => (i : ℕ) + 1).card := by
-        refine Finset.card_le_card fun i hi => ?_
-        simp only [Finset.mem_filter, Finset.mem_Icc, List.length_ofFn] at hi
-        obtain ⟨⟨h1, h2⟩, h3, -⟩ := hi
-        refine Finset.mem_image.2 ⟨⟨i - 1, by omega⟩, ?_, by simp; omega⟩
-        rw [List.getD_eq_getElem _ _ (by simp; omega), List.getElem_ofFn] at h3
-        simpa using h3
-    _ ≤ _ := Finset.card_image_le
-
-open Finset in
-/-- `(1163/1250)^{t(c)} ≤ e^{-γ_* ι(c)}` for the word `c = (v₀, …, v_{m-1})` with `t(c)` letters
-`3`, using `ι(c) ≤ κ_* t(c)` and `1163/1250 ≤ e^{-γ_* κ_*}`. -/
-lemma pow_le_exp_neg_trInnerReward (x : ℤ × ℤ) {m : ℕ} (v : Fin m → ℤ) :
-    (1163 / 1250 : ℝ) ^ #{i | v i = 3} ≤
-      Real.exp (-(gammaStar : ℝ) * trInnerReward n ξ x (List.ofFn v)) := by
-  have hκ : (kappaStar : ℝ) = 4 / 25 := by rw [kappaStar_def]; norm_num
-  calc (1163 / 1250 : ℝ) ^ #{i | v i = 3} ≤
-        Real.exp (-(87 / 200 * (4 / 25))) ^ #{i | v i = 3} := by
-        gcongr
-        linarith [Real.add_one_le_exp (-(87 / 200 * (4 / 25) : ℝ))]
-    _ = Real.exp (-(gammaStar : ℝ) * ((kappaStar : ℝ) * ((#{i | v i = 3} : ℕ) : ℝ))) := by
-        rw [← Real.exp_nat_mul, gammaStar_cast, hκ]
-        ring_nf
-    _ ≤ _ := by
-        refine Real.exp_le_exp.2 ?_
-        nlinarith [trInnerReward_ofFn_le (n := n) (ξ := ξ) x v,
-          (by exact_mod_cast gammaStar_pos : (0 : ℝ) < gammaStar)]
-
-/-- The second term of the reward is nonnegative. -/
-lemma trReward_sub_indicator_nonneg (x : ℤ × ℤ) (β : List ℤ × ℤ) :
-    0 ≤ trReward n ξ x β -
-      (if IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint β) then 1 else 0) := by
-  obtain ⟨c, e⟩ := β
-  rw [trReward_eq_add_trInnerReward, add_sub_cancel_left]
-  exact trInnerReward_nonneg x c
-
-/-- A block's reward is at least the indicator that it ends at a white point. -/
-lemma indicator_le_trReward (x : ℤ × ℤ) (β : List ℤ × ℤ) :
-    (if IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint β) then (1 : ℝ) else 0) ≤
-      trReward n ξ x β :=
-  sub_nonneg.1 (trReward_sub_indicator_nonneg x β)
-
-/-- A block ending at a white point has reward at least `1`. -/
-lemma one_le_trReward (x : ℤ × ℤ) (β : List ℤ × ℤ)
-    (h : IsBkWhite n ξ (epsStar : ℝ) (x + chBlockPoint β)) : 1 ≤ trReward n ξ x β := by
-  simpa only [h, ↓reduceIte] using indicator_le_trReward (n := n) (ξ := ξ) x β
+      (∑ i ∈ Finset.range c.length,
+        chPaidReward n ξ (epsStar : ℝ) (c.getD i 0) (x + ((i : ℤ) + 1, (c.take (i + 1)).sum))) +
+        chPaidReward n ξ (epsStar : ℝ) e (x + chBlockPoint (c, e)) := by
+  simp only [trReward]
+  rw [Finset.sum_range_succ]
+  congr 1
+  · refine Finset.sum_congr rfl fun i hi => ?_
+    have hi : i < c.length := Finset.mem_range.1 hi
+    rw [List.getD_append _ _ _ _ hi, List.take_append_of_le_length (by omega)]
+  · simp [chBlockPoint, List.getD_eq_getElem?_getD, List.take_of_length_le]
 
 /-- Rewards are nonnegative. -/
-lemma trReward_nonneg (x : ℤ × ℤ) (β : List ℤ × ℤ) : 0 ≤ trReward n ξ x β :=
-  le_trans (by split_ifs <;> norm_num) (indicator_le_trReward x β)
+theorem trReward_nonneg (x : ℤ × ℤ) (β : List ℤ × ℤ) : 0 ≤ trReward n ξ x β :=
+  Finset.sum_nonneg fun _ _ => chPaidReward_nonneg
+
+/-- A block's reward is at least the paid reward `R_e(x + bpt(β))` of its closing letter. -/
+theorem chPaidReward_le_trReward (x : ℤ × ℤ) (β : List ℤ × ℤ) :
+    chPaidReward n ξ (epsStar : ℝ) β.2 (x + chBlockPoint β) ≤ trReward n ξ x β := by
+  obtain ⟨c, e⟩ := β
+  rw [trReward_eq_sum_add]
+  exact le_add_of_nonneg_left (Finset.sum_nonneg fun _ _ => chPaidReward_nonneg)
 
 /-- A block with no nonclosing letters is rewarded only for its endpoint. -/
 @[simp]
-lemma trReward_nil (x : ℤ × ℤ) (e : ℤ) :
-    trReward n ξ x ([], e) =
-      if IsBkWhite n ξ (epsStar : ℝ) (x + (1, e)) then 1 else 0 := by
-  simp [trReward_def]
+theorem trReward_nil (x : ℤ × ℤ) (e : ℤ) :
+    trReward n ξ x ([], e) = chPaidReward n ξ (epsStar : ℝ) e (x + (1, e)) := by
+  simp [trReward_eq_sum_add, chBlockPoint]
 
 end CollatzPosDens

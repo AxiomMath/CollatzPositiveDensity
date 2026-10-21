@@ -23,10 +23,10 @@ public import CollatzPosDens.BlackSet.BkPropRight
 public import CollatzPosDens.BlackSet.BkRowstartSpec
 
 /-!
-# Points above the top row of the canonical triangle are not black
+# Claim (*), case 2: points above the top row of the canonical triangle
 
 Let `ξ` be a unit, `0 < ε < 1/27` and `p` a black point with canonical triangle
-`Δ(p) = (j_*, l_*, s)`. Let `q ∉ Δ(p)` lie at distance at most `1` from some `r₀ ∈ Δ(p)`.
+`Δ(p) = (j_*, l_*, s)`. Let `q ∉ Δ(p)` be a cardinal neighbour of some `r₀ ∈ Δ(p)`.
 If `j(q) ≥ j_*` and `l(q) > l_*`, then `q` is not black.
 
 Since `l(r₀) ≤ l_* < l(q)` and `q, r₀` are cardinal neighbours, `j(q) = j(r₀)`, `l(r₀) = l_*`
@@ -38,46 +38,42 @@ and `l(q) = l_* + 1`. If `q` were black, the small angle at `q` would move along
 
 ## Main results
 
-* `CollatzPosDens.not_bkBlack_of_bkRowStart_le_of_bkColTop_lt`: a point `q` within distance `1`
-  of `Δ(p)` with `j(q) ≥ j_*` and `l(q) > l_*` is not black.
+* `CollatzPosDens.not_bkBlack_of_bkRowStart_le_of_bkColTop_lt`: Claim (*), case 2.
 
 ## Implementation notes
 
-The hypothesis `q ∈ 𝒫` of [mazur2026] is not assumed: it follows from `j(q) ≥ j_* ≥ 1`. The
-hypothesis `q ∉ Δ(p)` is kept, as in [mazur2026], although it is implied by `l(q) > l_*` and is
-not used. Black points are points of `𝒫`, which is recorded by the hypothesis `p ∈ bkPoints`
-(needed to form `Δ(p)`).
+The hypothesis `q ∈ 𝒫` is not assumed: it follows from `j(q) ≥ j_* ≥ 1`. The hypothesis
+`q ∉ Δ(p)` is assumed although it is implied by `l(q) > l_*` and is not used. Black points are
+points of `𝒫`, which is recorded by the hypothesis `p ∈ bkPoints` (needed to form `Δ(p)`).
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §5.5.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- Let `ξ` be a unit, `0 < ε < 1/27`, `p ∈ 𝒫` black, `q ∉ Δ(p)`, and let `r₀ ∈ Δ(p)` with
-`|q - r₀| ≤ 1`. If `j(q) ≥ j_*(p)` and `l(q) > l_*(p)`, then `q` is not black. -/
+/-- **Claim (*), case 2.** Let `ξ` be a unit, `0 < ε < 1/27`, `p ∈ 𝒫` black, `q ∉ Δ(p)`, and
+let `r₀ ∈ Δ(p)` be a cardinal neighbour of `q`. If `j(q) ≥ j_*(p)` and `l(q) > l_*(p)`, then
+`q` is not black. -/
 @[collatz_pos_dens "lem_bk_star_case2"]
 theorem not_bkBlack_of_bkRowStart_le_of_bkColTop_lt {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ}
     {p q r₀ : ℤ × ℤ} (hξ : IsResidueUnit ξ) (hε₀ : 0 < ε) (hε : ε < 1 / 27)
     (hp : p ∈ bkPoints) (hb : BkBlack n ξ ε p) (_hq : q ∉ bkCanonTriangle n ξ ε p hp)
-    (hr₀ : r₀ ∈ bkCanonTriangle n ξ ε p hp) (hdist : bkDist q r₀ ≤ 1)
+    (hr₀ : r₀ ∈ bkCanonTriangle n ξ ε p hp) (hcard : BkCardinalNeighbour q r₀)
     (hj : bkRowStart n ξ ε p ≤ bkJ q) (hl : bkColTop n ξ ε p < bkL q) :
     ¬BkBlack n ξ ε q := by
   intro hqb
-  set js := bkRowStart n ξ ε p
-  set ls := bkColTop n ξ ε p
-  set Δ := bkCanonTriangle n ξ ε p hp
+  set js := bkRowStart n ξ ε p with hjs
+  set ls := bkColTop n ξ ε p with hls
+  set Δ := bkCanonTriangle n ξ ε p hp with hΔ
   have hΔj : Δ.j = js := rfl
   have hΔl : Δ.l = ls := rfl
   have hr₀j : js ≤ bkJ r₀ := hΔj ▸ BkTriangle.j_le_of_mem hr₀
   have hr₀l : bkL r₀ ≤ ls := hΔl ▸ BkTriangle.le_l_of_mem hr₀
-  have hqr : q ≠ r₀ := by
-    rintro rfl
-    omega
-  have hcard := abs_bkJ_sub_add_abs_bkL_sub_eq_one hqr hdist
+  have hcard : |bkJ q - bkJ r₀| + |bkL q - bkL r₀| = 1 := hcard
   obtain ⟨hqj, hr₀l', hql⟩ : bkJ q = bkJ r₀ ∧ bkL r₀ = ls ∧ bkL q = ls + 1 := by
     rcases abs_cases (bkJ q - bkJ r₀) with h1 | h1 <;>
       rcases abs_cases (bkL q - bkL r₀) with h2 | h2 <;> omega
@@ -100,7 +96,7 @@ theorem not_bkBlack_of_bkRowStart_le_of_bkColTop_lt {n : ℕ} {ξ : ResidueGroup
       · rw [add_sub_cancel_right]
         have hmem : ((bkJ p + k, ls) : ℤ × ℤ) ∈ Δ :=
           BkTriangle.mem_of_mem_of_nw hr₀
-            (hΔj ▸ hjsp.trans (le_add_of_nonneg_right (Int.natCast_nonneg k)))
+            (by rw [hΔj]; exact hjsp.trans (le_add_of_nonneg_right (Int.natCast_nonneg k)))
             (by simp only [bkJ] at *; omega) (by simp only [bkL] at *; omega)
             (by rw [hΔl])
         exact (bkBlack_of_mem_bkCanonTriangle hξ hε₀ hε hp hb hmem).2

@@ -6,36 +6,38 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Recipe.Clog
 public import CollatzPosDens.Transfer.GeometricMass
 public import CollatzPosDens.FirstCrossing.Caps
 public import CollatzPosDens.FirstCrossing.CentralFamily
+public import CollatzPosDens.FirstCrossing.FcDeficitBound
 public import CollatzPosDens.FirstCrossing.PhRatio
 public import CollatzPosDens.FirstCrossing.Scales
-public import CollatzPosDens.FirstCrossing.DeficitCentral
-public import CollatzPosDens.FirstCrossing.ScalesB444
-public import CollatzPosDens.FirstCrossing.ScalesGrowth
-public import CollatzPosDens.FirstCrossing.ScalesLateLower
 public import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-!
-# Late survival of the central families
+# Survival of the central families
 
-For every integer `s ≥ 444`, the central families along the scales `b_j` with caps `K_j`
-survive with probability bounded below uniformly:
-$$\prod_{j=444}^{s-1}\mathbf p(\mathcal C(b_j,K_j)) > \frac59.$$
+For every `s ∈ ℕ`, the central families along the scales `b_j` with caps `K_j` survive with
+probability close to `1`:
+$$\prod_{j=0}^{s-1}\mathbf p(\mathcal C(b_j,K_j)) > \frac{199}{200}.$$
 
-Write `d_j = 1 - 𝐩(𝒞(b_j, K_j))`. For deficits `d_j ∈ [0, 1]` one has
-`∏ (1 - d_j) ≥ 1 - ∑ d_j`. For `j = 444 + t` and `k = ⌊t/71⌋`, the growth of the scales gives
-`b_j ≥ 16544 𝗀^t ≥ 16544 · 2^k`, hence `lg b_j ≥ 14 + k` and `min(L², 32L) ≥ 196 + 29k`. The
-deficit bound for the central family then yields
-`d_j ≤ 2e^{-98/15} 2^{-k} + 2^{-(30 + ⌊t/32⌋)}`, using `e^{29/30} > 2` and
-`K_j + 1 ≥ 30 + ⌊t/32⌋`. Each value of `k` occurs for at most `71` values of `t`, so with
-`e^{98/15} > 650` the deficits sum to less than `284/650 + 1/2048 < 4/9`.
+Write `d_j = 1 - 𝐩(𝒞(b_j, K_j))` and `c = 529/10⁶`. For deficits `d_j ∈ [0, 1]` one has
+`∏ (1 - d_j) ≥ 1 - ∑ d_j`, so it suffices to show `∑_{j<s} d_j < 1/200`. The deficit bound
+`d_j ≤ 2e^{-c(b_j-14)} + 2b_j^{-3/2} + 2^{-(K_j+1)}` splits the sum into three geometric sums.
+
+* Since `b_j - 14 ≥ 16530 + 166j`, the exponential terms are at most `2e^{-16530c} ρ^j` with
+  `ρ = e^{-166c}`; here `e^{166c} ≥ 1 + 166c + (166c)²/2` gives `1 - ρ ≥ 83/1000`, and
+  `e^{16530c} = e^8 e^{16530c - 8} > 6000`. They sum to less than `2/(6000 · 83/1000)`.
+* Since `b_j ≥ 16544 𝗀^j ≥ 2^{14} 𝗀^j`, the power terms are at most `2 · 2^{-21} (𝗀^{-3/2})^j`,
+  and `𝗀^{-3/2} ≤ 𝗀^{-1} = 100/101`; they sum to at most `202 · 2^{-21}`.
+* Since `K_j + 1 = 30 + ⌊j/56⌋` and each value of `⌊j/56⌋` occurs for `56` values of `j`, the
+  cap terms sum to at most `56 · 2^{-29}`.
+
+The three bounds add up to less than `1/200`.
 
 ## Main results
 
-* `CollatzPosDens.five_ninths_lt_prod_geomMass_centralFamily`: the product bound above.
+* `CollatzPosDens.lt_prod_geomMass_centralFamily`: the product bound above.
 * `CollatzPosDens.one_sub_sum_le_prod_one_sub_ennreal`: `1 - ∑ a_i ≤ ∏ (1 - a_i)` in
   `ℝ≥0∞`, with truncated subtraction.
 
@@ -44,14 +46,15 @@ deficit bound for the central family then yields
 The masses live in `ℝ≥0∞` and `d_j` is the truncated difference `1 - 𝐩(𝒞(b_j, K_j))`. The
 inequality `1 - ∑ a_i ≤ ∏ (1 - a_i)` holds in `ℝ≥0∞` for arbitrary `a_i` (a summand `a_i ≥ 1`
 makes both sides vanish), and `𝐩 ≥ 1 - (1 - 𝐩)` holds for any `𝐩`, so the bound
-`𝐩(𝒞(b_j, K_j)) ≤ 1` (from prefix-disjointness) used in the source to place `d_j` in `[0, 1]`
-is not needed. The hypothesis `s ≥ 444` is dropped: for `s ≤ 444` the product is empty and
-equals `1`. The exponential estimates use the quadratic lower bound `1 + x + x²/2 ≤ eˣ` and
-`e > 2.7182818283` in place of longer partial sums.
+`𝐩(𝒞(b_j, K_j)) ≤ 1` (from prefix-disjointness) used in [Mazur] to place `d_j` in `[0, 1]`
+is not needed. [Mazur] bounds `e^{16530c} > 6275` by a partial exponential sum of `41`
+terms, `1 - ρ` by `e^{-y} ≤ 1 - y + y²/2`, and `16544^{3/2} ≥ 2127000`; the slightly weaker
+constants `6000`, the quadratic lower bound of `e^{166c}`, and `2^{21}` used here leave the
+total below `1/200`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §14.6.
 -/
 
 @[expose] public section
@@ -75,6 +78,14 @@ theorem one_sub_sum_le_prod_one_sub_ennreal {ι : Type*} (s : Finset ι) (a : ι
           exact tsub_le_tsub_left (mul_le_of_le_one_right' hy) _
       _ ≤ (1 - a i) * ∏ j ∈ s, (1 - a j) := by gcongr
 
+/-- For `0 ≤ x < 1`, the partial geometric sums satisfy `∑_{k<M} x^k ≤ 1 / (1 - x)`. -/
+private theorem fcLateSurvival_geom_le {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x < 1) (M : ℕ) :
+    ∑ k ∈ Finset.range M, x ^ k ≤ 1 / (1 - x) := by
+  rw [geom_sum_eq hx1.ne, ← neg_div_neg_eq, neg_sub, neg_sub]
+  have : 0 ≤ x ^ M := pow_nonneg hx0 M
+  gcongr
+  linarith
+
 /-- For `0 ≤ x < 1` and a period `p > 0`, `∑_{t<N} x^{⌊t/p⌋} ≤ p / (1 - x)`. -/
 private theorem fcLateSurvival_sum_pow_div_le {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x < 1) {p : ℕ}
     (hp : 0 < p) (N : ℕ) : ∑ t ∈ Finset.range N, x ^ (t / p) ≤ p / (1 - x) := by
@@ -91,124 +102,124 @@ private theorem fcLateSurvival_sum_pow_div_le {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x
           rw [Finset.mem_range] at hr
           rw [Nat.add_comm, Nat.add_mul_div_left _ _ hp, Nat.div_eq_of_lt hr, zero_add]]]
       simp
-  have hgeom : ∀ M, ∑ k ∈ Finset.range M, x ^ k ≤ 1 / (1 - x) := by
-    intro M
-    rw [geom_sum_eq hx1.ne, ← neg_div_neg_eq, neg_sub, neg_sub]
-    have : 0 ≤ x ^ M := pow_nonneg hx0 M
-    gcongr
-    linarith
   calc ∑ t ∈ Finset.range N, x ^ (t / p)
       ≤ ∑ t ∈ Finset.range (p * N), x ^ (t / p) :=
         Finset.sum_le_sum_of_subset_of_nonneg
           (Finset.range_subset_range.2 (Nat.le_mul_of_pos_left N hp))
           fun _ _ _ => pow_nonneg hx0 _
     _ = p * ∑ k ∈ Finset.range N, x ^ k := hblock N
-    _ ≤ p * (1 / (1 - x)) := by gcongr; exact hgeom N
+    _ ≤ p * (1 / (1 - x)) := by gcongr; exact fcLateSurvival_geom_le hx0 hx1 N
     _ = p / (1 - x) := by ring
 
-/-- `e^{-29/30} ≤ 1/2`. -/
-private theorem fcLateSurvival_exp_neg_le : exp (-(29 / 30)) ≤ 1 / 2 := by
-  have := Real.quadratic_le_exp_of_nonneg (show (0 : ℝ) ≤ 29 / 30 by norm_num)
-  rw [exp_neg, inv_le_comm₀ (exp_pos _) (by norm_num)]
-  linarith
-
-/-- `e^{-98/15} < 1/650`. -/
-private theorem fcLateSurvival_exp_neg_lt : exp (-(98 / 15)) < 1 / 650 := by
-  have h1 := Real.quadratic_le_exp_of_nonneg (show (0 : ℝ) ≤ 8 / 15 by norm_num)
+/-- `e^{-16530c} < 1/6000` for `c = 529/10⁶`, from `e^{16530c} = e^8 e^{16530c - 8}`,
+`e > 2.7182818283` and `e^x ≥ 1 + x + x²/2`. -/
+private theorem fcLateSurvival_exp_neg_lt : exp (-(529 / 10 ^ 6) * 16530) < 1 / 6000 := by
+  have h1 := Real.quadratic_le_exp_of_nonneg (show (0 : ℝ) ≤ 74437 / 100000 by norm_num)
   have he := Real.exp_one_gt_d9
-  have h6 : (2.7182818283 : ℝ) ^ 6 < exp 1 ^ 6 := by gcongr
-  have hsplit : exp (98 / 15) = exp 1 ^ 6 * exp (8 / 15) := by
+  have h8 : (2.7182818283 : ℝ) ^ 8 < exp 1 ^ 8 := by gcongr
+  have hsplit : exp ((529 / 10 ^ 6) * 16530) = exp 1 ^ 8 * exp (74437 / 100000) := by
     rw [Real.exp_one_pow, ← exp_add]; norm_num
-  have hbig : 650 < exp (98 / 15) := by
+  have hbig : 6000 < exp ((529 / 10 ^ 6) * 16530) := by
     rw [hsplit]
-    have : 0 < exp (8 / 15) := exp_pos _
+    have : 0 < exp (74437 / 100000) := exp_pos _
     nlinarith
-  rw [exp_neg, inv_lt_comm₀ (exp_pos _) (by norm_num)]
+  rw [neg_mul, exp_neg, inv_lt_comm₀ (exp_pos _) (by norm_num)]
   linarith
 
-/-- The deficit at scale `444 + t`, real-valued majorant. -/
-private noncomputable def fcLateSurvivalBound (t : ℕ) : ℝ :=
-  2 * exp (-(98 / 15)) * (1 / 2) ^ (t / 71) + (1 / 2) ^ 30 * (1 / 2) ^ (t / 32)
+/-- `e^{-166c} ≤ 1 - 83/1000` for `c = 529/10⁶`, from `e^{166c} ≥ 1 + 166c + (166c)²/2`. -/
+private theorem fcLateSurvival_rho_le : exp (-(529 / 10 ^ 6) * 166) ≤ 1 - 83 / 1000 := by
+  have h1 := Real.quadratic_le_exp_of_nonneg (show (0 : ℝ) ≤ (529 / 10 ^ 6) * 166 by norm_num)
+  rw [neg_mul, exp_neg, inv_le_comm₀ (exp_pos _) (by norm_num)]
+  norm_num at h1 ⊢
+  linarith
 
-private theorem fcLateSurvivalBound_nonneg (t : ℕ) : 0 ≤ fcLateSurvivalBound t := by
-  unfold fcLateSurvivalBound; positivity
+/-- `𝗀^{-3/2} ≤ 100/101`. -/
+private theorem fcLateSurvival_rate_le : (growthRatio : ℝ) ^ (-(3 / 2 : ℝ)) ≤ 100 / 101 := by
+  calc (growthRatio : ℝ) ^ (-(3 / 2 : ℝ)) ≤ (growthRatio : ℝ) ^ (-1 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le one_lt_growthRatio_cast.le (by norm_num)
+    _ = 100 / 101 := by rw [Real.rpow_neg_one, growthRatio_cast]; norm_num
 
-private theorem fcLateSurvival_exp_lg_le (t : ℕ) :
-    exp (-min ((lg (scale (444 + t)) : ℝ) ^ 2) (32 * (lg (scale (444 + t)) : ℝ)) / 30) ≤
-      exp (-(98 / 15)) * (1 / 2) ^ (t / 71) := by
-  have hLR : (14 : ℝ) + ((t / 71 : ℕ) : ℝ) ≤ lg (scale (444 + t)) := by
-    exact_mod_cast fourteen_add_div_seventy_one_le_lg_scale t
-  set k : ℝ := ((t / 71 : ℕ) : ℝ) with hk
-  have hk0 : 0 ≤ k := Nat.cast_nonneg _
-  have hkk : k ≤ k ^ 2 := by
-    rw [hk]; exact_mod_cast Nat.le_self_pow (by norm_num) _
-  set L : ℝ := ((lg (scale (444 + t)) : ℕ) : ℝ)
-  have hm : 196 + 29 * k ≤ min (L ^ 2) (32 * L) :=
-    le_min (by nlinarith [mul_le_mul hLR hLR (by linarith) (by linarith)]) (by linarith)
-  calc exp (-min (L ^ 2) (32 * L) / 30) ≤ exp (-(98 / 15) + (t / 71 : ℕ) * (-(29 / 30))) := by
-        apply exp_le_exp.2
-        rw [← hk]
-        linarith
-    _ = exp (-(98 / 15)) * exp (-(29 / 30)) ^ (t / 71) := by
-        rw [exp_add, exp_nat_mul]
-    _ ≤ exp (-(98 / 15)) * (1 / 2) ^ (t / 71) := by
-        gcongr; exact fcLateSurvival_exp_neg_le
+/-- The deficit majorant `2e^{-c(b_j-14)} + 2b_j^{-3/2} + 2^{-(K_j+1)}` sums to less than
+`1/200` over `j < s`. -/
+private theorem fcLateSurvival_sum_lt (s : ℕ) :
+    ∑ j ∈ Finset.range s, (2 * exp (-(529 / 10 ^ 6) * ((scale j : ℝ) - 14)) +
+      2 * (scale j : ℝ) ^ (-(3 / 2 : ℝ)) + (2 : ℝ) ^ (-((cap j : ℤ) + 1))) < 1 / 200 := by
+  set E := exp (-(529 / 10 ^ 6) * 16530)
+  set ρ := exp (-(529 / 10 ^ 6) * 166)
+  set ς := (growthRatio : ℝ) ^ (-(3 / 2 : ℝ))
+  have hE : E < 1 / 6000 := fcLateSurvival_exp_neg_lt
+  have hE0 : 0 ≤ E := (exp_pos _).le
+  have hρ0 : 0 ≤ ρ := (exp_pos _).le
+  have hρ : ρ ≤ 1 - 83 / 1000 := fcLateSurvival_rho_le
+  have hς0 : 0 ≤ ς := (Real.rpow_pos_of_pos growthRatio_cast_pos _).le
+  have hς : ς ≤ 100 / 101 := fcLateSurvival_rate_le
+  -- the exponential terms
+  have h1 : ∑ j ∈ Finset.range s, 2 * exp (-(529 / 10 ^ 6) * ((scale j : ℝ) - 14)) ≤
+      2 * E * (1000 / 83) := by
+    calc _ ≤ ∑ j ∈ Finset.range s, 2 * E * ρ ^ j := by
+          refine Finset.sum_le_sum fun j _ => ?_
+          rw [mul_assoc]
+          exact mul_le_mul_of_nonneg_left (exp_neg_mul_scale_sub_fourteen_le j) (by norm_num)
+      _ = 2 * E * ∑ j ∈ Finset.range s, ρ ^ j := by rw [Finset.mul_sum]
+      _ ≤ 2 * E * (1 / (1 - ρ)) := by
+          gcongr; exact fcLateSurvival_geom_le hρ0 (by linarith) s
+      _ ≤ 2 * E * (1000 / 83) := by
+          have : 1 / (1 - ρ) ≤ 1000 / 83 := by
+            rw [div_le_div_iff₀ (by linarith) (by norm_num)]; linarith
+          exact mul_le_mul_of_nonneg_left this (by positivity)
+  -- the power terms
+  have h2 : ∑ j ∈ Finset.range s, 2 * (scale j : ℝ) ^ (-(3 / 2 : ℝ)) ≤ 202 / 2097152 := by
+    calc _ ≤ ∑ j ∈ Finset.range s, 2 * (1 / 2097152) * ς ^ j := by
+          refine Finset.sum_le_sum fun j _ => ?_
+          rw [mul_assoc]
+          exact mul_le_mul_of_nonneg_left (scale_rpow_neg_three_halves_le j) (by norm_num)
+      _ = 2 * (1 / 2097152) * ∑ j ∈ Finset.range s, ς ^ j := by rw [Finset.mul_sum]
+      _ ≤ 2 * (1 / 2097152) * (1 / (1 - ς)) := by
+          gcongr; exact fcLateSurvival_geom_le hς0 (by linarith) s
+      _ ≤ 202 / 2097152 := by
+          have : 1 / (1 - ς) ≤ 101 := by
+            rw [div_le_iff₀ (by linarith)]; linarith
+          linarith
+  -- the cap terms
+  have h3 : ∑ j ∈ Finset.range s, (2 : ℝ) ^ (-((cap j : ℤ) + 1)) ≤ 112 / 2 ^ 30 := by
+    have hcap (j : ℕ) : (2 : ℝ) ^ (-((cap j : ℤ) + 1)) = (1 / 2) ^ 30 * (1 / 2) ^ (j / 56) := by
+      rw [two_zpow_neg_cap_add_one, cap, ← pow_add]
+      norm_num
+      ring_nf
+    simp only [hcap, ← Finset.mul_sum]
+    have := fcLateSurvival_sum_pow_div_le (x := 1 / 2) (by norm_num) (by norm_num)
+      (p := 56) (by norm_num) s
+    norm_num at this ⊢
+    linarith
+  rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+  have : 2 * E * (1000 / 83) < 2 * (1 / 6000) * (1000 / 83) := by gcongr
+  have h30 : (112 : ℝ) / 2 ^ 30 < 1 / 10 ^ 6 := by norm_num
+  linarith
 
-/-- `1 - 𝐩(𝒞(b_{444+t}, K_{444+t})) ≤ 2e^{-98/15} 2^{-⌊t/71⌋} + 2^{-30} 2^{-⌊t/32⌋}`. -/
-private theorem fcLateSurvival_deficit_le (t : ℕ) :
-    1 - geomMass (centralFamily (scale (444 + t)) (cap (444 + t))) ≤
-      ENNReal.ofReal (fcLateSurvivalBound t) := by
-  have hu : 16384 ≤ scale (444 + t) := by
-    have := scale_monotone (show 444 ≤ 444 + t by omega)
-    rw [scale_444] at this; omega
-  refine (one_sub_geomMass_centralFamily_le hu (cap (444 + t))).trans ?_
-  have hmain := fcLateSurvival_exp_lg_le t
-  have hcap : (2⁻¹ : ℝ≥0∞) ^ (cap (444 + t) + 1) ≤
-      ENNReal.ofReal ((1 / 2) ^ 30 * (1 / 2) ^ (t / 32)) := by
-    rw [← pow_add, ENNReal.ofReal_pow (by norm_num), one_div,
-      ENNReal.ofReal_inv_of_pos (by norm_num), ENNReal.ofReal_ofNat]
-    exact pow_le_pow_right_of_le_one' (by norm_num) (by unfold cap; omega)
-  unfold fcLateSurvivalBound
-  rw [ENNReal.ofReal_add (by positivity) (by positivity), mul_assoc,
-    ENNReal.ofReal_mul (by norm_num), ENNReal.ofReal_ofNat]
-  gcongr
-
-/-- The deficits sum to less than `4/9`. -/
-private theorem fcLateSurvival_sum_lt (N : ℕ) :
-    ∑ t ∈ Finset.range N, fcLateSurvivalBound t < 4 / 9 := by
-  have h71 := fcLateSurvival_sum_pow_div_le (x := 1 / 2) (by norm_num) (by norm_num)
-    (p := 71) (by norm_num) N
-  have h32 := fcLateSurvival_sum_pow_div_le (x := 1 / 2) (by norm_num) (by norm_num)
-    (p := 32) (by norm_num) N
-  have he := fcLateSurvival_exp_neg_lt
-  have he0 := (exp_pos (-(98 / 15))).le
-  simp only [fcLateSurvivalBound, Finset.sum_add_distrib, ← Finset.mul_sum]
-  norm_num at h71 h32 ⊢
-  nlinarith
-
-/-- **Late survival**. For every `s`, `∏_{j=444}^{s-1} 𝐩(𝒞(b_j, K_j)) > 5/9` (for `s ≤ 444` the
-product is empty). -/
+/-- **Survival of the central masses**. For every `s ∈ ℕ`,
+`∏_{j=0}^{s-1} 𝐩(𝒞(b_j, K_j)) > 199/200`. -/
 @[collatz_pos_dens "lem_fc_late_survival"]
-theorem five_ninths_lt_prod_geomMass_centralFamily (s : ℕ) :
-    (5 / 9 : ℝ≥0∞) <
-      ∏ j ∈ Finset.Ico 444 s, geomMass (centralFamily (scale j) (cap j)) := by
-  rw [Finset.prod_Ico_eq_prod_range]
-  set N := s - 444
-  set p : ℕ → ℝ≥0∞ := fun t => geomMass (centralFamily (scale (444 + t)) (cap (444 + t)))
-  have hsum : ∑ t ∈ Finset.range N, (1 - p t) ≤
-      ENNReal.ofReal (∑ t ∈ Finset.range N, fcLateSurvivalBound t) := by
-    rw [ENNReal.ofReal_sum_of_nonneg fun t _ => fcLateSurvivalBound_nonneg t]
-    exact Finset.sum_le_sum fun t _ => fcLateSurvival_deficit_le t
-  have hlt := fcLateSurvival_sum_lt N
-  calc (5 / 9 : ℝ≥0∞) = ENNReal.ofReal (5 / 9) := by
+theorem lt_prod_geomMass_centralFamily (s : ℕ) :
+    (199 / 200 : ℝ≥0∞) <
+      ∏ j ∈ Finset.range s, geomMass (centralFamily (scale j) (cap j)) := by
+  set p : ℕ → ℝ≥0∞ := fun j => geomMass (centralFamily (scale j) (cap j))
+  set f : ℕ → ℝ := fun j => 2 * exp (-(529 / 10 ^ 6) * ((scale j : ℝ) - 14)) +
+    2 * (scale j : ℝ) ^ (-(3 / 2 : ℝ)) + (2 : ℝ) ^ (-((cap j : ℤ) + 1))
+  have hf0 (j : ℕ) : 0 ≤ f j := by positivity
+  set A : ℝ := ∑ j ∈ Finset.range s, f j
+  have hA : A < 1 / 200 := fcLateSurvival_sum_lt s
+  have hA0 : 0 ≤ A := Finset.sum_nonneg fun j _ => hf0 j
+  have hsum : ∑ j ∈ Finset.range s, (1 - p j) ≤ ENNReal.ofReal A := by
+    rw [ENNReal.ofReal_sum_of_nonneg fun j _ => hf0 j]
+    exact Finset.sum_le_sum fun j _ => one_sub_geomMass_centralFamily_le_exp_add_rpow j
+  calc (199 / 200 : ℝ≥0∞) = ENNReal.ofReal (199 / 200) := by
         rw [ENNReal.ofReal_div_of_pos (by norm_num)]; simp
-    _ < ENNReal.ofReal (1 - ∑ t ∈ Finset.range N, fcLateSurvivalBound t) :=
+    _ < ENNReal.ofReal (1 - A) :=
         (ENNReal.ofReal_lt_ofReal_iff (by linarith)).2 (by linarith)
-    _ = 1 - ENNReal.ofReal (∑ t ∈ Finset.range N, fcLateSurvivalBound t) := by
-        rw [ENNReal.ofReal_sub _ (Finset.sum_nonneg fun t _ => fcLateSurvivalBound_nonneg t),
-          ENNReal.ofReal_one]
-    _ ≤ 1 - ∑ t ∈ Finset.range N, (1 - p t) := tsub_le_tsub_left hsum _
-    _ ≤ ∏ t ∈ Finset.range N, (1 - (1 - p t)) := one_sub_sum_le_prod_one_sub_ennreal _ _
-    _ ≤ ∏ t ∈ Finset.range N, p t := Finset.prod_le_prod fun _ _ => tsub_tsub_le
+    _ = 1 - ENNReal.ofReal A := by
+        rw [ENNReal.ofReal_sub _ hA0, ENNReal.ofReal_one]
+    _ ≤ 1 - ∑ j ∈ Finset.range s, (1 - p j) := tsub_le_tsub_left hsum _
+    _ ≤ ∏ j ∈ Finset.range s, (1 - (1 - p j)) := one_sub_sum_le_prod_one_sub_ennreal _ _
+    _ ≤ ∏ j ∈ Finset.range s, p j := Finset.prod_le_prod fun _ _ => tsub_tsub_le
 
 end CollatzPosDens

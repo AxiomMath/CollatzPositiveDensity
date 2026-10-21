@@ -11,25 +11,25 @@ public import CollatzPosDens.Maps.Admissible
 public import CollatzPosDens.Terminal.UnweightedMass
 
 /-!
-# The source set `𝒮_{n,X}(M)`
+# The source set `𝒮_{j,X}(t)`
 
-For `n ≥ 0`, a real `X` and a starting point `M`, the source set
-$$\mathcal S_{n,X}(M) = \{\mathrm{src}(w, R_h) : (h, w) \text{ a counted pair of }
-  \Upsilon_{n,X}(M)\} \subseteq \mathbb Z$$
+For `j ≥ 0`, a real `X` and a starting point `t`, the source set
+$$\mathcal S_{j,X}(t) = \{\mathrm{src}(w, R_h) : (h, w) \text{ a counted pair of }
+  \Upsilon_{j,X}(t)\} \subseteq \mathbb Z$$
 collects the sources of the counted pairs of the unweighted terminal mass, where `R_h` is the
 endpoint of the history `h`. Each counted word `w` is admissible from `R_h`, so its source is
 an integer.
 
 ## Main definitions
 
-* `CollatzPosDens.sources n X M`: the source set `𝒮_{n,X}(M) ⊆ ℤ`.
+* `CollatzPosDens.sources j X t`: the source set `𝒮_{j,X}(t) ⊆ ℤ`.
 
 ## Main results
 
-* `CollatzPosDens.mem_sources`: membership in `𝒮_{n,X}(M)`.
-* `CollatzPosDens.image_intCast_sources`: the image of `𝒮_{n,X}(M)` in `ℚ` is the image of
+* `CollatzPosDens.mem_sources`: membership in `𝒮_{j,X}(t)`.
+* `CollatzPosDens.image_intCast_sources`: the image of `𝒮_{j,X}(t)` in `ℚ` is the image of
   the counted pairs under `(h, w) ↦ src(w, R_h)`.
-* `CollatzPosDens.sources_finite`: `𝒮_{n,X}(M)` is finite.
+* `CollatzPosDens.sources_finite`: `𝒮_{j,X}(t)` is finite.
 
 ## Implementation notes
 
@@ -46,35 +46,36 @@ image of an integer, so this loses nothing (`CollatzPosDens.image_intCast_source
 
 namespace CollatzPosDens
 
-variable {n : ℕ} {X : ℝ} {M : ℚ}
+variable {j : ℕ} {X : ℝ} {t : ℚ}
 
-/-- The source set `𝒮_{n,X}(M) = {src(w, R_h) : (h, w) a counted pair of Υ_{n,X}(M)} ⊆ ℤ`. -/
+/-- The source set `𝒮_{j,X}(t) = {src(w, R_h) : (h, w) a counted pair of Υ_{j,X}(t)} ⊆ ℤ`. -/
 @[collatz_pos_dens "def_sources"]
-def sources (n : ℕ) (X : ℝ) (M : ℚ) : Set ℤ :=
-  {z | ∃ p ∈ unweightedMassPairs n X M, src p.2 (historyEndpoint M p.1) = z}
+def sources (j : ℕ) (X : ℝ) (t : ℚ) : Set ℤ :=
+  {z | ∃ p ∈ unweightedMassPairs j X t, src p.2 (historyEndpoint t p.1) = z}
 
-/-- Membership in the source set `𝒮_{n,X}(M)`. -/
+/-- Membership in the source set `𝒮_{j,X}(t)`. -/
 theorem mem_sources {z : ℤ} :
-    z ∈ sources n X M ↔
-      ∃ p ∈ unweightedMassPairs n X M, src p.2 (historyEndpoint M p.1) = z :=
+    z ∈ sources j X t ↔
+      ∃ p ∈ unweightedMassPairs j X t, src p.2 (historyEndpoint t p.1) = z :=
   Iff.rfl
 
 /-- The source of a counted pair is an integer. -/
-theorem exists_intCast_src_of_mem_unweightedMassPairs {p : (Fin n → Word) × Word}
-    (hp : p ∈ unweightedMassPairs n X M) :
-    ∃ z : ℤ, src p.2 (historyEndpoint M p.1) = z :=
+theorem exists_intCast_src_of_mem_unweightedMassPairs {p : (Fin j → Word) × Word}
+    (hp : p ∈ unweightedMassPairs j X t) :
+    ∃ z : ℤ, src p.2 (historyEndpoint t p.1) = z :=
   ⟨_, (Rat.coe_int_num_of_den_eq_one hp.2.2.2.den_src_eq_one).symm⟩
 
 /-- The source of a counted pair lies in the source set. -/
-theorem src_mem_sources {p : (Fin n → Word) × Word} (hp : p ∈ unweightedMassPairs n X M)
-    {z : ℤ} (hz : src p.2 (historyEndpoint M p.1) = z) : z ∈ sources n X M :=
+theorem src_mem_sources {p : (Fin j → Word) × Word}
+    (hp : p ∈ unweightedMassPairs j X t) {z : ℤ} (hz : src p.2 (historyEndpoint t p.1) = z) :
+    z ∈ sources j X t :=
   ⟨p, hp, hz⟩
 
-/-- The image of `𝒮_{n,X}(M)` in `ℚ` is the set of sources `src(w, R_h)` of the counted pairs
-`(h, w)` of `Υ_{n,X}(M)`. -/
-theorem image_intCast_sources (n : ℕ) (X : ℝ) (M : ℚ) :
-    ((↑) : ℤ → ℚ) '' sources n X M =
-      (fun p => src p.2 (historyEndpoint M p.1)) '' unweightedMassPairs n X M := by
+/-- The image of `𝒮_{j,X}(t)` in `ℚ` is the set of sources `src(w, R_h)` of the counted pairs
+`(h, w)` of `Υ_{j,X}(t)`. -/
+theorem image_intCast_sources (j : ℕ) (X : ℝ) (t : ℚ) :
+    ((↑) : ℤ → ℚ) '' sources j X t =
+      (fun p => src p.2 (historyEndpoint t p.1)) '' unweightedMassPairs j X t := by
   ext q
   constructor
   · rintro ⟨z, ⟨p, hp, hz⟩, rfl⟩
@@ -83,10 +84,10 @@ theorem image_intCast_sources (n : ℕ) (X : ℝ) (M : ℚ) :
     obtain ⟨z, hz⟩ := exists_intCast_src_of_mem_unweightedMassPairs hp
     exact ⟨z, ⟨p, hp, hz⟩, hz.symm⟩
 
-/-- The source set `𝒮_{n,X}(M)` is finite. -/
-theorem sources_finite (n : ℕ) (X : ℝ) (M : ℚ) : (sources n X M).Finite := by
+/-- The source set `𝒮_{j,X}(t)` is finite. -/
+theorem sources_finite (j : ℕ) (X : ℝ) (t : ℚ) : (sources j X t).Finite := by
   refine Set.Finite.of_finite_image ?_ (Int.cast_injective (α := ℚ)).injOn
   rw [image_intCast_sources]
-  exact (unweightedMassPairs_finite n X M).image _
+  exact (unweightedMassPairs_finite j X t).image _
 
 end CollatzPosDens

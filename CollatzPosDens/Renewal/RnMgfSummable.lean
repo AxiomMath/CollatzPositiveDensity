@@ -22,18 +22,16 @@ geometric series with ratio `0 < 11 e^t / 16 < 1`; its sum is `5 e^t / (16 - 11 
 * `CollatzPosDens.hasSum_nu45_mul_exp`: the real series sums to `5 e^t / (16 - 11 e^t)`.
 * `CollatzPosDens.summable_nu45_mul_exp`: the real series `∑_{r ≥ 1} ν₄₅(r) e^{t r}` is
   summable.
-* `CollatzPosDens.mgfNu45_ne_top`: the extended-real value `M₄₅(t)` is finite.
-* `CollatzPosDens.mgfNu45_eq_ofReal`: `M₄₅(t) = 5 e^t / (16 - 11 e^t)`.
 
 ## Implementation notes
 
-Since `M₄₅` is defined as a sum in `ℝ≥0∞`, "the series converges" is recorded both as
-summability of the real series and as finiteness of `M₄₅(t)`. The index `r ≥ 1` is written
+Since `M₄₅` is defined as a sum in `ℝ≥0∞` of the embedded real terms, "the series converges"
+is recorded as summability of the real series. The index `r ≥ 1` is written
 `r + 1` with `r : ℕ`, as in the definition of `M₄₅`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §6.3.
 -/
 
 @[expose] public section
@@ -64,17 +62,5 @@ lemma hasSum_nu45_mul_exp {t : ℝ} (ht : 11 * exp t < 16) :
 theorem summable_nu45_mul_exp {t : ℝ} (ht : 11 * exp t < 16) :
     Summable (fun r : ℕ ↦ nu45 ((r : ℤ) + 1) * exp (t * ((r : ℝ) + 1))) :=
   (hasSum_nu45_mul_exp ht).summable
-
-/-- For `11 e^t < 16`, `M₄₅(t) = 5 e^t / (16 - 11 e^t)`. -/
-lemma mgfNu45_eq_ofReal {t : ℝ} (ht : 11 * exp t < 16) :
-    mgfNu45 t = ENNReal.ofReal (5 * exp t / (16 - 11 * exp t)) := by
-  rw [mgfNu45_def, ← ENNReal.ofReal_tsum_of_nonneg
-    (fun r ↦ mul_nonneg (nu45_nonneg _) (exp_pos _).le) (summable_nu45_mul_exp ht),
-    (hasSum_nu45_mul_exp ht).tsum_eq]
-
-/-- For `11 e^t < 16`, the exponential moment `M₄₅(t)` is finite. -/
-@[collatz_pos_dens "lem_rn_mgf_summable"]
-theorem mgfNu45_ne_top {t : ℝ} (ht : 11 * exp t < 16) : mgfNu45 t ≠ ∞ := by
-  simp [mgfNu45_eq_ofReal ht]
 
 end CollatzPosDens

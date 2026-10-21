@@ -16,7 +16,7 @@ public import CollatzPosDens.CharSum.ChBoundaryStep
 public import CollatzPosDens.Renewal.RnGeom4
 public import CollatzPosDens.Renewal.RnHold
 public import CollatzPosDens.Renewal.RnHoldJmarginal
-public import CollatzPosDens.Monotone.MoHoldAverageSummable
+public import CollatzPosDens.CharSum.ChQRecursionLe
 public import CollatzPosDens.Monotone.MoInvpowSummable
 
 /-!
@@ -26,8 +26,8 @@ Fix a level `n`, a residue `ξ ∈ G_n` and a threshold `ε`, and write `J = ⌊
 real, `m` a natural number, and `p ∈ 𝒫` with `j(p) + m = J`. Then
 `∑_{h ∈ 𝒫} η(h) Q(p + h) ≤ (∑_{r ≥ 1} ν₄₅(r) max(m - r, 1)^{-A}) Q_{m-1}`.
 
-Each point `h ∈ 𝒫` has `j(h) ≥ 1` and `j(p + h) + m = J + j(h)`, so `chQ_le_boundary_step`
-bounds `Q(p + h)` by `max(m - j(h), 1)^{-A} Q_{m-1}`. Grouping the nonnegative series
+Each point `h ∈ 𝒫` has `j(h) ≥ 1` and `j(p + h) + m = J + j(h)`, so the boundary step bounds
+`Q(p + h)` by `max(m - j(h), 1)^{-A} Q_{m-1}`. Grouping the nonnegative series
 `∑_h η(h) max(m - j(h), 1)^{-A}` by the value `r = j(h)` and using `∑_l η(r, l) = ν₄₅(r)` turns
 it into `∑_{r ≥ 1} ν₄₅(r) max(m - r, 1)^{-A}`; comparing termwise concludes.
 
@@ -40,9 +40,12 @@ it into `∑_{r ≥ 1} ν₄₅(r) max(m - r, 1)^{-A}`; comparing termwise concl
 ## Implementation notes
 
 The sum over `r ≥ 1` is written as a sum over `r + 1` with `r ∈ ℕ`, and a point `h = (j, l) ∈ 𝒫`
-contributes `η(j, l)` evaluated at the natural number `j`. The statement holds for every `m ∈ ℕ`,
-with no hypothesis `m ≥ 1` (for `m = 0`, `m - 1` is truncated subtraction). The threshold `ε` is
-arbitrary.
+contributes `η(j, l)` evaluated at the natural number `j`. The statement is given for every `m ∈ ℕ`
+(for `m = 0`, `m - 1` is truncated subtraction). The threshold `ε` is arbitrary.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -94,7 +97,7 @@ theorem tsum_holdLaw_mul_chQ_add_le (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) {
     Real.rpow_le_one_of_one_le_of_nonpos (by exact_mod_cast le_max_right _ _) (by linarith)
   have hsum := tsum_holdLaw_mul_chQ_add_le_hasSum_weight hw0 hw1
   rw [← hsum.tsum_eq, ← tsum_mul_right]
-  refine (summable_holdLaw_mul_chQ_add n ξ ε p).tsum_le_tsum (fun h ↦ ?_)
+  refine (chQ_le_mul_tsum_summable n ξ ε p).tsum_le_tsum (fun h ↦ ?_)
     (hsum.summable.mul_right _)
   obtain ⟨h, hh⟩ := h
   rw [mul_assoc]

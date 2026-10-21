@@ -8,7 +8,7 @@ module
 public import Mathlib.GroupTheory.Index
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.Reduction
+public import CollatzPosDens.Transfer.S02Reduction
 
 /-!
 # Averages over the fibres of a residue reduction
@@ -37,7 +37,7 @@ The hypothesis `m ≤ n` is taken as an explicit proof argument, since the reduc
 
 ## References
 
-* [Mazur, *Collatz positive density*], §13.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section

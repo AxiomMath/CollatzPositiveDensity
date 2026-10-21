@@ -9,7 +9,7 @@ public import CollatzPosDens.Attr
 public import CollatzPosDens.Maps.Offset
 public import CollatzPosDens.Maps.Weight
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.DyadicReduction
+public import CollatzPosDens.Transfer.S02DyadicReduction
 
 /-!
 # The residue map of a word
@@ -33,7 +33,7 @@ Both the weight `ω(w) = 3^d 2^{-A(w)}` and the offset `off(w)` are dyadic ratio
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §3.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section

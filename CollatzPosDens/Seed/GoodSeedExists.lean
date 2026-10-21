@@ -6,56 +6,54 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import Mathlib.FieldTheory.Finite.Basic
 public import CollatzPosDens.Recipe.CalM
+public import CollatzPosDens.Recipe.PhQstarFloor
 public import CollatzPosDens.Recipe.Qstar
-public import CollatzPosDens.Recipe.NValue
+public import CollatzPosDens.Recipe.SeedMargin
+public import CollatzPosDens.Recipe.SeedShift
 public import CollatzPosDens.Seed.GoodSeed
 public import CollatzPosDens.Seed.PullbackEval
-public import CollatzPosDens.Seed.PullbackMean
-public import CollatzPosDens.Seed.PullbackNonunit
-public import CollatzPosDens.Seed.TupleMass
 public import CollatzPosDens.Seed.RepunitResidues
+public import CollatzPosDens.Seed.S05GoodResidue
 public import CollatzPosDens.Seed.SeedCandidate
 public import CollatzPosDens.Maps.SyrPeriodicFiber
 public import CollatzPosDens.Maps.Syracuse
 
 /-!
-# Existence of an `s`-good seed
+# Existence of a `t`-good seed
 
-For every integer `s ≥ 1` with `3 ∤ s` there is an `s`-good seed.
+For every integer `t ≥ 1` with `3 ∤ t` there is a `t`-good seed.
 
-Put `e = e_0(s)` and `c = 2^e s`. Since `3 ∤ s`, `c ≡ 1 (mod 3)`, so the seed candidates satisfy
-`3 𝖬_s(v) + 1 = 4^v c = 2^{e + 2v} s` exactly, and `𝖬_s` is strictly increasing.
+Put `e = e_0(t)` and `c = 2^e t`. Since `3 ∤ t`, `c ≡ 1 (mod 3)`, so the seed candidates satisfy
+`3 𝖼_t(v) + 1 = 4^v c = 2^{e + 2v} t` exactly, and `𝖼_t` is strictly increasing.
 
-The pulled-back reference density `Ψ` on `G_{q_*}` vanishes on nonunits and has mean
-`⟨Ψ⟩_{q_*} = 2/3 · P` with `P = ∑_{t ∈ 𝔗_{N_*}} 2^{-A(ŵ(t))}`. Since `q_* ≥ 1`, exactly
-`2 · 3^{q_* - 1}` residues of `G_{q_*}` are units, so the average of `Ψ` over the units is `P`,
-and some unit `y` has `Ψ(y) ≥ P > 2^{-23}` (as `N_* ≥ 5`).
-
-The repunit residue lemma gives `v₁ < 3^{q_*} ≤ v₂ < 2 · 3^{q_*}` with `𝖬_s(v_i) ≡ y`
-(mod `3^{q_*}`). Each of the two candidates `M` is odd, prime to `3`, satisfies
-`16^{b_0} s < M < 𝓜(s)` and `3M + 1 = 2^k s`, has `Z_{N_*}(M) = Ψ(y) > 2^{-23}`, and has Syracuse
-image `s / 2^{v₂(s)}`. Two distinct Syracuse-periodic integers cannot share a Syracuse image, so
-one of the two candidates is not Syracuse-periodic; it is an `s`-good seed.
+There is a residue `y ∈ G_{q_*}` at which the pulled-back reference density satisfies
+`Ψ(y) > 13/15`. The repunit residue lemma gives `v₁ < 3^{q_*} ≤ v₂ < 2 · 3^{q_*}` with
+`𝖼_t(v_i) ≡ y (mod 3^{q_*})`. Each of the two candidates `t₁` is odd, satisfies
+`3t₁ + 1 = 2^a t` with `σ_sd + 2 ≤ a ≤ σ_sd + 1 + 4 · 3^{q_*}`, hence `2^{σ_sd} t < t₁`, and,
+as `σ_sd + 1 = 66177 ≤ 3^{11} ≤ 3^{q_*}`, `t₁ < 2^{5 · 3^{q_*}} t = 𝓜(t)`; it
+has `Z_{N_*}(t₁) = Ψ(y) > 13/15 > θ_tl + ε_Z`, and has Syracuse image `t / 2^{v₂(t)}`. Two
+distinct Syracuse-periodic integers cannot share a Syracuse image, so one of the two candidates is
+not Syracuse-periodic; it is a `t`-good seed.
 
 ## Main results
 
-* `CollatzPosDens.exists_goodSeed_isUnit_le`: a function on `G_q`, `q ≥ 1`, vanishing on
-  nonunits with mean `2/3 · P` takes a value `≥ P` at some unit.
-* `CollatzPosDens.three_mul_seedCandidate_add_one`: `3 𝖬_s(v) + 1 = 2^{e_0(s) + 2v} s`.
-* `CollatzPosDens.collatzAccel_seedCandidate`: `S(𝖬_s(v)) = s / 2^{v₂(s)}`.
+* `CollatzPosDens.three_mul_seedCandidate_add_one`: `3 𝖼_t(v) + 1 = 2^{e_0(t) + 2v} t`.
+* `CollatzPosDens.seedCandidate_strictMono`: `𝖼_t` is strictly increasing.
+* `CollatzPosDens.collatzAccel_seedCandidate`: `S(𝖼_t(v)) = t / 2^{v₂(t)}`.
 * `CollatzPosDens.exists_seedCandidate_cast_eq`: every class of `G_q` contains a seed candidate
-  `𝖬_s(v)` with `a ≤ v < a + 3^q`.
-* `CollatzPosDens.goodSeed_seedCandidate`: a non-periodic candidate in a favourable unit class
-  is an `s`-good seed.
-* `CollatzPosDens.exists_goodSeed`: for `s ≥ 1` with `3 ∤ s` there is an `s`-good seed.
+  `𝖼_t(v)` with `a ≤ v < a + 3^q`.
+* `CollatzPosDens.seedShift_add_one_le_three_pow_conductor`: `σ_sd + 1 ≤ 3^{q_*}`.
+* `CollatzPosDens.goodSeed_seedCandidate`: a non-periodic candidate `𝖼_t(v)`, `v < 2 · 3^{q_*}`,
+  in a class `y` with `Ψ(y) > θ_tl + ε_Z` is a `t`-good seed.
+* `CollatzPosDens.exists_goodSeed`: for `t ≥ 1` with `3 ∤ t` there is a `t`-good seed.
 
 ## Implementation notes
 
-The averaging step produces a unit `y` with `Ψ(y) ≥ P`, and the strict bound `P > 2^{-23}` is
-applied afterwards. The mass bound is an unconditional sum in `ℝ≥0∞` over the finite set
-`𝔗_{N_*}`, which is converted to the finite real sum occurring in the mean of `Ψ`.
+The arithmetic bounds on the exponent are proved for an arbitrary shift `σ` and an arbitrary `Q`
+in place of `σ_sd` and `3^{q_*}`, since `3^{q_*}` may not be evaluated. The properties of `σ_sd`
+used are `σ_sd ≥ 1` and `σ_sd + 1 ≤ 3^{q_*}`; the latter is reached through `3^{11}` and the
+floor `q_* ≥ 352`, so `3^{q_*}` is never evaluated.
 
 ## References
 
@@ -66,72 +64,25 @@ applied afterwards. The mass bound is an unconditional sum in `ℝ≥0∞` over 
 
 namespace CollatzPosDens
 
-open Finset
-open scoped ENNReal
-
-/-- An averaging principle on `G_q`, `q ≥ 1`: if `f` vanishes on nonunits and
-`⟨f⟩_q = 2/3 · P`, then some unit `y` has `P ≤ f y`, since there are exactly `2 · 3^{q-1}`
-units. -/
-theorem exists_goodSeed_isUnit_le {q : ℕ} (hq : 1 ≤ q)
-    {f : ResidueGroup q → ℝ} (hf : ∀ y : ResidueGroup q, 3 ∣ y.val → f y = 0) {P : ℝ}
-    (hmean : residueAvg q f = 2 / 3 * P) : ∃ y : ResidueGroup q, IsUnit y ∧ P ≤ f y := by
-  by_contra hcon
-  push Not at hcon
-  have hsum : ∑ y, f y = ∑ y ∈ univ.filter IsUnit, f y := by
-    rw [sum_filter]
-    refine sum_congr rfl fun y _ => ?_
-    split_ifs with h
-    · rfl
-    · refine hf y ?_
-      have := (isResidueUnit_iff_isUnit hq y).not.2 h
-      rwa [IsResidueUnit, not_not] at this
-  have hcard : ((univ.filter (IsUnit : ResidueGroup q → Prop)).card : ℝ) =
-      2 * 3 ^ (q - 1) := by
-    have h1 : (univ.filter (IsUnit : ResidueGroup q → Prop)).card =
-        Fintype.card (ResidueGroup q)ˣ := by
-      rw [← Fintype.card_subtype]
-      exact Fintype.card_congr Submonoid.unitsTypeEquivIsUnitSubmonoid.toEquiv.symm
-    rw [h1, ZMod.card_units_eq_totient, Nat.totient_prime_pow Nat.prime_three (by omega)]
-    push_cast
-    ring
-  have hlt : ∑ y ∈ univ.filter IsUnit, f y <
-      ∑ _y ∈ univ.filter (IsUnit : ResidueGroup q → Prop), P :=
-    sum_lt_sum_of_nonempty ⟨1, by simp⟩ fun y hy => hcon y (mem_filter.1 hy).2
-  rw [sum_const, nsmul_eq_mul, hcard, ← hsum] at hlt
-  rw [residueAvg_def] at hmean
-  have h3 : (3 : ℝ) ^ q = 3 * 3 ^ (q - 1) := by
-    rw [← pow_succ']
-    congr 1
-    omega
-  have hpos : (0 : ℝ) < 3 ^ q := by positivity
-  have : ∑ y, f y = 3 ^ q * (2 / 3 * P) := by
-    rw [← hmean, mul_inv_cancel_left₀ hpos.ne']
-  rw [this, h3] at hlt
-  linarith
-
-/-- The seed exponent is `38` or `39`. -/
-theorem seedExponent_mem (s : ℕ) : 38 ≤ seedExponent s ∧ seedExponent s ≤ 39 := by
-  unfold seedExponent
-  split_ifs <;> norm_num
+/-- The seed shift is positive. -/
+private theorem seedShift_pos : 0 < seedShift := by
+  rw [seedShift_eq]
+  norm_num
 
 /-- For `3 ∤ s`, `2^{e_0(s) + 2v} s ≡ 1 (mod 3)`. -/
 theorem two_pow_seedExponent_add_mul_mod_three {s : ℕ} (hs3 : ¬ 3 ∣ s) (v : ℕ) :
     2 ^ (seedExponent s + 2 * v) * s % 3 = 1 := by
   have h4 : (2 ^ 2) ^ v % 3 = 1 := by rw [Nat.pow_mod]; norm_num
-  have he : 2 ^ seedExponent s * s % 3 = 1 := by
-    unfold seedExponent
-    split_ifs with h
-    · rw [Nat.mul_mod, h]; norm_num
-    · have : s % 3 = 2 := by omega
-      rw [Nat.mul_mod, this]; norm_num
+  have he := two_pow_seedExponent_mul_mod_three hs3
   rw [pow_add, pow_mul, mul_comm (2 ^ seedExponent s), mul_assoc, Nat.mul_mod, h4, he]
 
-/-- The seed candidates are exact: `3 𝖬_s(v) + 1 = 2^{e_0(s) + 2v} s` for `s ≥ 1`, `3 ∤ s`. -/
+/-- The seed candidates are exact: `3 𝖼_s(v) + 1 = 2^{e_0(s) + 2v} s` for `s ≥ 1`, `3 ∤ s`. -/
 theorem three_mul_seedCandidate_add_one {s : ℕ} (hs : 0 < s) (hs3 : ¬ 3 ∣ s) (v : ℕ) :
     3 * seedCandidate s v + 1 = 2 ^ (seedExponent s + 2 * v) * s := by
   have hmod := two_pow_seedExponent_add_mul_mod_three hs3 v
   have hpos : 0 < 2 ^ (seedExponent s + 2 * v) * s := Nat.mul_pos (by positivity) hs
   unfold seedCandidate
+  generalize 2 ^ (seedExponent s + 2 * v) * s = X at hmod hpos ⊢
   omega
 
 /-- The seed candidates are strictly increasing in `v`. -/
@@ -145,21 +96,20 @@ theorem seedCandidate_strictMono {s : ℕ} (hs : 0 < s) (hs3 : ¬ 3 ∣ s) :
   omega
 
 /-- The Syracuse image of a seed candidate is the odd part of `s`:
-`S(𝖬_s(v)) = s / 2^{v₂(s)}`. -/
+`S(𝖼_s(v)) = s / 2^{v₂(s)}`. -/
 theorem collatzAccel_seedCandidate {s : ℕ} (hs : 0 < s) (hs3 : ¬ 3 ∣ s) (v : ℕ) :
     collatzAccel (seedCandidate s v) = s / 2 ^ padicValNat 2 s := by
   rw [collatzAccel_def, three_mul_seedCandidate_add_one hs hs3,
     padicValNat.mul (by positivity) hs.ne', padicValNat.prime_pow,
     pow_add 2 (seedExponent s + 2 * v), Nat.mul_div_mul_left _ _ (by positivity)]
 
-/-- For `s ≥ 1` with `3 ∤ s`, every class `y ∈ G_q` contains a seed candidate `𝖬_s(v)` with
+/-- For `s ≥ 1` with `3 ∤ s`, every class `y ∈ G_q` contains a seed candidate `𝖼_s(v)` with
 `a ≤ v < a + 3^q`. -/
 theorem exists_seedCandidate_cast_eq {s : ℕ} (hs : 0 < s) (hs3 : ¬ 3 ∣ s) (a q : ℕ)
     (y : ResidueGroup q) :
     ∃ v : ℕ, a ≤ v ∧ v < a + 3 ^ q ∧ (seedCandidate s v : ResidueGroup q) = y := by
   have hc : ((2 ^ seedExponent s * s : ℕ) : ℤ) ≡ 1 [ZMOD 3] := by
-    have := two_pow_seedExponent_add_mul_mod_three hs3 0
-    rw [mul_zero, add_zero] at this
+    have := two_pow_seedExponent_mul_mod_three hs3
     generalize 2 ^ seedExponent s * s = X at this ⊢
     unfold Int.ModEq
     omega
@@ -180,90 +130,91 @@ theorem exists_seedCandidate_cast_eq {s : ℕ} (hs : 0 < s) (hs3 : ¬ 3 ∣ s) (
   rw [Int.cast_natCast, Int.cast_natCast, ZMod.natCast_zmod_val] at this
   exact this
 
-/-- The mass bound of the selected tuples, as a finite real sum:
-`2^{-23} < ∑_{t ∈ 𝔗_n} 2^{-A(ŵ(t))}` for `n ≥ 5`. -/
-private theorem two_inv_pow_lt_sum_selectedTuples_real (n : ℕ) (hn : 5 ≤ n) :
-    (2 : ℝ)⁻¹ ^ 23 < ∑ t ∈ (selectedTuples_finite n).toFinset,
-      (2 : ℝ) ^ (-((concatWord t).valSum : ℤ)) := by
-  have h := two_inv_pow_lt_tsum_selectedTuples n hn
-  set s := (selectedTuples_finite n).toFinset
-  have hs : selectedTuples n = (s : Set (Fin n → Word)) :=
-    (Set.Finite.coe_toFinset _).symm
-  have heq : ∑' t : selectedTuples n, (2⁻¹ : ℝ≥0∞) ^ (concatWord (t : Fin n → Word)).valSum =
-      ∑ t ∈ s, (2⁻¹ : ℝ≥0∞) ^ (concatWord t).valSum := by
-    rw [← Finset.tsum_subtype s (fun t => (2⁻¹ : ℝ≥0∞) ^ (concatWord t).valSum)]
-    rw [hs]
-    rfl
-  rw [heq] at h
-  have hne : ∑ t ∈ s, (2⁻¹ : ℝ≥0∞) ^ (concatWord t).valSum ≠ ⊤ :=
-    ENNReal.sum_ne_top.2 fun _ _ => ENNReal.pow_ne_top (by simp)
-  have := (ENNReal.toReal_lt_toReal (by simp) hne).2 h
-  rw [ENNReal.toReal_sum fun _ _ => ENNReal.pow_ne_top (by simp)] at this
-  simp only [ENNReal.toReal_pow, ENNReal.toReal_inv, ENNReal.toReal_ofNat] at this
-  convert this using 2 with t
-  rw [zpow_neg, zpow_natCast, inv_pow]
+/-- If `3M + 1 = 2^k s` with `k ≤ σ + 1 + 4Q` and `σ + 1 ≤ Q`, then `M < 2^{5Q} s`. -/
+theorem lt_two_pow_mul_of_three_mul_add_one_eq {M k s σ Q : ℕ} (hk : k ≤ σ + 1 + 4 * Q)
+    (hσQ : σ + 1 ≤ Q) (h : 3 * M + 1 = 2 ^ k * s) : M < 2 ^ (5 * Q) * s := by
+  have h1 : 2 ^ k * s ≤ 2 ^ (5 * Q) * s :=
+    Nat.mul_le_mul_right _ (Nat.pow_le_pow_right (by norm_num) (by omega))
+  omega
 
-/-- A seed candidate `𝖬_s(v)` with `v < 2 · 3^{q_*}` in a unit class `y` of `G_{q_*}` with
-`Ψ(y) > 2^{-23}` which is not Syracuse-periodic is an `s`-good seed. -/
+/-- `σ_sd + 1 ≤ 3^q` for `q ≥ 11`, since `σ_sd + 1 = 66177 ≤ 3^{11}`. -/
+theorem seedShift_add_one_le_three_pow {q : ℕ} (hq : 11 ≤ q) : seedShift + 1 ≤ 3 ^ q := by
+  have h := Nat.pow_le_pow_right (show 0 < 3 by norm_num) hq
+  rw [seedShift_eq]
+  norm_num at h
+  omega
+
+/-- The seed shift is small against the conductor power: `σ_sd + 1 ≤ 3^{q_*}`, since
+`11 ≤ 352 ≤ q_*`. -/
+theorem seedShift_add_one_le_three_pow_conductor : seedShift + 1 ≤ 3 ^ conductor :=
+  seedShift_add_one_le_three_pow (le_trans (by norm_num) three_hundred_fifty_two_le_conductor)
+
+/-- If `3M + 1 = 2^k s` with `σ + 2 ≤ k`, `σ ≥ 1` and `s ≥ 1`, then `2^σ s < M`. -/
+theorem two_pow_mul_lt_of_three_mul_add_one_eq {M k s σ : ℕ} (hσ : 0 < σ) (hs : 0 < s)
+    (hk : σ + 2 ≤ k) (h : 3 * M + 1 = 2 ^ k * s) : 2 ^ σ * s < M := by
+  have h1 : 2 ^ (σ + 2) * s ≤ 2 ^ k * s :=
+    Nat.mul_le_mul_right _ (Nat.pow_le_pow_right (by norm_num) hk)
+  rw [pow_add, mul_right_comm] at h1
+  have h2 : 2 ≤ 2 ^ σ * s :=
+    (Nat.le_self_pow hσ.ne' 2).trans (Nat.le_mul_of_pos_right _ hs)
+  generalize 2 ^ σ * s = X at h1 h2 ⊢
+  omega
+
+/-- A seed candidate `𝖼_s(v)` with `v < 2 · 3^{q_*}` in a class `y` of `G_{q_*}` with
+`Ψ(y) > θ_tl + ε_Z` which is not Syracuse-periodic is an `s`-good seed. -/
 theorem goodSeed_seedCandidate {s v : ℕ} (hs : 0 < s) (hs3 : ¬ 3 ∣ s)
-    (hv : v < 2 * 3 ^ conductor) {y : ResidueGroup conductor} (hyu : IsUnit y)
-    (hy : (2 : ℝ)⁻¹ ^ 23 < pullbackDensity y)
+    (hv : v < 2 * 3 ^ conductor) {y : ResidueGroup conductor}
+    (hy : (tailMargin : ℝ) + (centralSumMargin : ℝ) < pullbackDensity y)
     (hyM : (seedCandidate s v : ResidueGroup conductor) = y)
     (hper : ¬ SyrPeriodic (seedCandidate s v)) : GoodSeed s (seedCandidate s v) := by
   set M := seedCandidate s v with hMdef
   have hk := three_mul_seedCandidate_add_one hs hs3 v
   rw [← hMdef] at hk
-  obtain ⟨he1, he2⟩ := seedExponent_mem s
+  obtain ⟨he1, he2⟩ := seedExponent_bounds s
   set k := seedExponent s + 2 * v with hkdef
-  have hq : 1 ≤ conductor := conductor_pos
-  refine ⟨?_, ?_, ?_, ?_, ⟨k, hk⟩, hper, ?_⟩
+  have hσ := seedShift_pos
+  have hkup : k ≤ seedShift + 1 + 4 * 3 ^ conductor := by
+    generalize 3 ^ conductor = Q at hv ⊢
+    generalize seedShift = σ at he1 he2 ⊢
+    omega
+  refine ⟨⟨k, ?_, hk⟩, ?_, hper, ?_, ?_, ?_⟩
+  · generalize 3 ^ conductor = Q at hkup ⊢
+    omega
   · rw [Nat.odd_iff]
     obtain ⟨u, hu⟩ : ∃ u, k = u + 1 := ⟨k - 1, by omega⟩
     rw [hu, pow_succ', mul_assoc] at hk
     omega
-  · intro h3
-    have hunit := (isResidueUnit_iff_isUnit hq y).2 hyu
-    rw [IsResidueUnit, ← hyM, ZMod.val_natCast] at hunit
-    exact hunit ((Nat.dvd_mod_iff (dvd_pow_self 3 (by omega))).2 h3)
-  · rw [scale_zero]
-    have h36 : 2 ^ 38 * s ≤ 2 ^ k * s :=
-      Nat.mul_le_mul_right _ (Nat.pow_le_pow_right (by norm_num) (by omega))
-    have h16 : (16 : ℕ) ^ 9 = 2 ^ 36 := by norm_num
-    rw [h16]
-    have h1 : 1 ≤ s := hs
-    have : 2 ^ 38 * s = 4 * (2 ^ 36 * s) := by ring
-    have : 2 ^ 36 ≤ 2 ^ 36 * s := Nat.le_mul_of_pos_right _ hs
-    omega
-  · rw [seedBound_eq_two_pow]
-    have h1 : 2 ^ k * s ≤ 2 ^ (37 + 4 * 3 ^ conductor) * s :=
-      Nat.mul_le_mul_right _ (Nat.pow_le_pow_right (by norm_num) (by omega))
-    have : s * 2 ^ (38 + 4 * 3 ^ conductor) = 2 * (2 ^ (37 + 4 * 3 ^ conductor) * s) := by
-      ring
-    omega
+  · exact two_pow_mul_lt_of_three_mul_add_one_eq hσ hs (by omega) hk
+  · rw [seedBound_def]
+    exact lt_two_pow_mul_of_three_mul_add_one_eq hkup
+      seedShift_add_one_le_three_pow_conductor hk
   · have hZ := weightedCentralSum_eq_pullbackDensity (M : ℤ)
     rw [Int.cast_natCast, Int.cast_natCast, hyM] at hZ
     rw [hZ]
     exact hy
 
-/-- **Existence of an `s`-good seed**. For every integer `s ≥ 1` with
-`3 ∤ s` there is an `s`-good seed. -/
+/-- **Existence of a `t`-good seed**. For every integer `t ≥ 1` with `3 ∤ t` there is a
+`t`-good seed. -/
 @[collatz_pos_dens "lem_good_seed_exists"]
-theorem exists_goodSeed : ∀ s : ℕ, 0 < s → ¬ 3 ∣ s → ∃ M : ℕ, GoodSeed s M := by
+theorem exists_goodSeed : ∀ t : ℕ, 0 < t → ¬ 3 ∣ t → ∃ M : ℕ, GoodSeed t M := by
   intro s hs hs3
-  have hq : 1 ≤ conductor := conductor_pos
-  obtain ⟨y, hyu, hy⟩ := exists_goodSeed_isUnit_le hq
-    (fun y hy => pullbackDensity_eq_zero_of_three_dvd hy) residueAvg_pullbackDensity
-  have hy' : (2 : ℝ)⁻¹ ^ 23 < pullbackDensity y :=
-    (two_inv_pow_lt_sum_selectedTuples_real _
-      (by rw [generationThreshold_eq]; norm_num)).trans_le hy
+  obtain ⟨y, hy⟩ := exists_lt_pullbackDensity
+  have hmargin : ((tailMargin + centralSumMargin : ℚ) : ℝ) < ((13 / 15 : ℚ) : ℝ) :=
+    Rat.cast_lt.2 tailMargin_add_centralSumMargin_lt
+  rw [Rat.cast_add] at hmargin
+  have hy' : (tailMargin : ℝ) + (centralSumMargin : ℝ) < pullbackDensity y :=
+    hmargin.trans (by convert hy using 1; push_cast; ring)
   obtain ⟨v₁, -, hv₁, hy₁⟩ := exists_seedCandidate_cast_eq hs hs3 0 conductor y
   obtain ⟨v₂, hv₂, hv₂', hy₂⟩ := exists_seedCandidate_cast_eq hs hs3 (3 ^ conductor) conductor y
+  have hv : v₁ < v₂ ∧ v₁ < 2 * 3 ^ conductor ∧ v₂ < 2 * 3 ^ conductor := by
+    generalize 3 ^ conductor = Q at hv₁ hv₂ hv₂' ⊢
+    omega
   by_cases h₁ : SyrPeriodic (seedCandidate s v₁)
   · by_cases h₂ : SyrPeriodic (seedCandidate s v₂)
     · have heq := h₁.eq_of_collatzAccel_eq h₂ (by
         rw [collatzAccel_seedCandidate hs hs3, collatzAccel_seedCandidate hs hs3])
-      exact absurd heq (seedCandidate_strictMono hs hs3 (by omega : v₁ < v₂)).ne
-    · exact ⟨_, goodSeed_seedCandidate hs hs3 (by omega) hyu hy' hy₂ h₂⟩
-  · exact ⟨_, goodSeed_seedCandidate hs hs3 (by omega) hyu hy' hy₁ h₁⟩
+      exact absurd heq (seedCandidate_strictMono hs hs3 hv.1).ne
+    · exact ⟨_, goodSeed_seedCandidate hs hs3 hv.2.2 hy' hy₂ h₂⟩
+  · exact ⟨_, goodSeed_seedCandidate hs hs3 hv.2.1 hy' hy₁ h₁⟩
 
 end CollatzPosDens

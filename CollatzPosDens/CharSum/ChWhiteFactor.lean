@@ -9,14 +9,15 @@ public import Mathlib.Analysis.SpecialFunctions.Exp
 public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkPoints
 public import CollatzPosDens.BlackSet.BkWhite
-public import CollatzPosDens.Transfer.Z
+public import CollatzPosDens.Transfer.S02Z
 
 /-!
 # The white factor
 
-Fix a level `n`, a residue `ξ ∈ G_n` and a threshold `ε`. For a point `p ∈ 𝒫` the *white
-factor* is `w(p) = e^{-z_*}` if `p` is white for `n, ξ, ε` (`IsBkWhite`), and `w(p) = 1`
-otherwise. Here `z_* = 21/500` is the white Fourier penalty `zStar`.
+Fix a level `n`, a residue `ξ : ResidueGroup n` and a threshold `ε`. For a lattice point
+`p : ℤ × ℤ` the *white factor* is `w(p) = e^{-z_*}` if `p` is white (`IsBkWhite n ξ ε p`), and
+`w(p) = 1` otherwise. Here `z_* = zStar = 133/3125` is the white Fourier penalty, the factor
+charged to a letter `4` or `5`.
 
 ## Main definitions
 
@@ -26,15 +27,15 @@ otherwise. Here `z_* = 21/500` is the white Fourier penalty `zStar`.
 
 * `CollatzPosDens.chWhiteFactor_of_isBkWhite`,
   `CollatzPosDens.chWhiteFactor_of_not_isBkWhite`: the two cases of the definition.
-* `CollatzPosDens.chWhiteFactor_of_isBkWhite'`: a white point has factor `e^{-21/500}`.
+* `CollatzPosDens.chWhiteFactor_of_isBkWhite'`: a white point has factor `e^{-133/3125}`.
 * `CollatzPosDens.chWhiteFactor_pos`, `CollatzPosDens.chWhiteFactor_le_one`:
-  `0 < w(p) ≤ 1`; `CollatzPosDens.chWhiteFactor_nonneg`: `0 ≤ w(p)`.
+  `0 < w(p) ≤ 1`.
 
 ## Implementation notes
 
 The level `n`, the residue `ξ` and the threshold `ε` are explicit arguments. As for `IsBkWhite`,
-the factor is defined for every `p : ℤ × ℤ`, not only for points of `𝒫 = bkPoints`. The rational
-constant `z_*` is cast to `ℝ` in the exponent.
+the factor is defined for every `p : ℤ × ℤ`. The rational constant `zStar` is cast to `ℝ` in the
+exponent.
 
 ## References
 
@@ -55,9 +56,9 @@ theorem chWhiteFactor_of_isBkWhite {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p
     (h : IsBkWhite n ξ ε p) : chWhiteFactor n ξ ε p = Real.exp (-(zStar : ℝ)) := by
   simp [chWhiteFactor, h]
 
-/-- The white factor of a white point is `e^{-21/500}`. -/
+/-- The white factor of a white point is `e^{-133/3125}`. -/
 theorem chWhiteFactor_of_isBkWhite' {n : ℕ} {ξ : ResidueGroup n} {ε : ℝ} {p : ℤ × ℤ}
-    (h : IsBkWhite n ξ ε p) : chWhiteFactor n ξ ε p = Real.exp (-(21 / 500)) := by
+    (h : IsBkWhite n ξ ε p) : chWhiteFactor n ξ ε p = Real.exp (-(133 / 3125)) := by
   rw [chWhiteFactor_of_isBkWhite h, zStar_cast]
 
 /-- The white factor of a non-white point is `1`. -/

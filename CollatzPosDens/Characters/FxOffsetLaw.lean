@@ -16,10 +16,10 @@ For every `n ∈ ℕ` and `y ∈ G_n`,
 law `μ_n` is the pushforward of the geometric weights `2^{-A(w)}` on words of length `n` along
 `w ↦ [off(w)]_n`.
 
-The proof applies `CollatzPosDens.ofReal_refDensity_eq_tsum_transfer` with `d = Q = n`. On the
-one-point space `G_0` the density is `ρ_0 = 2/3`, the residue map is `φ_w(0) = [off(w)]_n`, and
-`ω(w) = 3^n 2^{-A(w)}`, so `(𝒯_w ρ_0)(y) = (2/3) 3^n 2^{-A(w)} [[off(w)]_n = y]`. Comparing with
-`ρ_n(y) = (2/3) 3^n μ_n(y)` and cancelling the finite positive factor `(2/3) 3^n` gives the law.
+The proof applies the decomposition of the reference density with `d = Q = n`. On the one-point
+space `G_0` the density is `ρ_0 = 1`, the residue map is `φ_w(0) = [off(w)]_n`, and
+`ω(w) = 3^n 2^{-A(w)}`, so `(𝒯_w ρ_0)(y) = 3^n 2^{-A(w)} [[off(w)]_n = y]`. Comparing with
+`ρ_n(y) = 3^n μ_n(y)` and cancelling the finite positive factor `3^n` gives the law.
 
 ## Main results
 
@@ -44,12 +44,12 @@ namespace CollatzPosDens
 open Finset
 
 /-- The transfer of `ρ_0` along a word, read in `[0, ∞]`:
-`(𝒯_w ρ_0)(y) = (2/3) 3^{|w|} 2^{-A(w)} [[off(w)]_{|w|} = y]`. Here `y ∈ G_{|w|}` is read in
-`G_{t + |w|}` for any `t = 0`. -/
+`(𝒯_w ρ_0)(y) = 3^{|w|} 2^{-A(w)} [[off(w)]_{|w|} = y]`. Here `y ∈ G_{|w|}` is read in
+`G_{t + |w|}` with `t = 0`. -/
 private theorem ofReal_transfer_refDensity_zero (w : Word) {t : ℕ} (ht : t = 0)
     (h : ResidueGroup w.length = ResidueGroup (t + w.length)) (y : ResidueGroup w.length) :
     ENNReal.ofReal (transfer w (refDensity t) (cast h y)) =
-      2 / 3 * 3 ^ w.length *
+      3 ^ w.length *
         if dyadicRed w.length ⟨off w, off_mem_dyadicRationals w⟩ = y then
           (2 ^ w.valSum)⁻¹ else 0 := by
   subst ht
@@ -71,7 +71,6 @@ private theorem ofReal_transfer_refDensity_zero (w : Word) {t : ℕ} (ht : t = 0
     ring
   split_ifs <;> simp only [hw, pow_zero, mul_one, refLaw_zero_apply, sum_const, card_singleton,
     card_empty, one_smul, zero_nsmul, mul_zero]
-  ring
 
 /-- **Offset law of the reference law.** For every `n ∈ ℕ` and `y ∈ G_n`,
 `μ_n(y) = ∑_{w ∈ ℤ_{≥1}^n} 2^{-A(w)} [[off(w)]_n = y]` in `[0, ∞]`. -/
@@ -80,9 +79,8 @@ theorem refLaw_eq_tsum_off (n : ℕ) (y : ResidueGroup n) :
     refLaw n y = ∑' w : {w : Word | w.length = n},
       if dyadicRed n ⟨off w.1, off_mem_dyadicRationals w.1⟩ = y then
         (2 ^ w.1.valSum)⁻¹ else 0 := by
-  have hc0 : (2 / 3 * 3 ^ n : ℝ≥0∞) ≠ 0 := by simp
-  have hct : (2 / 3 * 3 ^ n : ℝ≥0∞) ≠ ∞ :=
-    ENNReal.mul_ne_top (ENNReal.div_ne_top (by simp) (by simp)) (by simp)
+  have hc0 : (3 ^ n : ℝ≥0∞) ≠ 0 := by simp
+  have hct : (3 ^ n : ℝ≥0∞) ≠ ∞ := by simp
   refine (ENNReal.mul_right_inj hc0 hct).1 ?_
   rw [refLaw_mul_eq_ofReal_refDensity, ofReal_refDensity_eq_tsum_transfer le_rfl,
     ← ENNReal.tsum_mul_left]

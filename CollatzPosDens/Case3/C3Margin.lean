@@ -5,74 +5,77 @@ Authors: Axiom Math
 -/
 module
 
-public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkSlope
 public import CollatzPosDens.BlackSet.BkDrift
 public import CollatzPosDens.BlackSet.BkAlphaBounds
+public import CollatzPosDens.Case3.C3AlphaUpper
+public import CollatzPosDens.Transfer.S02Xd
+public import CollatzPosDens.Transfer.S02Xl
+public import CollatzPosDens.Transfer.S02Wtot
+public import CollatzPosDens.Transfer.S02OmegaLower
+public import CollatzPosDens.Transfer.S02NearGateV
 
 /-!
 # The triangle margin at a far gap
 
-Let `P ≥ 1` and `0 ≤ v ≤ P - 1` be integers and let `G` be a real number with `G ≥ 2 ^ 36 P`. Then
-$$2 G^{3/5} + 272 \, \alpha \, (v + 1) + 1 \le G \, \delta_0 .$$
-Indeed `δ₀ = α - 1 / 4 ≥ 1 / 16` and `α ≤ 2 / 5`; since `G ≥ 2 ^ 20` we have
-`2 G^{3/5} ≤ G / 128`, and `272 α (v + 1) + 1 ≤ (544 / 5) P + P ≤ G / 32`.
+Let `ι ∈ {o, b}` be a Fourier index, let `v < V_*(ι)` be a natural number and let `ω` be a real
+number with `ω ≥ Ω_far(ι)`. Then
+$$\tfrac{\omega}{32} + X_d(ι, v) + \tfrac14 X_l(ι, v) + \alpha W(ι, v) + 1
+  \le \omega \, \delta_0 .$$
+The allowances `X_d(ι, ·)`, `X_l(ι, ·)`, `W(ι, ·)` are nonnegative and nondecreasing in `v`, and
+`α < 8 / 25`, so `Xd_add_Xl_div_four_add_totalAllowance_add_one_le_Vstar` at `V = V_*(ι)`
+gives
+`X_d(ι, v) + X_l(ι, v) / 4 + α W(ι, v) + 1 ≤ X_d(ι, V) + X_l(ι, V) / 4 + (8 / 25) W(ι, V) + 1
+≤ 8 V`. Since `ω ≥ Ω_far(ι) ≥ 512 V`, this is at most `ω / 64`, and the left side is at most
+`3 ω / 64 ≤ ω / 16 ≤ ω δ₀`, because `δ₀ = α - 1 / 4 ≥ 1 / 16`.
 
 ## Main results
 
 * `CollatzPosDens.two_mul_rpow_add_mul_alpha_add_one_le_mul_drift`: the inequality above.
 
-## Implementation notes
-
-The integers `P` and `v` are taken in `ℕ`, which encodes `0 ≤ v`; the two hypotheses `P ≥ 1` and
-`v ≤ P - 1` are combined into the single hypothesis `v + 1 ≤ P`, which is equivalent to them.
-
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* Mazur, §10.1 ("Scalar facts").
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- If `G ≥ 2 ^ 20` then `G ^ (3 / 5) ≤ G / 256`. -/
-private lemma rpow_three_div_five_le_div_256 {G : ℝ} (hG : 2 ^ 20 ≤ G) :
-    G ^ ((3 : ℝ) / 5) ≤ G / 256 := by
-  have hpos : 0 < G := lt_of_lt_of_le (by norm_num) hG
-  have G0 : 0 ≤ G := hpos.le
-  have h5 : (G ^ ((2 : ℝ) / 5)) ^ 5 = G ^ 2 := by
-    rw [← Real.rpow_mul_natCast G0]
-    norm_num
-  have h256 : (256 : ℝ) ≤ G ^ ((2 : ℝ) / 5) := by
-    have hb : (256 : ℝ) ^ 5 ≤ (G ^ ((2 : ℝ) / 5)) ^ 5 := by
-      rw [h5]
-      nlinarith
-    exact (pow_le_pow_iff_left₀ (by norm_num) (Real.rpow_nonneg G0 _) (by norm_num)).1 hb
-  have hsplit : G ^ ((3 : ℝ) / 5) * G ^ ((2 : ℝ) / 5) = G := by
-    rw [← Real.rpow_add hpos]
-    norm_num
-  have h3 : 0 ≤ G ^ ((3 : ℝ) / 5) := Real.rpow_nonneg G0 _
-  rw [le_div_iff₀ (by norm_num)]
-  nlinarith
-
-/-- **The triangle margin at a far gap**: if `v + 1 ≤ P` (that is, `P ≥ 1` and `0 ≤ v ≤ P - 1`)
-and `G ≥ 2 ^ 36 P`, then `2 G ^ (3 / 5) + 272 α (v + 1) + 1 ≤ G δ₀`. -/
+/-- **The triangle margin at a far gap**: if `v < V_*(ι)` and `ω ≥ Ω_far(ι)`, then
+`ω / 32 + X_d(ι, v) + X_l(ι, v) / 4 + α W(ι, v) + 1 ≤ ω δ₀`. -/
 @[collatz_pos_dens "lem_c3_margin"]
-theorem two_mul_rpow_add_mul_alpha_add_one_le_mul_drift {P v : ℕ} {G : ℝ} (hv : v + 1 ≤ P)
-    (hG : 2 ^ 36 * (P : ℝ) ≤ G) :
-    2 * G ^ ((3 : ℝ) / 5) + 272 * alpha * ((v : ℝ) + 1) + 1 ≤ G * drift := by
-  have hvR : (v : ℝ) + 1 ≤ P := by exact_mod_cast hv
-  have hP1 : (1 : ℝ) ≤ P := by linarith [v.cast_nonneg (α := ℝ)]
-  have hr := rpow_three_div_five_le_div_256 (G := G) (by nlinarith)
+theorem two_mul_rpow_add_mul_alpha_add_one_le_mul_drift (ι : FIndex) {v : ℕ} (hv : v < Vstar ι)
+    {ω : ℝ} (hω : (omegaFar ι : ℝ) ≤ ω) :
+    ω / 32 + (Xd ι v : ℝ) + 1 / 4 * (Xl ι v : ℝ) + alpha * (totalAllowance ι v : ℝ) + 1 ≤
+      ω * drift := by
+  have h512 : 512 * Vstar ι ≤ omegaFar ι :=
+    le_trans (le_max_right _ _) (le_trans (le_max_left _ _) (max_le_omegaFar ι))
+  have hω512 : 512 * (Vstar ι : ℝ) ≤ ω := le_trans (by exact_mod_cast h512) hω
+  have hgate :
+      ((Xd ι (Vstar ι) + Xl ι (Vstar ι) / 4 + 8 / 25 * totalAllowance ι (Vstar ι) + 1 : ℚ) : ℝ) ≤
+      ((8 * (Vstar ι : ℚ) : ℚ) : ℝ) := by
+    exact_mod_cast Xd_add_Xl_div_four_add_totalAllowance_add_one_le_Vstar ι
+  push_cast at hgate
+  have hXd : (Xd ι v : ℝ) ≤ Xd ι (Vstar ι) := by exact_mod_cast Xd_mono ι hv.le
+  have hXl : (Xl ι v : ℝ) ≤ Xl ι (Vstar ι) := by exact_mod_cast Xl_mono ι hv.le
+  have hW : (totalAllowance ι v : ℝ) ≤ totalAllowance ι (Vstar ι) := by
+    exact_mod_cast totalAllowance_mono ι hv.le
+  have hW0 : (0 : ℝ) ≤ totalAllowance ι v := by exact_mod_cast (totalAllowance_pos ι v).le
+  have hα : alpha ≤ 8 / 25 := alpha_lt_eight_div_twentyfive.le
+  have hα0 : 0 ≤ alpha := by linarith [five_div_sixteen_le_alpha]
+  have hαW : alpha * (totalAllowance ι v : ℝ) ≤ 8 / 25 * totalAllowance ι (Vstar ι) :=
+    mul_le_mul hα hW hW0 (by norm_num)
   have hd : (1 : ℝ) / 16 ≤ drift := by
     rw [drift_def]
     linarith [five_div_sixteen_le_alpha]
-  have hG0 : 0 ≤ G := by nlinarith
-  have hα0 : 0 ≤ alpha := by linarith [five_div_sixteen_le_alpha]
-  have hαv : alpha * ((v : ℝ) + 1) ≤ 2 / 5 * P :=
-    mul_le_mul alpha_le_two_div_five hvR (by positivity) (by norm_num)
-  nlinarith [mul_le_mul_of_nonneg_left hd hG0]
+  have hω0 : 0 ≤ ω := le_trans (by linarith [((Vstar ι).cast_nonneg : (0 : ℝ) ≤ Vstar ι)]) hω512
+  have hωd := mul_le_mul_of_nonneg_left hd hω0
+  generalize (Xd ι (Vstar ι) : ℝ) = a at *
+  generalize (Xl ι (Vstar ι) : ℝ) = b at *
+  generalize (totalAllowance ι (Vstar ι) : ℝ) = c at *
+  generalize (Vstar ι : ℝ) = V at *
+  linarith
 
 end CollatzPosDens

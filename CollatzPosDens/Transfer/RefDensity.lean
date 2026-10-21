@@ -13,7 +13,7 @@ public import CollatzPosDens.Transfer.RefLaw
 # The reference density on the residue spaces
 
 For `q ∈ ℕ`, the reference density `ρ_q : G_q → ℝ` is the rescaled reference law
-`ρ_q(y) = (2/3) · 3^q · μ_q(y)^ℝ`, where for `x ∈ [0, ∞]` the real number `x^ℝ` is `x` itself
+`ρ_q(y) = 3^q · μ_q(y)^ℝ`, where for `x ∈ [0, ∞]` the real number `x^ℝ` is `x` itself
 when `x < ∞` and `0` when `x = ∞`.
 
 ## Main definitions
@@ -37,11 +37,11 @@ The operation `x ↦ x^ℝ` is `ENNReal.toReal`, which sends `∞` to `0`.
 
 namespace CollatzPosDens
 
-/-- The reference density `ρ_q(y) = (2/3) · 3^q · μ_q(y)^ℝ` on `G_q`, where `x^ℝ` is
+/-- The reference density `ρ_q(y) = 3^q · μ_q(y)^ℝ` on `G_q`, where `x^ℝ` is
 `ENNReal.toReal x` (equal to `x` for `x < ∞` and to `0` for `x = ∞`). -/
 @[collatz_pos_dens "def_ref_density"]
 noncomputable def refDensity (q : ℕ) (y : ResidueGroup q) : ℝ :=
-  2 / 3 * 3 ^ q * (refLaw q y).toReal
+  3 ^ q * (refLaw q y).toReal
 
 /-- The reference density is nonnegative. -/
 theorem refDensity_nonneg (q : ℕ) (y : ResidueGroup q) : 0 ≤ refDensity q y := by

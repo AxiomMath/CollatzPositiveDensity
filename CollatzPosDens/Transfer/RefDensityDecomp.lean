@@ -13,10 +13,8 @@ public import CollatzPosDens.Transfer.TransferConcat
 /-!
 # Decomposition of the reference density over words
 
-Write `G_Q` for the residue group `ResidueGroup Q`, `ρ_Q` for the reference density
-`refDensity Q` on it, and `𝒯_w` for the transfer operator `transfer w` of a word `w`, with
-residue map `φ_w = residueMap w` and weight `ω(w) = w.weight`. For integers `0 ≤ d ≤ Q` and
-every `y ∈ G_Q`, `ρ_Q(y) = ∑_{w ∈ ℤ_{≥1}^d} (𝒯_w ρ_{Q-d})(y)`, the sum being taken in `[0, ∞]`.
+For integers `0 ≤ d ≤ Q` and every `y ∈ G_Q`,
+`ρ_Q(y) = ∑_{w ∈ ℤ_{≥1}^d} (𝒯_w ρ_{Q-d})(y)`, the sum being taken in `[0, ∞]`.
 
 The case `d = 1` is the recursion of the reference law: for a one-letter word `(a)` the
 residue map is `φ_{(a)}(z) = [2^{-a}(3 z̃ + 1)]_{p+1}` and `ω((a)) = 3 · 2^{-a}`, so
@@ -39,6 +37,10 @@ The real numbers `ρ_Q(y) ≥ 0` and `(𝒯_w ρ_{Q-d})(y) ≥ 0` are embedded i
 `𝒯_w ρ_{Q-d}` is a function on `G_{Q-d+|w|}`, and `Q - d + |w| = Q` only propositionally, so
 the point `y ∈ G_Q` is transported along this equality with `cast`, which on `ZMod (3 ^ k)`
 does not change the residue. The proof is first carried out for `Q = t + d`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -72,7 +74,7 @@ theorem ofReal_refDensity_succ (p : ℕ) (y : ResidueGroup (p + 1)) :
     ENNReal.ofReal (refDensity (p + 1) y) =
       ∑' a : ℕ+, ENNReal.ofReal (transfer [a] (refDensity p) y) := by
   have key (a : ℕ+) : ENNReal.ofReal (transfer [a] (refDensity p) y) =
-      2 / 3 * 3 ^ (p + 1) * (2⁻¹ ^ (a : ℕ) *
+      3 ^ (p + 1) * (2⁻¹ ^ (a : ℕ) *
         ∑ z ∈ univ.filter (fun z => refStep p a z = y), refLaw p z) := by
     rw [ofReal_transfer _ (fun z => refDensity_nonneg p z)]
     simp only [residueMap_singleton, ← refLaw_mul_eq_ofReal_refDensity, ← mul_sum,

@@ -10,8 +10,8 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.Algebra.Order.Group.Indicator
 public import CollatzPosDens.Transfer.Pstar
 public import CollatzPosDens.CharSum.ChBlockPath
-public import CollatzPosDens.Transfer.Aexp
-public import CollatzPosDens.Transfer.Dbad
+public import CollatzPosDens.Transfer.S02Aexp
+public import CollatzPosDens.Transfer.S02Dbad
 public import CollatzPosDens.StoppingTrace.TrBad
 public import CollatzPosDens.StoppingTrace.TrFreshLaw
 public import CollatzPosDens.StoppingTrace.TrFreshPath
@@ -19,7 +19,7 @@ public import CollatzPosDens.StoppingTrace.TrPath
 public import CollatzPosDens.Case3.C3BadJAbsorb
 public import CollatzPosDens.Case3.C3GapRatio
 public import CollatzPosDens.Renewal.RnFpMass
-public import CollatzPosDens.Renewal.RnHorTail
+public import CollatzPosDens.Renewal.RnHorTailSharp
 public import CollatzPosDens.Renewal.RnListHorTail
 public import CollatzPosDens.Renewal.RnListMarginal
 public import CollatzPosDens.StoppingTrace.TrFreshMarginal
@@ -27,38 +27,42 @@ public import CollatzPosDens.StoppingTrace.TrFreshMarginal
 /-!
 # The outer horizontal tail
 
-Let `e ∈ ℤ × ℤ`, `G ∈ ℕ`, and let `m ∈ ℕ` with `m ≥ D_bad`, `P_* ≤ J = ⌊n/2⌋` and
-`G log 2 ≤ m log 9`. Then the fresh law gives the large-advance event a small mass:
-$$m^{A_*}\,\mu_{e,G}(\mathrm{Bad}^e_m) < \tfrac1{8000}.$$
+Let `ι ∈ {o, b}` be a Fourier index, `e ∈ 𝒫`, `G ∈ ℕ`, and let `m ∈ ℕ` with `m ≥ D_bad(ι)`,
+`P_*(ι) ≤ J = ⌊n/2⌋` and `G log 2 ≤ m log 9`. Then the fresh law gives the large-advance event a
+small mass:
+$$m^{A_*(ι)}\,\mu_{e,G}(\mathrm{Bad}^e_m(ι)) < \tfrac1{8000}.$$
 
-Write an atom as `a = ((r, ℓ), β)`. Since `j(y^e_{P_*}(a)) - j(e) = r + ∑_{k ≤ P_*} j(β^k)`, the
-event `Bad^e_m` lies in `{r ≥ 158499 m / 200000} ∪ {∑_{k ≤ P_*} j(β^k) ≥ m / 200000}`. As
+Write `P_* = P_*(ι)` and an atom as `a = ((r, ℓ), β)`. Since
+`j(y^e_{P_*}(a)) - j(e) = r + ∑_{k ≤ P_*} j(β^k)`, the event `Bad^e_m(ι)` lies in
+`{r ≥ 158499 m / 200000} ∪ {∑_{k ≤ P_*} j(β^k) ≥ m / 200000}`. As
 `log 9 / log 2 < 158497/50000`, `G ≤ 158497 m / 50000`, so on the first set
-`r - G/4 ≥ m / 100000`, and the horizontal tail of the first-passage law bounds its mass by
-`2^{55} e^{-m/2^{51}}`. The second set has mass at most `e^{P_*/2 - m/3200000}` by the
+`r - G/4 ≥ m / 100000`, and the sharp horizontal tail of the first-passage law bounds its mass by
+`6 e^{-m/2^{36}}`. The second set has mass at most `e^{P_*/2 - m/3200000}` by the
 horizontal tail of hold lists. Both bounds pass through the displacement marginal of the fresh
-law. Hence `μ_{e,G}(Bad^e_m) ≤ (2^{55} + e^{P_*/2}) e^{-m/2^{51}}`, and the absorption lemma
-`c3_badJ_absorb` concludes.
+law. The two rates are kept separate: `μ_{e,G}(Bad^e_m(ι)) ≤ 6 e^{-m/2^{36}} +
+e^{P_*/2 - m/3200000}`, and the absorption lemma `c3_badJ_absorb` concludes.
 
 ## Main results
 
-* `CollatzPosDens.c3_bad_mass_tsum_le`: `μ_{e,G}(Bad^e_m) ≤ (2^{55} + e^{P_*/2}) e^{-m/2^{51}}`,
-  as a sum in `[0, ∞]`, for `m ≥ 1`, `P_* ≤ ⌊n/2⌋` and `G ≤ 158497 m / 50000`.
-* `CollatzPosDens.c3_bad_mass_summable`: the fresh law is summable on `Bad^e_m`.
-* `CollatzPosDens.c3_bad_mass`: `m^{A_*} μ_{e,G}(Bad^e_m) < 1/8000`.
+* `CollatzPosDens.c3_bad_mass_tsum_le`:
+  `μ_{e,G}(Bad^e_m(ι)) ≤ 6 e^{-m/2^{36}} + e^{P_*(ι)/2 - m/3200000}`, as a sum in `[0, ∞]`,
+  for `m ≥ 200000`, `P_*(ι) ≤ ⌊n/2⌋` and `G ≤ 158497 m / 50000`.
+* `CollatzPosDens.c3_bad_mass_tsum_le_one`: `μ_{e,G}(Bad^e_m(ι)) ≤ 1`, as a sum in `[0, ∞]`.
+* `CollatzPosDens.c3_bad_mass_summable`: the fresh law is summable on `Bad^e_m(ι)`.
+* `CollatzPosDens.c3_bad_mass`: `m^{A_*(ι)} μ_{e,G}(Bad^e_m(ι)) < 1/8000`.
 
 ## Implementation notes
 
-The mass `μ_{e,G}(Bad^e_m)` is the unconditional real sum of `trFreshLaw` over the subtype
-`trBad n e m`; `c3_bad_mass_summable` shows that it is a genuine sum. The power `m^{A_*}` is the
-real power with exponent the cast of `A_* ∈ ℚ`. The base point `e` is arbitrary: the level `j(e)`
-cancels, so no hypothesis `e ∈ 𝒫` is needed, unlike in [mazur2026]. The second event
+The mass `μ_{e,G}(Bad^e_m(ι))` is the unconditional real sum of `trFreshLaw` over the subtype
+`trBad ι n e m`; `c3_bad_mass_summable` shows that it is a genuine sum. The power `m^{A_*}` is the
+real power with exponent the cast of `A_*(ι) ∈ ℚ`. The hypothesis `e ∈ 𝒫` of the source plays no
+role (the level `j(e)` cancels) and is dropped, which generalizes the source. The second event
 is bounded with the real threshold `m / 20000` in the horizontal tail of hold lists, in place of
 the integer threshold `10 ⌈m / 200000⌉`; the resulting bound is the same.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §10.6.
 -/
 
 @[expose] public section
@@ -93,12 +97,15 @@ private lemma c3BadMass_le_of_log {G m : ℝ} (hm : 0 ≤ m) (hG : G * log 2 ≤
   have h9 : log 9 < 158497 / 50000 * log 2 := (div_lt_iff₀ h2).1 log_nine_div_log_two_lt
   nlinarith
 
-/-- The `F_G`-mass of the columns `200000 r ≥ 158499 m` is at most `2^{55} e^{-m/2^{51}}`. -/
-private lemma c3BadMass_tsum_fp_le {G m : ℕ} (hm : 1 ≤ m) (hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
+/-- The `F_G`-mass of the columns `200000 r ≥ 158499 m` is at most `6 e^{-m/2^{36}}`, for
+`m ≥ 200000` and `G ≤ 158497 m / 50000`. -/
+private lemma c3BadMass_tsum_fp_le {G m : ℕ} (hm : 200000 ≤ m)
+    (hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
     ∑' x : ℕ × ℤ, {x : ℕ × ℤ | 158499 * m ≤ 200000 * x.1}.indicator
-      (fun x ↦ firstPassageLaw G ((x.1 : ℤ), x.2)) x ≤ 2 ^ 55 * exp (-m / 2 ^ 51) := by
+      (fun x ↦ firstPassageLaw G ((x.1 : ℤ), x.2)) x ≤ 6 * exp (-m / 2 ^ 36) := by
   set t : ℝ := m / 100000 with ht
-  have hm1 : (1 : ℝ) ≤ m := by exact_mod_cast hm
+  have hm1 : (200000 : ℝ) ≤ m := by exact_mod_cast hm
+  have ht2 : 2 ≤ t := by rw [ht, le_div_iff₀ (by norm_num)]; linarith
   set T : Set (ℤ × ℤ) := {y | t ≤ |(y.1 : ℝ) - G / 4|} with hT
   have hinj := natCast_prod_injective
   have hFT : Summable (T.indicator fun y ↦ firstPassageLaw G y) :=
@@ -136,21 +143,26 @@ private lemma c3BadMass_tsum_fp_le {G m : ℕ} (hm : 1 ≤ m) (hGm : (G : ℝ) �
       exact tsum_congr fun ℓ ↦ Set.indicator_of_mem (by exact hr) _
     · rw [Set.indicator_of_notMem (by exact hr)]
       exact (tsum_congr fun ℓ ↦ Set.indicator_of_notMem (by exact hr) _).trans tsum_zero
-  -- both exponents are at least `m / 2^51`
-  have hg1 : 1 + (G : ℝ) ≤ 21 / 5 * m := by linarith
-  have hA : -(t ^ 2 / (2 ^ 15 * (1 + G))) ≤ -m / 2 ^ 51 := by
-    have hpos : (0 : ℝ) < 2 ^ 15 * (1 + G) := by positivity
-    rw [neg_div, neg_le_neg_iff, div_le_div_iff₀ (by norm_num) hpos, ht]
-    nlinarith
-  have hB : -(t / 256) ≤ -m / 2 ^ 51 := by
+  -- the linear rate: `t / 256 = m / 25600000 ≥ m / 2^36`
+  have hB : exp (-(t / 256)) ≤ exp (-m / 2 ^ 36) := by
+    refine exp_le_exp.2 ?_
     rw [ht, neg_div, neg_le_neg_iff]
     linarith [(m.cast_nonneg : (0 : ℝ) ≤ m)]
-  calc _ ≤ _ := h1
-    _ = _ := h2
-    _ ≤ _ := tsum_firstPassageLaw_hor_tail_le G t
-    _ ≤ 2 ^ 54 * (exp (-m / 2 ^ 51) + exp (-m / 2 ^ 51)) := by
-        gcongr
-    _ = 2 ^ 55 * exp (-m / 2 ^ 51) := by ring
+  refine (h1.trans h2.le).trans ?_
+  rcases le_or_gt G 5 with hG5 | hG6
+  · refine (tsum_firstPassageLaw_hor_tail_le_of_le_five hG5 ht2).trans ?_
+    have := exp_pos (-m / 2 ^ 36)
+    linarith
+  · refine (tsum_firstPassageLaw_hor_tail_le_of_six_le hG6 ht2).trans ?_
+    -- the Gaussian rate: `t² / (2 (G - 4)) ≥ m / 2^36`, as `2 (G - 4) < 2 G ≤ 158497 m / 25000`
+    have hG : (6 : ℝ) ≤ G := by exact_mod_cast hG6
+    have hpos : (0 : ℝ) < 2 * ((G : ℝ) - 4) := by linarith
+    have hA : exp (-(t ^ 2 / (2 * ((G : ℝ) - 4)))) ≤ exp (-m / 2 ^ 36) := by
+      refine exp_le_exp.2 ?_
+      rw [neg_div, neg_le_neg_iff, div_le_div_iff₀ (by norm_num) hpos, ht]
+      have hm0 : (0 : ℝ) ≤ m := m.cast_nonneg
+      nlinarith [mul_le_mul_of_nonneg_left hGm hm0]
+    linarith
 
 /-- The hold lists `h ∈ 𝒫^P` with `m ≤ 200000 ∑ᵢ j(hᵢ)` have mass at most
 `e^{P/2 - m/3200000}`. -/
@@ -176,33 +188,34 @@ private lemma c3BadMass_tsum_hold_tail_le (P m : ℕ) :
         tsum_holdListLaw_horTail_le P ((m : ℝ) / 20000)
     _ = ENNReal.ofReal (exp (P / 2 - m / 3200000)) := by ring_nf
 
-/-- The fresh mass of `Bad^e_m` is at most the displacement marginal of the event
+/-- The fresh mass of `Bad^e_m(ι)` is at most the displacement marginal of the event
 `400 (r + ∑ᵢ j(hᵢ)) ≥ 317 m`. -/
-private lemma c3BadMass_tsum_le_marginal {n : ℕ} (e : ℤ × ℤ) (G m : ℕ) (hP : pStar ≤ n / 2) :
-    ∑' a : trBad n e m, ENNReal.ofReal (trFreshLaw n e G a) ≤
+private lemma c3BadMass_tsum_le_marginal (ι : FIndex) {n : ℕ} (e : ℤ × ℤ) (G m : ℕ)
+    (hP : pStar ι ≤ n / 2) :
+    ∑' a : trBad ι n e m, ENNReal.ofReal (trFreshLaw n e G a) ≤
       ∑' rl : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw G ((rl.1 : ℤ), rl.2)) *
-        ∑' h : {h : Fin pStar → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
+        ∑' h : {h : Fin (pStar ι) → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
           ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) *
             (if 317 * (m : ℤ) ≤ 400 * ((rl.1 : ℤ) + ∑ i, (h.1 i).1) then 1 else 0) := by
   set f : (ℕ × ℤ) × List (List ℤ × ℤ) → ℝ≥0∞ := fun a ↦ ENNReal.ofReal (trFreshLaw n e G a)
-  set Gt : ℕ × ℤ → (Fin pStar → ℤ × ℤ) → ℝ≥0∞ := fun rl h ↦
+  set Gt : ℕ × ℤ → (Fin (pStar ι) → ℤ × ℤ) → ℝ≥0∞ := fun rl h ↦
     if 317 * (m : ℤ) ≤ 400 * ((rl.1 : ℤ) + ∑ i, (h i).1) then 1 else 0 with hGt
   -- Step 1: restrict to atoms, testing against the indicator of the event
-  have h1 : ∑' a : trBad n e m, f a ≤ ∑' a : trAtoms n, f a * Gt a.1.1
+  have h1 : ∑' a : trBad ι n e m, f a ≤ ∑' a : trAtoms n, f a * Gt a.1.1
       (fun i ↦ chBlockPoint (a.1.2[(i : ℕ)]'(by have := (mem_trAtoms.1 a.2).1; omega))) := by
-    calc ∑' a : trBad n e m, f a
-        = ∑' a : trBad n e m, (trBad n e m).indicator f
-            (Set.inclusion (trBad_subset_trAtoms n e m) a : trAtoms n) :=
+    calc ∑' a : trBad ι n e m, f a
+        = ∑' a : trBad ι n e m, (trBad ι n e m).indicator f
+            (Set.inclusion (trBad_subset_trAtoms ι n e m) a : trAtoms n) :=
           tsum_congr fun a ↦ (Set.indicator_of_mem a.2 f).symm
-      _ ≤ ∑' b : trAtoms n, (trBad n e m).indicator f b :=
+      _ ≤ ∑' b : trAtoms n, (trBad ι n e m).indicator f b :=
           ENNReal.tsum_comp_le_tsum_of_injective
-            (Set.inclusion_injective (trBad_subset_trAtoms n e m))
-            (fun b : trAtoms n ↦ (trBad n e m).indicator f b)
+            (Set.inclusion_injective (trBad_subset_trAtoms ι n e m))
+            (fun b : trAtoms n ↦ (trBad ι n e m).indicator f b)
       _ ≤ _ := by
           refine ENNReal.tsum_le_tsum fun b ↦ ?_
-          by_cases hb : (b : (ℕ × ℤ) × List (List ℤ × ℤ)) ∈ trBad n e m
+          by_cases hb : (b : (ℕ × ℤ) × List (List ℤ × ℤ)) ∈ trBad ι n e m
           · rw [Set.indicator_of_mem hb]
-            have hlen : pStar ≤ b.1.2.length := by
+            have hlen : pStar ι ≤ b.1.2.length := by
               have := (mem_trAtoms.1 b.2).1
               omega
             have hb2 := (mem_trBad.1 hb).2
@@ -213,7 +226,7 @@ private lemma c3BadMass_tsum_le_marginal {n : ℕ} (e : ℤ × ℤ) (G m : ℕ) 
             rw [this, mul_one]
           · rw [Set.indicator_of_notMem hb]
             exact zero_le
-  rwa [tsum_trFreshLaw_mul_chBlockPoint n e G pStar hP Gt] at h1
+  rwa [tsum_trFreshLaw_mul_chBlockPoint n e G (pStar ι) hP Gt] at h1
 
 /-- Given the column `rl`, the hold lists completing the event `400 (r + ∑ᵢ j(hᵢ)) ≥ 317 m` have
 mass at most `𝟙[200000 r ≥ 158499 m] + e^{P/2 - m/3200000}`. -/
@@ -249,15 +262,15 @@ private lemma c3BadMass_tsum_hold_mul_le (P m : ℕ) (rl : ℕ × ℤ) :
         (c3BadMass_tsum_hold_tail_le _ _)
     _ = _ := by rw [one_mul]
 
-/-- **Mass of the bad event.** For `m ≥ 1`, `P_* ≤ ⌊n/2⌋` and `G ≤ 158497 m / 50000`,
-`μ_{e,G}(Bad^e_m) ≤ (2^{55} + e^{P_*/2}) e^{-m/2^{51}}`, as a sum in `[0, ∞]`. -/
-theorem c3_bad_mass_tsum_le {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : 1 ≤ m) (hP : pStar ≤ n / 2)
-    (hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
-    ∑' a : trBad n e m, ENNReal.ofReal (trFreshLaw n e G a) ≤
-      ENNReal.ofReal ((2 ^ 55 + exp ((pStar : ℝ) / 2)) * exp (-m / 2 ^ 51)) := by
+/-- **Mass of the bad event.** For `m ≥ 200000`, `P_*(ι) ≤ ⌊n/2⌋` and `G ≤ 158497 m / 50000`,
+`μ_{e,G}(Bad^e_m(ι)) ≤ 6 e^{-m/2^{36}} + e^{P_*(ι)/2 - m/3200000}`, as a sum in `[0, ∞]`. -/
+theorem c3_bad_mass_tsum_le (ι : FIndex) {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : 200000 ≤ m)
+    (hP : pStar ι ≤ n / 2) (hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
+    ∑' a : trBad ι n e m, ENNReal.ofReal (trFreshLaw n e G a) ≤
+      ENNReal.ofReal (6 * exp (-m / 2 ^ 36) + exp ((pStar ι : ℝ) / 2 - m / 3200000)) := by
   set F : ℕ × ℤ → ℝ := fun x ↦ firstPassageLaw G ((x.1 : ℤ), x.2)
   set A₁ : Set (ℕ × ℤ) := {x | 158499 * m ≤ 200000 * x.1}
-  set E₂ : ℝ≥0∞ := ENNReal.ofReal (exp ((pStar : ℝ) / 2 - m / 3200000))
+  set E₂ : ℝ≥0∞ := ENNReal.ofReal (exp ((pStar ι : ℝ) / 2 - m / 3200000))
   have hF1 : ∑' x : ℕ × ℤ, ENNReal.ofReal (F x) * A₁.indicator 1 x =
       ENNReal.ofReal (∑' x : ℕ × ℤ, A₁.indicator F x) := by
     rw [ENNReal.ofReal_tsum_of_nonneg
@@ -267,54 +280,63 @@ theorem c3_bad_mass_tsum_le {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : 1 ≤ m
     by_cases hx : x ∈ A₁
     · simp [F, Set.indicator_of_mem hx]
     · simp [F, Set.indicator_of_notMem hx]
-  have hexp : exp ((pStar : ℝ) / 2 - m / 3200000) ≤ exp ((pStar : ℝ) / 2) * exp (-m / 2 ^ 51) := by
-    rw [← exp_add, exp_le_exp]
-    linarith [(m.cast_nonneg : (0 : ℝ) ≤ m)]
-  calc _ ≤ _ := c3BadMass_tsum_le_marginal e G m hP
+  calc _ ≤ _ := c3BadMass_tsum_le_marginal ι e G m hP
     _ ≤ ∑' x : ℕ × ℤ, (ENNReal.ofReal (F x) * A₁.indicator 1 x + ENNReal.ofReal (F x) * E₂) :=
         ENNReal.tsum_le_tsum fun x ↦
-          (mul_le_mul_right (c3BadMass_tsum_hold_mul_le pStar m x) _).trans (mul_add _ _ _).le
+          (mul_le_mul_right (c3BadMass_tsum_hold_mul_le (pStar ι) m x) _).trans
+            (mul_add _ _ _).le
     _ = ENNReal.ofReal (∑' x : ℕ × ℤ, A₁.indicator F x) + (∑' x, ENNReal.ofReal (F x)) * E₂ := by
         rw [ENNReal.tsum_add, ENNReal.tsum_mul_right, hF1]
-    _ ≤ ENNReal.ofReal (2 ^ 55 * exp (-m / 2 ^ 51)) + 1 * E₂ :=
+    _ ≤ ENNReal.ofReal (6 * exp (-m / 2 ^ 36)) + 1 * E₂ :=
         add_le_add (ENNReal.ofReal_le_ofReal (c3BadMass_tsum_fp_le hm hGm))
           (mul_le_mul_left (tsum_ofReal_firstPassageLaw_natCast_le_one G) _)
-    _ ≤ ENNReal.ofReal (2 ^ 55 * exp (-m / 2 ^ 51)) +
-          ENNReal.ofReal (exp ((pStar : ℝ) / 2) * exp (-m / 2 ^ 51)) := by
-        rw [one_mul]
-        exact add_le_add le_rfl (ENNReal.ofReal_le_ofReal hexp)
-    _ = ENNReal.ofReal ((2 ^ 55 + exp ((pStar : ℝ) / 2)) * exp (-m / 2 ^ 51)) := by
-        rw [← ENNReal.ofReal_add (by positivity) (by positivity)]
-        congr 1
-        ring
+    _ = ENNReal.ofReal (6 * exp (-m / 2 ^ 36) + exp ((pStar ι : ℝ) / 2 - m / 3200000)) := by
+        rw [one_mul, ← ENNReal.ofReal_add (by positivity) (by positivity)]
 
-/-- The fresh law is summable on `Bad^e_m`, under the hypotheses of `c3_bad_mass_tsum_le`. -/
-theorem c3_bad_mass_summable {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : 1 ≤ m) (hP : pStar ≤ n / 2)
-    (hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
-    Summable fun a : trBad n e m ↦ trFreshLaw n e G a :=
+/-- The fresh mass of `Bad^e_m(ι)` is at most `1`, as a sum in `[0, ∞]`. -/
+theorem c3_bad_mass_tsum_le_one (ι : FIndex) {n : ℕ} (e : ℤ × ℤ) (G m : ℕ)
+    (hP : pStar ι ≤ n / 2) :
+    ∑' a : trBad ι n e m, ENNReal.ofReal (trFreshLaw n e G a) ≤ 1 := by
+  calc _ ≤ _ := c3BadMass_tsum_le_marginal ι e G m hP
+    _ ≤ ∑' rl : ℕ × ℤ, ENNReal.ofReal (firstPassageLaw G ((rl.1 : ℤ), rl.2)) * 1 := by
+        refine ENNReal.tsum_le_tsum fun rl ↦ mul_le_mul_right ?_ _
+        refine (ENNReal.tsum_le_tsum fun h ↦ ?_).trans
+          (tsum_ofReal_holdListLaw_bkPoints_le_one (pStar ι))
+        split_ifs
+        · rw [mul_one]
+        · rw [mul_zero]
+          exact zero_le
+    _ ≤ 1 := by
+        simp only [mul_one]
+        exact tsum_ofReal_firstPassageLaw_natCast_le_one G
+
+/-- The fresh law is summable on `Bad^e_m(ι)` whenever `P_*(ι) ≤ ⌊n/2⌋`; the hypotheses on `m`
+and `G` of `c3_bad_mass_tsum_le` are not needed. -/
+theorem c3_bad_mass_summable (ι : FIndex) {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (_hm : 1 ≤ m)
+    (hP : pStar ι ≤ n / 2) (_hGm : (G : ℝ) ≤ 158497 / 50000 * m) :
+    Summable fun a : trBad ι n e m ↦ trFreshLaw n e G a :=
   summable_trFreshLaw_of_tsum_ofReal_ne_top
-    ((c3_bad_mass_tsum_le e hm hP hGm).trans_lt ENNReal.ofReal_lt_top).ne
+    ((c3_bad_mass_tsum_le_one ι e G m hP).trans_lt ENNReal.one_lt_top).ne
 
-/-- **Outer horizontal tail**. Let `G ∈ ℕ` and `m ∈ ℕ` with `m ≥ D_bad`, `P_* ≤ ⌊n/2⌋` and
-`G log 2 ≤ m log 9`. Then `m^{A_*} μ_{e,G}(Bad^e_m) < 1/8000`. -/
+/-- **Outer horizontal tail**. Let `ι` be a Fourier index, `G ∈ ℕ` and `m ∈ ℕ` with
+`m ≥ D_bad(ι)`, `P_*(ι) ≤ ⌊n/2⌋` and `G log 2 ≤ m log 9`. Then
+`m^{A_*(ι)} μ_{e,G}(Bad^e_m(ι)) < 1/8000`. -/
 @[collatz_pos_dens "lem_c3_bad_mass"]
-theorem c3_bad_mass {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : (Dbad : ℝ) ≤ m) (hP : pStar ≤ n / 2)
-    (hG : (G : ℝ) * log 2 ≤ m * log 9) :
-    (m : ℝ) ^ (Aexp : ℝ) * ∑' a : trBad n e m, trFreshLaw n e G a < 1 / 8000 := by
-  have hm1 : 1 ≤ m := by
-    have h' : (2 ^ 53 * ((pStar : ℝ) + 65)) ≤ (Dbad : ℝ) := by
-      exact_mod_cast two_pow_mul_pStar_add_le_Dbad
-    exact_mod_cast (show (1 : ℝ) ≤ m by linarith [(pStar.cast_nonneg : (0 : ℝ) ≤ pStar)])
+theorem c3_bad_mass (ι : FIndex) {n : ℕ} (e : ℤ × ℤ) {G m : ℕ} (hm : (Dbad ι : ℝ) ≤ m)
+    (hP : pStar ι ≤ n / 2) (hG : (G : ℝ) * log 2 ≤ m * log 9) :
+    (m : ℝ) ^ (Aexp ι : ℝ) * ∑' a : trBad ι n e m, trFreshLaw n e G a < 1 / 8000 := by
+  have hm2 : 200000 ≤ m := by
+    have h' : (2 : ℝ) ^ 43 ≤ (Dbad ι : ℝ) := by exact_mod_cast two_pow_43_le_Dbad ι
+    exact_mod_cast (show (200000 : ℝ) ≤ m by linarith)
   have hGm := c3BadMass_le_of_log (Nat.cast_nonneg m) hG
-  have hB := c3_bad_mass_tsum_le e hm1 hP hGm
+  have hB := c3_bad_mass_tsum_le ι e hm2 hP hGm
   rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ trFreshLaw_nonneg _ _ _ _)
-    (c3_bad_mass_summable e hm1 hP hGm)] at hB
+    (c3_bad_mass_summable ι e (by omega) hP hGm)] at hB
   have hB' := (ENNReal.ofReal_le_ofReal_iff (by positivity)).1 hB
-  calc (m : ℝ) ^ (Aexp : ℝ) * ∑' a : trBad n e m, trFreshLaw n e G a
-      ≤ (m : ℝ) ^ (Aexp : ℝ) * ((2 ^ 55 + exp ((pStar : ℝ) / 2)) * exp (-m / 2 ^ 51)) := by
+  calc (m : ℝ) ^ (Aexp ι : ℝ) * ∑' a : trBad ι n e m, trFreshLaw n e G a
+      ≤ (m : ℝ) ^ (Aexp ι : ℝ) *
+          (6 * exp (-m / 2 ^ 36) + exp ((pStar ι : ℝ) / 2 - m / 3200000)) := by
         gcongr
-    _ = (m : ℝ) ^ (Aexp : ℝ) * (2 ^ 55 + exp ((pStar : ℝ) / 2)) * exp (-m / 2 ^ 51) := by
-        ring
-    _ < 1 / 8000 := c3_badJ_absorb hm
+    _ < 1 / 8000 := c3_badJ_absorb ι hm
 
 end CollatzPosDens

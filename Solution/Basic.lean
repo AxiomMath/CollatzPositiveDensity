@@ -10,4 +10,4 @@ public import CollatzPosDens.Main.MainJoint
 public import CollatzPosDens.Main.EndpointJoint
 public import CollatzPosDens.Main.EndpointNotThreeDvd
 
-/-! # The statements of `Challenge/Basic.lean`, proved in the library under the same names. -/
+/-! # Satisfying the formal challenge -/

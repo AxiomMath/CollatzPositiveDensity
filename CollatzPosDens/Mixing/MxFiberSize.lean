@@ -9,7 +9,7 @@ public import Mathlib.Data.ZMod.Basic
 public import Mathlib.Order.Interval.Set.Basic
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.Reduction
+public import CollatzPosDens.Transfer.S02Reduction
 
 /-!
 # Fibers of the reduction maps
@@ -27,7 +27,7 @@ multiples of `3^m` below `3^n` are exactly `3^m t` with `t < 3^{n-m}`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §13.2.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section

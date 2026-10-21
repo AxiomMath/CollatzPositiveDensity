@@ -9,7 +9,6 @@ public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkWhite
 public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.CharSum.ChInternalWeight
-public import CollatzPosDens.CharSum.ChRaw3Factor
 public import CollatzPosDens.CharSum.ChWhiteFactor
 public import CollatzPosDens.CharSum.ChBlockListMass
 public import CollatzPosDens.CharSum.ChQfinite
@@ -19,42 +18,33 @@ public import CollatzPosDens.CharSum.ChQfinite
 
 Fix a level `n`, a residue `ξ ∈ G_n` and a threshold `ε`, and let `J = ⌊n/2⌋`. If `j(p) > J`,
 then every block path point `p + Bp_i(β)` has first coordinate at least `j(p) > J`, and every
-point `p + Bp_{k-1}(β) + (i, c₁ + ⋯ + c_i)` at which an internal weight evaluates a raw-three
-factor has first coordinate at least `j(p) + 1 > J`. None of these points is white, so all
-white and raw-three factors equal `1`, and `Q^{(K)}(p)` is the total mass
+point at which an internal weight `I(p + Bp_{k-1}(β); βᵏ)` evaluates a residual reward has first
+coordinate at least `j(p) + 1 > J`. None of these points is white, so every white factor equals
+`1`; and at each of them the residual reward `ρ_c = R_c - [c ∈ {4, 5}] [white]` is `0 - 0`, since
+the paid reward vanishes beyond `J`, so every internal weight equals `1`. Hence `Q^{(K)}(p)` is the
+total mass
 `∑_{β ∈ 𝔅^K} ∏_k bw(βᵏ) = 1`.
 
 ## Main results
 
 * `CollatzPosDens.chQFinite_eq_one_of_lt_bkJ`: if `j(p) > ⌊n/2⌋` then `Q^{(K)}(p) = 1` for
   every `K ∈ ℕ`.
-* `CollatzPosDens.chQFinite_eq_one_of_lt_bkJ_chInternalWeight`: an internal weight started
-  at a point `x` with `j(x) ≥ ⌊n/2⌋` equals `1`.
 
 ## Implementation notes
 
-The base point `p` ranges over all of `ℤ × ℤ`: no hypothesis `p ∈ 𝒫` is imposed.
+The base point `p` ranges over all of `ℤ × ℤ`; the hypothesis `p ∈ 𝒫` is not needed.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §7.4.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- An internal weight started at a point `x` with `j(x) ≥ ⌊n/2⌋` equals `1`: every point at
-which it evaluates a raw-three factor has first coordinate `> ⌊n/2⌋`, so is not white. -/
-theorem chQFinite_eq_one_of_lt_bkJ_chInternalWeight {n : ℕ} (ξ : ResidueGroup n) (ε : ℝ)
-    {x : ℤ × ℤ} (hx : ((n / 2 : ℕ) : ℤ) ≤ bkJ x) (β : List ℤ × ℤ) :
-    chInternalWeight n ξ ε x β = 1 := by
-  refine Finset.prod_eq_one fun i _ ↦ chRaw3Factor_of_not_isBkWhite fun hw ↦ ?_
-  have := hw.bkJ_le
-  simp only [bkJ, Prod.fst_add] at this hx
-  omega
-
-/-- If `j(p) > ⌊n/2⌋`, then `Q^{(K)}(p) = 1` for every `K ∈ ℕ`. -/
+/-- **Finite-horizon products beyond the cut-off.** If `j(p) > ⌊n/2⌋`, then
+`Q^{(K)}(p) = 1` for every `K ∈ ℕ`. -/
 @[collatz_pos_dens "lem_ch_Qfinite_beyond"]
 theorem chQFinite_eq_one_of_lt_bkJ (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K : ℕ)
     {p : ℤ × ℤ} (hp : ((n / 2 : ℕ) : ℤ) < bkJ p) : chQFinite n ξ ε K p = 1 := by
@@ -68,7 +58,7 @@ theorem chQFinite_eq_one_of_lt_bkJ (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (K
   unfold chQFiniteTerm
   rw [Finset.prod_eq_one fun i _ ↦ chWhiteFactor_of_not_isBkWhite fun hw ↦
       (hw.bkJ_le.trans_lt (hp.trans_le (hge _ i))).false,
-    Finset.prod_eq_one fun k _ ↦ chQFinite_eq_one_of_lt_bkJ_chInternalWeight ξ ε
+    Finset.prod_eq_one fun k _ ↦ chInternalWeight_eq_one_of_le ξ ε
       (by exact hp.le.trans (hge _ _)) _]
   ring
 

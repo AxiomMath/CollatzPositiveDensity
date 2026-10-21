@@ -16,7 +16,10 @@ public import CollatzPosDens.Case3.C3RowBound
 public import CollatzPosDens.Case3.C3Anchors
 public import CollatzPosDens.Case3.C3Big
 public import CollatzPosDens.Case3.C3Close
+public import CollatzPosDens.Case3.C3Cols
 public import CollatzPosDens.Case3.C3Eprime
+public import CollatzPosDens.Case3.C3InitEvent
+public import CollatzPosDens.Transfer.S02Wtot
 public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.CharSum.ChBlockPoint
 public import CollatzPosDens.CharSum.ChBlockWeight
@@ -26,42 +29,50 @@ public import CollatzPosDens.StoppingTrace.TrFreshPath
 public import CollatzPosDens.StoppingTrace.TrPath
 
 /-!
-# Outside the exceptional event, large triangles sit at anchors
+# Outside the deviation event, large triangles sit at anchor columns
 
-Let `𝔗 = 𝔗_{n,ξ,ε_*}` with `ξ` a unit, `e = (j₀, l₀) ∈ Δ₀ ∈ 𝔗`, `G ∈ ℕ` with `l₀ + G = l_{Δ₀}`,
-`v ∈ ℕ`, `X` and `s` reals, and assume `2 G^{3/5} + 2 α X + 1 ≤ G δ₀`. If an atom
-`a = ((r, ℓ), β)` of the fresh law has `μ_{e,G}(a) ≠ 0`, lies in the large-triangle event
-`Big_{e,G,v,s}` and not in the exceptional event `Ex_{e,G,v,X}`, then some anchor
-`z ∈ Anc(Δ₀, s, 2X)` satisfies `-X < r + j₀ - z < 2 α X`.
+Let `ι ∈ 𝔍` be a Fourier index, `𝔗 = 𝔗_{n,ξ,ε_*}` with `ξ` a unit, `e = (j₀, l₀) ∈ Δ₀ ∈ 𝔗`,
+`g ∈ ℕ` with `l₀ + g = l_{Δ₀}`, `v ∈ ℕ` and `s` real, and assume
+`g/32 + X_d(ι, v) + X_l(ι, v)/4 + λ W(ι, v) + 1 ≤ g λ₀`, where `λ = log 2 / log 9`,
+`λ₀ = λ - 1/4` and `W(ι, v) = X_o(ι) + X_l(ι, v)`. If an atom `a = ((r, ℓ), β)` of
+the fresh law has `μ_{e,g}(a) ≠ 0`, lies in the large-triangle event `Big_{e,v,s}` and not in
+the deviation event `Dev_{g,v}(ι)`, then `r` lies in the anchor columns `𝒰_{e,Δ₀,v,s}(ι)`.
 
-Nonzero mass forces `ℓ > G` and a nonzero weight for every block `βᵏ`; a block of nonzero
-weight has all its nonclosing letters at least `2`, and its closing letter lies in `{4, 5}`, so
-its block point `(j(βᵏ), l(βᵏ))` satisfies `1 ≤ j(βᵏ) ≤ l(βᵏ)`. Let `u ≤ v` and `Δ' ∈ 𝔗` with
-`s_{Δ'} ≥ s` and `(j, l) = y^e_u(a) ∈ Δ'`. With `H_u = ∑_{k ≤ u} j(βᵏ)` and
-`V_u = ∑_{k ≤ u} l(βᵏ)` we have `j = j₀ + r + H_u` and `l = l₀ + ℓ + V_u`; outside the
-exceptional event `0 < l - l_{Δ₀} < 2X` and `|j - (j₀ + G/4)| < 2 G^{3/5}`. So `Δ' ≠ Δ₀`,
-`le_tip_of_mem_bkFamily` gives `l_{Δ₀} ≤ tip(Δ')`, `BkTriangle.row_bound_of_mem` gives
-`tip(Δ') ≤ l` and `0 ≤ j - j_{Δ'} < 2 α X`, and `z = j_{Δ'}` works since `0 ≤ H_u ≤ V_u < X`.
+Nonzero mass forces `ℓ > g` and a nonzero weight for every block `βᵏ`, whence
+`1 ≤ j(βᵏ) ≤ l(βᵏ)` for its block point. Let `u ≤ v` and `Δ' ∈ 𝔗` with `s_{Δ'} ≥ s` and
+`(j, l) = y^e_u(a) ∈ Δ'`. With `H_u = ∑_{k ≤ u} j(βᵏ)` and `V_u = ∑_{k ≤ u} l(βᵏ)` we have
+`j = j₀ + r + H_u` and `l = l₀ + ℓ + V_u`. Outside the deviation event `0 < ℓ - g < X_o(ι)`,
+`0 ≤ V_u < X_l(ι, v)`, `|r - g/4| < g/32` and `|H_u - V_u/4| < X_d(ι, v)`, so
+`0 < l - l_{Δ₀} < W(ι, v)` and `|j - (j₀ + g/4)| < g/32 + X_d(ι, v) + X_l(ι, v)/4`. Hence
+`Δ' ≠ Δ₀`, `le_tip_of_mem_bkFamily` gives `l_{Δ₀} ≤ tip(Δ')`, `BkTriangle.tip_le_bkL_of_mem`
+gives `tip(Δ') ≤ l` and `BkTriangle.bkJ_sub_j_le_of_mem` gives `0 ≤ j - j_{Δ'} ≤ λ (l - l_{Δ₀})`,
+so `z = j_{Δ'} ∈ Anc(Δ₀, s, W(ι, v))`, and `i = r + j₀ - z` satisfies
+`-X_d(ι, v) - X_l(ι, v)/4 < i < λ X_o(ι) + λ₀ X_l(ι, v) + X_d(ι, v)`.
 
 ## Main results
 
-* `CollatzPosDens.exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional`: the
-  statement for `𝔗_{n,ξ,ε}` with any `0 < ε < 1/27`.
-* `CollatzPosDens.exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional_epsStar`: the
-  statement for the canonical family `𝔗_{n,ξ,ε_*}`.
+* `CollatzPosDens.exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional`: `r` lies in the
+  anchor columns, for `𝔗_{n,ξ,ε}` with any `0 < ε < 1/27`.
+* `CollatzPosDens.exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional_epsStar`: `r` lies in
+  the anchor columns, for the canonical family `𝔗_{n,ξ,ε_*}`.
+* `CollatzPosDens.bkJ_trFreshPath`, `CollatzPosDens.bkL_trFreshPath`: the coordinates of the
+  fresh path.
+* `CollatzPosDens.BkTriangle.bkJ_sub_j_le_of_mem`: `j - j_Δ ≤ λ (l - tip(Δ))` on a triangle.
 
 ## Implementation notes
 
-The source takes `X ≥ 1` an integer and `v ≤ J = ⌊n/2⌋`; neither is used, so `X` is any real
-number and `v` any natural number, which generalizes the source. The bound
-`1 ≤ j(βᵏ) ≤ l(βᵏ)` on the block points is read off the block weight directly (a block of
-nonzero weight has nonclosing letters `≥ 2`), rather than through the holding law `η`; the two
-are equivalent by the block decomposition of `η`. The atom is written `((r, ℓ), β)` and the
-point `e = (j(e), l(e))`; the conclusion is stated in `ℝ`.
+[Mazur] assumes `v ≤ J = ⌊n/2⌋`; this hypothesis is not needed, so `v` is any natural
+number. The bound `1 ≤ j(βᵏ) ≤ l(βᵏ)` on the block points is read off the block
+weight directly (a block of nonzero weight has nonclosing letters `≥ 2`), rather than through
+the holding law `η`; the two are equivalent by the block decomposition of `η`. The atom is
+written `((r, ℓ), β)`, the entry point `e = (j(e), l(e))`, and the conclusion `r ∈ 𝒰` is stated
+for `r` cast to `ℤ`. The allowances `X_d(ι, v)`, `X_l(ι, v)` and `W(ι, v)` are rational and
+enter the margin hypothesis through their casts to `ℝ`; the first-passage conditions
+`ℓ - g < X_o(ι)` and `|r - g/4| < g/32` are read off the initial deviation set `𝓘_g(ι)`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §10.3.
+* [Mazur, *Collatz positive density*], §10.5.
 -/
 
 @[expose] public section
@@ -121,34 +132,37 @@ theorem tip_le_bkL_of_mem {Δ : BkTriangle} {p : ℤ × ℤ} (h : p ∈ Δ) :
     (Real.log_pos one_lt_two)
   linarith
 
-/-- A point of a triangle within `2X` of its tip lies within `2 α X` of its row. -/
-theorem bkJ_sub_j_lt_of_mem {Δ : BkTriangle} {p : ℤ × ℤ} (h : p ∈ Δ) {X : ℝ}
-    (hX : ((bkL p : ℤ) : ℝ) < Δ.tip + 2 * X) : ((bkJ p - Δ.j : ℤ) : ℝ) < 2 * alpha * X := by
+/-- A point of a triangle lies within `α (l - tip(Δ))` of its row:
+`j - j_Δ ≤ α (l - tip(Δ))`. -/
+theorem bkJ_sub_j_le_of_mem {Δ : BkTriangle} {p : ℤ × ℤ} (h : p ∈ Δ) :
+    ((bkJ p - Δ.j : ℤ) : ℝ) ≤ alpha * (((bkL p : ℤ) : ℝ) - Δ.tip) := by
   have hlog9 : 0 < Real.log 9 := Real.log_pos (by norm_num)
-  rw [alpha_def, show 2 * (Real.log 2 / Real.log 9) * X = 2 * X * Real.log 2 / Real.log 9 by
-    ring, lt_div_iff₀ hlog9]
-  exact (row_bound_of_mem h).trans_lt
-    (mul_lt_mul_of_pos_right (by linarith) (Real.log_pos one_lt_two))
+  rw [alpha_def, show Real.log 2 / Real.log 9 * (((bkL p : ℤ) : ℝ) - Δ.tip) =
+    (((bkL p : ℤ) : ℝ) - Δ.tip) * Real.log 2 / Real.log 9 by ring, le_div_iff₀ hlog9]
+  exact row_bound_of_mem h
 
 end BkTriangle
 
 /-- **Large triangles sit at anchors**, for `𝔗_{n,ξ,ε}` with `ξ` a unit and `0 < ε < 1/27`. -/
-theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional {n : ℕ}
+theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional {ι : FIndex} {n : ℕ}
     {ξ : ResidueGroup n} {ε : ℝ} (hξ : IsResidueUnit ξ) (hε : 0 < ε) (hε' : ε < 1 / 27)
-    {Δ₀ : BkTriangle} (hΔ₀ : Δ₀ ∈ bkFamily n ξ ε) {e : ℤ × ℤ} (he : e ∈ Δ₀) {G v : ℕ}
-    (hG : bkL e + G = Δ₀.l) {X s : ℝ}
-    (hGδ : 2 * (G : ℝ) ^ ((3 : ℝ) / 5) + 2 * alpha * X + 1 ≤ G * drift)
-    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (hμ : trFreshLaw n e G a ≠ 0)
-    (hbig : a ∈ c3Big n ξ ε e G v s) (hex : a ∉ c3Exceptional n e G v X) :
-    ∃ z ∈ bkAnchors (bkFamily n ξ ε) Δ₀ s (2 * X),
-      -X < (a.1.1 : ℝ) + bkJ e - z ∧ (a.1.1 : ℝ) + bkJ e - z < 2 * alpha * X := by
+    {Δ₀ : BkTriangle} (hΔ₀ : Δ₀ ∈ bkFamily n ξ ε) {e : ℤ × ℤ} (he : e ∈ Δ₀) {g v : ℕ}
+    (hg : bkL e + g = Δ₀.l) {s : ℝ}
+    (hgW : (g : ℝ) / 32 + (Xd ι v : ℝ) + (Xl ι v : ℝ) / 4 + alpha * (totalAllowance ι v : ℝ) + 1 ≤
+      g * drift)
+    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (hμ : trFreshLaw n e g a ≠ 0)
+    (hbig : a ∈ c3Big n ξ ε e v s) (hex : a ∉ c3Exceptional ι n g v) :
+    (a.1.1 : ℤ) ∈ c3AnchorCols ι (bkFamily n ξ ε) e Δ₀ v s := by
   obtain ⟨⟨r, ℓ⟩, β⟩ := a
   obtain ⟨ha, u, huv, Δ', hΔ', hy, hs⟩ := mem_c3Big.1 hbig
+  have hdr := abs_drift_lt_of_notMem_c3Exceptional ha hex huv
   rw [notMem_c3Exceptional_iff ha] at hex
-  obtain ⟨hex₁, hex₂, hex₃, hex₄⟩ := hex
-  simp only at hex₁ hex₂ hex₃ hex₄
+  obtain ⟨hex₁, hex₂, -⟩ := hex
+  simp only at hex₁ hex₂ hdr
+  rw [mem_c3InitEvent, not_or, not_le, not_le] at hex₁
+  obtain ⟨hexo, hexr⟩ := hex₁
   rw [trFreshLaw_mk] at hμ
-  have hℓ : (G : ℝ) < ℓ := by exact_mod_cast (firstPassageLaw_support (left_ne_zero_of_mul hμ)).2
+  have hℓ : (g : ℤ) < ℓ := (firstPassageLaw_support (left_ne_zero_of_mul hμ)).2
   have hjl : ∀ b ∈ β, bkJ (chBlockPoint b) ≤ bkL (chBlockPoint b) := fun b hb =>
     c3Near_fst_le_snd (trListWeight_ne_zero_iff.1 (right_ne_zero_of_mul hμ) b hb)
       (trAtoms_closing_mem ha hb)
@@ -161,21 +175,31 @@ theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional {n : ℕ}
   set y := trFreshPath e ((r, ℓ), β) u
   have hH0 : 0 ≤ H := by
     simpa only [List.take_zero, List.map_nil, List.sum_nil] using c3Near_sum_take_le hj0 u.zero_le
-  have hHV : H ≤ V := List.sum_le_sum fun b hb => hjl b (List.mem_of_mem_take hb)
-  have hHv : (H : ℝ) ≤ (((β.take v).map fun b => bkJ (chBlockPoint b)).sum : ℤ) := by
-    exact_mod_cast c3Near_sum_take_le hj0 huv
-  have hVv : (V : ℝ) ≤ (((β.take v).map fun b => bkL (chBlockPoint b)).sum : ℤ) := by
+  have hV0 : 0 ≤ V := by
+    simpa only [List.take_zero, List.map_nil, List.sum_nil] using c3Near_sum_take_le hl0 u.zero_le
+  have hVv : ((V : ℤ) : ℝ) ≤ (((β.take v).map fun b => bkL (chBlockPoint b)).sum : ℤ) := by
     exact_mod_cast c3Near_sum_take_le hl0 huv
+  -- real-valued facts
   have hH0r : (0 : ℝ) ≤ H := by exact_mod_cast hH0
-  have hHVr : (H : ℝ) ≤ V := by exact_mod_cast hHV
-  have hGr : ((bkL e : ℤ) : ℝ) + G = Δ₀.l := by exact_mod_cast hG
+  have hV0r : (0 : ℝ) ≤ V := by exact_mod_cast hV0
+  have hVr : (V : ℝ) < Xl ι v := hVv.trans_lt hex₂
+  have hℓr : (g : ℝ) < ℓ := by exact_mod_cast hℓ
+  have hor : (ℓ : ℝ) - g < overshootAllowance ι := by exact_mod_cast hexo
+  have hrr : |(r : ℝ) - g / 4| < g / 32 := by exact_mod_cast hexr
+  have hdr' : |(4 * H - V : ℝ)| < 4 * Xd ι v := by exact_mod_cast hdr
+  have hdr₁ := (le_abs_self _).trans_lt hdr'
+  have hdr₂ := (neg_lt_neg hdr').trans_le (neg_abs_le _)
+  have hgr : ((bkL e : ℤ) : ℝ) + g = Δ₀.l := by exact_mod_cast hg
   have hlr : ((bkL y : ℤ) : ℝ) = (bkL e : ℝ) + ℓ + V := by rw [hyL]; push_cast; ring
   have hjr : ((bkJ y : ℤ) : ℝ) = (bkJ e : ℝ) + r + H := by rw [hyJ]; push_cast; ring
+  have hW : (totalAllowance ι v : ℝ) = overshootAllowance ι + Xl ι v := by
+    rw [totalAllowance_def, Rat.cast_add, Rat.cast_natCast]
   have hl₁ : Δ₀.l < bkL y := by
-    exact_mod_cast (show ((Δ₀.l : ℤ) : ℝ) < ((bkL y : ℤ) : ℝ) by rw [hlr, ← hGr]; linarith)
-  have hl₂ : ((bkL y : ℤ) : ℝ) < Δ₀.l + 2 * X := by rw [hlr, ← hGr]; linarith
-  have hj : |((bkJ y : ℤ) : ℝ) - ((bkJ e : ℤ) + (G : ℝ) / 4)| ≤ 2 * (G : ℝ) ^ ((3 : ℝ) / 5) := by
-    rw [hjr, show (bkJ e : ℝ) + r + H - ((bkJ e : ℤ) + (G : ℝ) / 4) = ((r : ℝ) - G / 4) + H by
+    exact_mod_cast (show ((Δ₀.l : ℤ) : ℝ) < ((bkL y : ℤ) : ℝ) by rw [hlr, ← hgr]; linarith)
+  have hl₂ : ((bkL y : ℤ) : ℝ) < Δ₀.l + totalAllowance ι v := by rw [hlr, ← hgr, hW]; linarith
+  have hj : |((bkJ y : ℤ) : ℝ) - ((bkJ e : ℤ) + (g : ℝ) / 4)| ≤
+      (g : ℝ) / 32 + Xd ι v + (Xl ι v : ℝ) / 4 := by
+    rw [hjr, show (bkJ e : ℝ) + r + H - ((bkJ e : ℤ) + (g : ℝ) / 4) = ((r : ℝ) - g / 4) + H by
       ring]
     refine (abs_add_le _ _).trans ?_
     rw [abs_of_nonneg hH0r]
@@ -184,30 +208,46 @@ theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional {n : ℕ}
     rintro rfl
     exact (le_l_of_mem hy).not_gt hl₁
   have htip : (Δ₀.l : ℝ) ≤ Δ'.tip :=
-    le_tip_of_mem_bkFamily hξ hε hε' hΔ₀ hΔ' hne he hG hy hl₁.le hl₂.le hj (by linarith)
+    le_tip_of_mem_bkFamily hξ hε hε' hΔ₀ hΔ' hne he hg hy hl₁.le hl₂.le hj hgW
   have htip₂ := tip_le_bkL_of_mem hy
-  have hjz : (0 : ℝ) ≤ ((bkJ y - Δ'.j : ℤ) : ℝ) := by exact_mod_cast sub_nonneg.2 (mem_iff.1 hy).1
+  have hrow := bkJ_sub_j_le_of_mem hy
   have hjy : ((bkJ y - Δ'.j : ℤ) : ℝ) = (bkJ e : ℝ) + r + H - Δ'.j := by rw [Int.cast_sub, hjr]
-  refine ⟨Δ'.j, j_mem_bkAnchors hΔ' hs htip (by linarith), ?_, ?_⟩
-  · linarith [hVv.trans_lt hex₂]
-  · linarith [bkJ_sub_j_lt_of_mem hy (X := X) (by linarith)]
+  have hα : 0 < alpha := alpha_pos
+  have hrow' : (bkJ e : ℝ) + r + H - Δ'.j ≤ alpha * ((ℓ - g) + V) := by
+    rw [← hjy]
+    refine hrow.trans (mul_le_mul_of_nonneg_left ?_ hα.le)
+    rw [hlr]
+    linarith
+  have hdrift : drift = alpha - 1 / 4 := drift_def
+  have hd0 : 0 < drift := drift_pos
+  refine ⟨Δ'.j, j_mem_bkAnchors hΔ' hs htip (by linarith), r + bkJ e - Δ'.j, ?_, ?_, by ring⟩
+  · rw [show (((r : ℤ) + bkJ e - Δ'.j : ℤ) : ℝ) = (r : ℝ) + bkJ e - Δ'.j by push_cast; ring]
+    have hjz : (0 : ℝ) ≤ ((bkJ y - Δ'.j : ℤ) : ℝ) := by
+      exact_mod_cast sub_nonneg.2 (mem_iff.1 hy).1
+    linarith
+  · rw [show (((r : ℤ) + bkJ e - Δ'.j : ℤ) : ℝ) = (r : ℝ) + bkJ e - Δ'.j by push_cast; ring]
+    have h1 : alpha * ((ℓ : ℝ) - g) ≤ alpha * overshootAllowance ι :=
+      mul_le_mul_of_nonneg_left hor.le hα.le
+    have h2 : drift * (V : ℝ) ≤ drift * Xl ι v := mul_le_mul_of_nonneg_left hVr.le hd0.le
+    have h3 : alpha * ((ℓ - g) + V) = alpha * ((ℓ : ℝ) - g) + drift * V + V / 4 := by
+      rw [hdrift]; ring
+    linarith
 
-/-- **Outside the exceptional event, large triangles sit at anchors**. Let `ξ` be a unit,
-`e = (j₀, l₀) ∈ Δ₀ ∈ 𝔗 = 𝔗_{n,ξ,ε_*}`, `G ∈ ℕ` with `l₀ + G = l_{Δ₀}`, `v ∈ ℕ`, `X, s ∈ ℝ`, and
-assume `2 G^{3/5} + 2 α X + 1 ≤ G δ₀`. If an atom `a = ((r, ℓ), β)` has `μ_{e,G}(a) ≠ 0`,
-`a ∈ Big_{e,G,v,s}` and `a ∉ Ex_{e,G,v,X}`, then there is `z ∈ Anc(Δ₀, s, 2X)` with
-`-X < r + j₀ - z < 2 α X`. -/
+/-- **Outside the deviation event, large triangles sit at anchor columns**. Let `ι ∈ 𝔍`, `ξ` a
+unit, `e = (j₀, l₀) ∈ Δ₀ ∈ 𝔗 = 𝔗_{n,ξ,ε_*}`, `g ∈ ℕ` with `l₀ + g = l_{Δ₀}`, `v ∈ ℕ`, `s ∈ ℝ`, and
+assume `g/32 + X_d(ι, v) + X_l(ι, v)/4 + λ W(ι, v) + 1 ≤ g λ₀`. If an atom `a = ((r, ℓ), β)` has
+`μ_{e,g}(a) ≠ 0`, `a ∈ Big_{e,v,s}` and `a ∉ Dev_{g,v}(ι)`, then `r ∈ 𝒰_{e,Δ₀,v,s}(ι)`. -/
 @[collatz_pos_dens "lem_c3_near"]
-theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional_epsStar {n : ℕ}
+theorem exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional_epsStar {ι : FIndex} {n : ℕ}
     {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ) {Δ₀ : BkTriangle}
-    (hΔ₀ : Δ₀ ∈ bkFamily n ξ epsStar) {e : ℤ × ℤ} (he : e ∈ Δ₀) {G v : ℕ}
-    (hG : bkL e + G = Δ₀.l) {X s : ℝ}
-    (hGδ : 2 * (G : ℝ) ^ ((3 : ℝ) / 5) + 2 * alpha * X + 1 ≤ G * drift)
-    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (hμ : trFreshLaw n e G a ≠ 0)
-    (hbig : a ∈ c3Big n ξ epsStar e G v s) (hex : a ∉ c3Exceptional n e G v X) :
-    ∃ z ∈ bkAnchors (bkFamily n ξ epsStar) Δ₀ s (2 * X),
-      -X < (a.1.1 : ℝ) + bkJ e - z ∧ (a.1.1 : ℝ) + bkJ e - z < 2 * alpha * X :=
+    (hΔ₀ : Δ₀ ∈ bkFamily n ξ epsStar) {e : ℤ × ℤ} (he : e ∈ Δ₀) {g v : ℕ}
+    (hg : bkL e + g = Δ₀.l) {s : ℝ}
+    (hgW : (g : ℝ) / 32 + (Xd ι v : ℝ) + (Xl ι v : ℝ) / 4 + alpha * (totalAllowance ι v : ℝ) + 1 ≤
+      g * drift)
+    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (hμ : trFreshLaw n e g a ≠ 0)
+    (hbig : a ∈ c3Big n ξ epsStar e v s) (hex : a ∉ c3Exceptional ι n g v) :
+    (a.1.1 : ℤ) ∈ c3AnchorCols ι (bkFamily n ξ epsStar) e Δ₀ v s :=
   exists_mem_bkAnchors_of_mem_c3Big_of_notMem_c3Exceptional hξ
-    epsStar_mem_bkRange.1 epsStar_mem_bkRange.2 hΔ₀ he hG hGδ hμ hbig hex
+    epsStar_mem_bkRange.1 epsStar_mem_bkRange.2 hΔ₀ he hg hgW hμ hbig hex
 
 end CollatzPosDens

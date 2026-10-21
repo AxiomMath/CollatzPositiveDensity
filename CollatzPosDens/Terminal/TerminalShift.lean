@@ -16,7 +16,7 @@ public import CollatzPosDens.FirstCrossing.Scales
 
 For `n ≥ 0`, a real `X > 0` and a real `R > 0`, the terminal shift `u_{n,X}(R)` is the least
 natural number `u` with `2^u L_{b_n}(R) ≥ X`, where `L_b` is the lower scale and `b_n` the
-`n`-th scale. For a central history `h ∈ 𝓗_n(M)` one abbreviates `u_h := u_{n,X}(R_h)`, with
+`n`-th scale. For a central history `h ∈ 𝓗_n(t)` one abbreviates `u_h := u_{n,X}(R_h)`, with
 `R_h` the endpoint of `h`.
 
 ## Main definitions
@@ -38,6 +38,10 @@ The shift is defined as the infimum of `{u | X ≤ 2^u L_{b_n}(R)}` for all `X R
 total function; when the set is empty (which can only happen if `R ≤ 0`) the value is `0`.
 The positivity of `R` is a hypothesis of the lemmas that need the set to be nonempty; the
 positivity of `X` is never needed.
+The shift `u_h` is defined in [mazur2026] for histories `h ∈ 𝓗_n(t)` from an odd positive
+integer `t`; the abbreviation `CollatzPosDens.historyShift` is defined for every tuple
+`h : Fin n → Word` (a history `(w₀, …, w_{n-1})`, as in `CollatzPosDens.centralHistories`) from
+any rational starting point `t`, of which that is a special case.
 
 ## References
 
@@ -54,13 +58,13 @@ there is no such `u` (which can only happen when `R ≤ 0`). -/
 noncomputable def terminalShift (n : ℕ) (X R : ℝ) : ℕ :=
   sInf {u : ℕ | X ≤ 2 ^ u * lowerScale (scale n) R}
 
-/-- The shift `u_h = u_{n,X}(R_h)` of a history `h` of generation `n` from `M`, where `R_h` is
-the endpoint of `h`. -/
+/-- The shift `u_h = u_{n,X}(R_h)` of a history `h = (w₀, …, w_{n-1})` of generation `n` from
+`t`, where `R_h` is the endpoint of `h`. -/
 @[collatz_pos_dens "def_terminal_shift"]
-noncomputable abbrev historyShift (n : ℕ) (X : ℝ) (M : ℚ) (h : Fin n → Word) : ℕ :=
-  terminalShift n X (historyEndpoint M h : ℝ)
+noncomputable abbrev historyShift (n : ℕ) (X : ℝ) (t : ℚ) (h : Fin n → Word) : ℕ :=
+  terminalShift n X (historyEndpoint t h : ℝ)
 
-/-- The terminal shift `u_{n,X}(R)` is the infimum of `{u ∈ ℕ | X ≤ 2^u L_{b_n}(R)}`. -/
+/-- Unfolding lemma for `terminalShift`. -/
 theorem terminalShift_def (n : ℕ) (X R : ℝ) :
     terminalShift n X R = sInf {u : ℕ | X ≤ 2 ^ u * lowerScale (scale n) R} := rfl
 

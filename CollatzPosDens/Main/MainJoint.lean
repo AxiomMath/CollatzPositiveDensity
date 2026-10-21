@@ -12,27 +12,26 @@ public import CollatzPosDens.Main.EndpointJoint
 /-!
 # The explicit joint density theorem
 
-For every natural number `N ≥ X_ch = 2 ^ 2 ^ 2 ^ 2 ^ 87640`, at least `c_ch · N` of the odd
-integers `n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps and within
-`⌊3.4881 log n⌋₊` accelerated Collatz steps, where `c_ch = 1 / 2 ^ 2 ^ 2 ^ 87640`.
+For every natural number `N`, at least `⌊c_ch · N⌋₊` of the odd integers `n ∈ {0, …, N - 1}`
+reach `1` within `⌊10.46 log n⌋₊` Collatz steps and within `⌊3.4881 log n⌋₊` accelerated Collatz
+steps, where `c_ch = 1 / 2 ^ 2 ^ 2 ^ 163` (`collatzDensity`).
 
-This is the joint density theorem for a prescribed endpoint `s` coprime to `6`
-(`positive_density_collatz_and_collatzAccel_reaches_of_coprime_six`) at `s = 1`: there
-`c(1) = 1 / (1 ^ 4 · 2 ^ 2 ^ 2 ^ 87640) = c_ch`, `X(1) = 2 ^ (1 ^ 3 · 2 ^ 2 ^ 2 ^ 87640) = X_ch`
-and `log (n / 1) = log n`.
+This is the joint density theorem for a prescribed endpoint `t` coprime to `6`
+(`positive_density_collatz_and_collatzAccel_reaches_of_coprime_six`) at `t = 1`: since the real
+power `1 ^ (25/11)` equals `1`, there `c_end(1) = 1 / (1 ^ (25/11) · 2 ^ 2 ^ 2 ^ 163)` is the
+real image of `c_ch`, and `log (n / 1) = log n`. The natural-number floor of a rational number
+equals that of its real image.
 
 ## Main results
 
-* `positive_density_collatz_and_collatzAccel_reaches_one`: for `N ≥ collatzDensityThreshold`, at
-  least `collatzDensity · N` of the `n < N` reach `1` within the stated Collatz and accelerated
-  Collatz step bounds.
+* `positive_density_collatz_and_collatzAccel_reaches_one`: the challenge statement.
 
 ## Implementation notes
 
-The identifications `c(1) = c_ch` and `X(1) = X_ch` are made by rewriting `1 ^ k = 1` and
-`1 · a = a` in the same expressions with the innermost exponent `87640` replaced by a variable
-`x`, and then specializing to `x = 87640` definitionally. Working with a variable keeps the
-kernel from attempting to evaluate the towers, which it refuses to do.
+The identification of `c_end(1)` with the real image of `c_ch` is proved for auxiliary
+definitions with the innermost exponent `163` replaced by a variable `x`, and then specialized to
+`x = 163` definitionally. Comparing two definitions applied to `163` lets the kernel match them
+argument by argument, so it never attempts to evaluate a tower.
 
 ## References
 
@@ -43,44 +42,38 @@ kernel from attempting to evaluate the towers, which it refuses to do.
 
 open Finset
 
-/-- `2 ^ 2 ^ 2 ^ 2 ^ x`; `X_ch` is its value at `x = 87640`. -/
-private def towerFour (x : ℕ) : ℕ := 2 ^ 2 ^ 2 ^ 2 ^ x
-
-/-- `2 ^ (s ^ 3 · 2 ^ 2 ^ 2 ^ x)`; `X(s)` is its value at `x = 87640`. -/
-private def thresholdTower (s x : ℕ) : ℕ := 2 ^ (s ^ 3 * 2 ^ 2 ^ 2 ^ x)
-
-/-- `1 / 2 ^ 2 ^ 2 ^ x`; `c_ch` is its value at `x = 87640`. -/
+/-- `1 / 2 ^ 2 ^ 2 ^ x`; `c_ch` is its value at `x = 163`. -/
 private def densityTower (x : ℕ) : ℚ := 1 / 2 ^ 2 ^ 2 ^ x
 
-/-- `1 / (s ^ 4 · 2 ^ 2 ^ 2 ^ x)`; `c(s)` is its value at `x = 87640`. -/
-private def densityDepTower (s x : ℕ) : ℚ := 1 / (s ^ 4 * 2 ^ 2 ^ 2 ^ x)
+/-- `1 / (t ^ (25/11) · 2 ^ 2 ^ 2 ^ x)`; `c_end(t)` is its value at `x = 163`. -/
+private noncomputable def densityDepTower (t x : ℕ) : ℝ :=
+  1 / (t ^ (25 / 11 : ℝ) * 2 ^ 2 ^ 2 ^ x)
 
-private theorem thresholdTower_one (x : ℕ) : thresholdTower 1 x = towerFour x := by
-  unfold thresholdTower towerFour
-  rw [Nat.one_pow, Nat.one_mul]
-
-private theorem densityDepTower_one (x : ℕ) : densityDepTower 1 x = densityTower x := by
+private theorem densityDepTower_one (x : ℕ) :
+    densityDepTower 1 x = (densityTower x : ℝ) := by
   unfold densityDepTower densityTower
-  rw [Nat.cast_one, one_pow, one_mul]
+  rw [Nat.cast_one, Real.one_rpow, one_mul, Rat.cast_div, Rat.cast_one, Rat.cast_pow,
+    Rat.cast_ofNat]
 
-/-- `X(1) = X_ch`. -/
-private theorem collatzDensityThresholdDep_one :
-    collatzDensityThresholdDep 1 = collatzDensityThreshold :=
-  (thresholdTower_one 87640 : thresholdTower 1 87640 = towerFour 87640)
+/-- `c_end(1)` is the real image of `c_ch`. -/
+private theorem collatzDensityDep_one : collatzDensityDep 1 = (collatzDensity : ℝ) :=
+  (densityDepTower_one 163 : densityDepTower 1 163 = (densityTower 163 : ℝ))
 
-/-- `c(1) = c_ch`. -/
-private theorem collatzDensityDep_one : collatzDensityDep 1 = collatzDensity :=
-  (densityDepTower_one 87640 : densityDepTower 1 87640 = densityTower 87640)
+/-- The natural-number floor of a rational number equals that of its real image. -/
+private theorem natFloor_ratCast_real (q : ℚ) : ⌊(q : ℝ)⌋₊ = ⌊q⌋₊ := by
+  rw [← Int.floor_toNat, ← Int.floor_toNat, Rat.floor_cast]
 
-/-- **The explicit joint density theorem.** For every `N ≥ X_ch`, at least `c_ch · N` of the odd
-`n ∈ {0, …, N - 1}` reach `1` within `⌊10.46 log n⌋₊` Collatz steps and within
-`⌊3.4881 log n⌋₊` accelerated Collatz steps. -/
+/-- **The explicit density theorem**, both clocks at once: for every `N`, at least `⌊c N⌋` of
+odd starting values `n < N` reach `1` in at most `⌊10.46 log n⌋` Collatz steps and
+in at most `⌊3.4881 log n⌋` accelerated Collatz steps. -/
 @[collatz_pos_dens "thm_main_joint"]
-theorem positive_density_collatz_and_collatzAccel_reaches_one
-    {N : ℕ} (hN : collatzDensityThreshold ≤ N) :
-    collatzDensity * N ≤
+theorem positive_density_collatz_and_collatzAccel_reaches_one (N : ℕ) :
+    ⌊collatzDensity * N⌋₊ ≤
     #{n ∈ range N | Odd n ∧ ReachWithin collatz 1 n ⌊(10.46 : ℝ) * Real.log n⌋₊ ∧
       ReachWithin collatzAccel 1 n ⌊(3.4881 : ℝ) * Real.log n⌋₊} := by
   have h := positive_density_collatz_and_collatzAccel_reaches_of_coprime_six
-    (Nat.coprime_one_left 6) (collatzDensityThresholdDep_one ▸ hN)
-  simpa only [collatzDensityDep_one, Nat.cast_one, div_one] using h
+    (Nat.coprime_one_left 6) N
+  simp only [Nat.cast_one, div_one] at h
+  rw [collatzDensityDep_one] at h
+  rw [← natFloor_ratCast_real, Rat.cast_mul, Rat.cast_natCast]
+  exact h

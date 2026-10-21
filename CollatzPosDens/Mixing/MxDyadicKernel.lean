@@ -6,7 +6,7 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Transfer.DyadicReduction
+public import CollatzPosDens.Transfer.S02DyadicReduction
 
 /-!
 # The kernel of the dyadic reduction modulo `3^T`

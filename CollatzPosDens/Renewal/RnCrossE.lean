@@ -16,7 +16,7 @@ public import Mathlib.Tactic.Ring
 
 For `t ∈ ℕ` and `j ∈ ℤ` the boundary weight is
 `e_t(j) = (1/8) binom(t - 1, 2j - 1) 2^{-t}` when `t ≥ 1` and `j ≥ 1`, and `e_t(j) = 0`
-otherwise.
+otherwise. It is the companion of the straddle weight `CollatzPosDens.straddleWeight`.
 
 ## Main definitions
 
@@ -26,8 +26,7 @@ otherwise.
 
 * `CollatzPosDens.boundaryWeight_of_pos`, `CollatzPosDens.boundaryWeight_of_not`:
   the two cases of the definition.
-* `CollatzPosDens.boundaryWeight_zero_left`, `CollatzPosDens.boundaryWeight_of_nonpos`:
-  vanishing at `t = 0` and at `j ≤ 0`.
+* `CollatzPosDens.boundaryWeight_of_nonpos`: vanishing at `j ≤ 0`.
 * `CollatzPosDens.boundaryWeight_succ_natCast_succ`: the value at `t + 1`, `j + 1` with
   `t, j ∈ ℕ`.
 * `CollatzPosDens.boundaryWeight_eq_div_sixteen`: the form
@@ -42,7 +41,7 @@ binomial coefficient is read in `ℕ` as `2 j.toNat - 1`, which agrees with `2j 
 
 ## References
 
-* [Mazur, *Collatz positive density*], §6.5.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -64,11 +63,6 @@ theorem boundaryWeight_of_pos {t : ℕ} {j : ℤ} (ht : 1 ≤ t) (hj : 1 ≤ j) 
 theorem boundaryWeight_of_not {t : ℕ} {j : ℤ} (h : ¬(1 ≤ t ∧ 1 ≤ j)) :
     boundaryWeight t j = 0 := by
   simp [boundaryWeight, h]
-
-/-- The boundary weight `e_0(j)` vanishes. -/
-@[simp]
-theorem boundaryWeight_zero_left (j : ℤ) : boundaryWeight 0 j = 0 :=
-  boundaryWeight_of_not (by omega)
 
 /-- The boundary weight `e_t(j)` vanishes for `j ≤ 0`. -/
 theorem boundaryWeight_of_nonpos (t : ℕ) {j : ℤ} (hj : j ≤ 0) : boundaryWeight t j = 0 :=

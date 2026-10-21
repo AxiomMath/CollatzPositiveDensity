@@ -7,7 +7,7 @@ module
 
 public import Mathlib.GroupTheory.Index
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Transfer.LiftedTransfer
+public import CollatzPosDens.Transfer.S02LiftedTransfer
 public import CollatzPosDens.Transfer.ResidueMapInjective
 public import CollatzPosDens.Transfer.TransferMean
 
@@ -33,7 +33,7 @@ reduction `π_{Q-d,k}` has exactly `3^{Q-d-k}` points, `⟨|f|⟩_{Q-d} = ⟨|g|
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §3.2.
 -/
 
 @[expose] public section

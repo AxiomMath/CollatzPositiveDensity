@@ -5,7 +5,7 @@ Authors: Axiom Math
 -/
 module
 
-public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import CollatzPosDens.Attr
 
 /-! # The definitions of the challenge statements
@@ -28,15 +28,10 @@ def collatz (n : ℕ) : ℕ :=
 def ReachWithin {α : Type*} (f : α → α) (target n : α) (steps : ℕ) : Prop :=
   ∃ r ≤ steps, f^[r] n = target
 
-/-- The density constant `c = 1 / 2^2^2^87640`. -/
+/-- The density constant `c = 1 / 2^2^2^163`. -/
 @[collatz_pos_dens "def_challenge_density"]
 def collatzDensity : ℚ :=
-  1 / 2 ^ 2 ^ 2 ^ 87640
-
-/-- The cutoff `X₀ = 2^2^2^2^87640`. -/
-@[collatz_pos_dens "def_challenge_threshold"]
-def collatzDensityThreshold : ℕ :=
-  2 ^ 2 ^ 2 ^ 2 ^ 87640
+  1 / 2 ^ 2 ^ 2 ^ 163
 
 section with_accel
 
@@ -50,14 +45,9 @@ end with_accel
 
 section generalized
 
-/-- The density constant `c = 1 / (t^4 * 2^2^2^87640)`. -/
+/-- The density constant `c = 1 / (t^(25/11) * 2^2^2^163)`. -/
 @[collatz_pos_dens "def_endpoint_density"]
-def collatzDensityDep (t : ℕ) : ℚ :=
-  1 / (t ^ 4 * 2 ^ 2 ^ 2 ^ 87640)
-
-/-- The cutoff `X₀ = 2^(s^3 * 2^2^2^87640)`. -/
-@[collatz_pos_dens "def_endpoint_threshold"]
-def collatzDensityThresholdDep (t : ℕ) : ℕ :=
-  2 ^ (t ^ 3 * 2 ^ 2 ^ 2 ^ 87640)
+noncomputable def collatzDensityDep (t : ℕ) : ℝ :=
+  1 / (t ^ (25 / 11 : ℝ) * 2 ^ 2 ^ 2 ^ 163)
 
 end generalized

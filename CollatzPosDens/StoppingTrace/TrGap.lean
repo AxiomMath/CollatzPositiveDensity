@@ -12,18 +12,14 @@ public import CollatzPosDens.Transfer.EpsStar
 /-!
 # The gap of a black point
 
-Fix a level `n`, a residue `ξ ∈ G_n` and a colour scale `ε`. For a point `p = (j, l)`, if some
-integer `t ≥ 1` has `(j, l + t)` white, and `t₀` is the least such `t`, then the *gap* of `p` is
-`gap(p) := t₀ - 1 ∈ ℕ`, the number of points of column `j` strictly between `p` and the first
-white point above it; if no point `(j, l + t)` with `t ≥ 1` is white, then `gap(p) := 0`.
-
-Writing `l_*(p)` for the top of the run of non-white points of column `j` directly above `p`
-(`CollatzPosDens.bkColTop`), both cases say `gap(p) = l_*(p) - l`, and this is how `trGap` is
-defined.
+Fix a level `n`, a residue `ξ ∈ G_n` and a colour scale `ε`. For a point `p = (j, l)` write
+`l_*(p)` for the top of the run of non-white points of column `j` directly above `p`
+(`CollatzPosDens.bkColTop`). The *gap* of `p` is the integer `gap(p) := l_*(p) - l(p)`, the
+vertical distance from `p` to the top of its column run.
 
 ## Main definitions
 
-* `CollatzPosDens.trGap n ξ ε p`: the gap `gap(p)`.
+* `CollatzPosDens.trGap n ξ ε p`: the gap `gap(p) = l_*(p) - l(p) ∈ ℤ`.
 
 ## Main results
 
@@ -31,31 +27,28 @@ defined.
 
 ## Implementation notes
 
-The gap is defined as `(l_*(p) - l).toNat`, so the `Nat.find` API of `CollatzPosDens.bkColTop`
-applies to the gap through `bkColTop_eq_add_trGap`. Mazur defines the gap only for black points
-and at the colour scale `ε = ε_*` (`CollatzPosDens.epsStar`); here it is defined for every
-`p : ℤ × ℤ` and every `ε : ℝ`, and blackness is a hypothesis of the lemmas that need it.
+The gap is defined for every `p : ℤ × ℤ`, not only for black points, and blackness is a
+hypothesis of the lemmas that need it. The definition is stated for an arbitrary colour scale
+`ε : ℝ`; it is applied at `ε = ε_*` (`CollatzPosDens.epsStar`).
 
 ## References
 
-* [Mazur, *Collatz positive density*], §9.2.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
 
 namespace CollatzPosDens
 
-/-- The gap of a point `p = (j, l)`: `l_*(p) - l`, i.e. `t₀ - 1` for the least `t₀ ≥ 1` with
-`(j, l + t₀)` white, and `0` if no point `(j, l + t)`, `t ≥ 1`, is white. -/
+/-- The gap of a point `p = (j, l)`: the integer `l_*(p) - l`, the distance from `p` to the top
+of the run of non-white points of its column directly above it. -/
 @[collatz_pos_dens "def_tr_gap"]
-noncomputable def trGap (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) : ℕ :=
-  (bkColTop n ξ ε p - bkL p).toNat
+noncomputable def trGap (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) : ℤ :=
+  bkColTop n ξ ε p - bkL p
 
-/-- For every point `p = (j, l)`, in particular every black point, `l_*(p) = l + gap(p)`. -/
-@[collatz_pos_dens "lem_tr_gap_top"]
+/-- For every point `p = (j, l)`, `l_*(p) = l + gap(p)`. -/
 theorem bkColTop_eq_add_trGap (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (p : ℤ × ℤ) :
-    bkColTop n ξ ε p = bkL p + trGap n ξ ε p := by
-  rw [trGap, Int.toNat_of_nonneg (sub_nonneg.2 le_bkColTop)]
-  ring
+    bkColTop n ξ ε p = bkL p + trGap n ξ ε p :=
+  (add_sub_cancel _ _).symm
 
 end CollatzPosDens

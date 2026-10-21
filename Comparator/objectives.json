@@ -1,0 +1,20 @@
+{
+  "objectives": [
+    {
+      "charter_alias": "thm_endpoint_joint",
+      "lean_decl": "positive_density_collatz_and_collatzAccel_reaches_of_coprime_six"
+    },
+    {
+      "charter_alias": "thm_main_joint",
+      "lean_decl": "positive_density_collatz_and_collatzAccel_reaches_one"
+    },
+    {
+      "charter_alias": "thm_main",
+      "lean_decl": "positive_density_collatz_reaches_one"
+    },
+    {
+      "charter_alias": "thm_endpoint_not_three_dvd",
+      "lean_decl": "positive_density_collatz_and_collatzAccel_reaches_of_not_three_dvd"
+    }
+  ]
+}

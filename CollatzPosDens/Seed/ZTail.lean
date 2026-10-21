@@ -5,40 +5,41 @@ Authors: Axiom Math
 -/
 module
 
-public import Mathlib.Topology.Algebra.InfiniteSum.Order
 public import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
 public import CollatzPosDens.Attr
 public import CollatzPosDens.Recipe.Nstar
+public import CollatzPosDens.Recipe.PhEj
+public import CollatzPosDens.Recipe.TailMargin
+public import CollatzPosDens.Recipe.ZMargin
 public import CollatzPosDens.Seed.Zn
-public import CollatzPosDens.Recipe.Varrho
-public import CollatzPosDens.Recipe.NValue
 public import CollatzPosDens.Recipe.NstarTail
 public import CollatzPosDens.Seed.CentralIncrement
-public import CollatzPosDens.Recipe.MomentTail
 
 /-!
-# Uniform variation of `Z_n` beyond the generation threshold
+# Tail of the variation of `Z_n` beyond the generation threshold
 
-Let `M` be an odd positive integer and `n ≥ N_*`. Then
-$$|Z_n(M) - Z_{N_*}(M)| < \frac{47}{32} 2^{-24}.$$
-
-Since `N_* = 6103914 ≥ 6000000`, the central increment bound applies at every `j ≥ N_*`, so by
-the triangle inequality
-`|Z_n(M) - Z_{N_*}(M)| ≤ ∑_{j=N_*}^{n-1} F j^{5/2} ϱ^j ≤ F ∑_{j ≥ N_*} j^{5/2} ϱ^j`,
-a convergent series of nonnegative terms, which is less than `(47/32) 2^{-24}` by the central
-tail bound beyond `N_*`.
+Let `t` be an odd positive integer and `n ≥ N_*`. The central increment bound
+`|Z_{j+1}(t) - Z_j(t)| ≤ E_j` applies at every `j` with `N_* ≤ j < n`, so by the triangle
+inequality and the tail bound for the propagation majorant beyond `N_*`,
+$$|Z_n(t) - Z_{N_*}(t)| \le \sum_{j=N_*}^{n-1} |Z_{j+1}(t) - Z_j(t)|
+  \le \sum_{j=N_*}^{n-1} E_j < θ_{tl}$$
+(for `n = N_*` both sums are empty). Hence `Z_{N_*}(t) > θ_{tl} + ε_Z` forces `Z_n(t) > ε_Z`,
+where `θ_{tl} = tailMargin` (`= 6/7`) and `ε_Z = centralSumMargin` (`= 2^{-28}`).
 
 ## Main results
 
-* `CollatzPosDens.abs_weightedCentralSum_sub_generationThreshold_lt`: the bound above.
+* `CollatzPosDens.abs_weightedCentralSum_sub_weightedCentralSum_generationThreshold_lt`: the
+  variation bound `|Z_n(t) - Z_{N_*}(t)| < θ_{tl}`.
+* `CollatzPosDens.abs_weightedCentralSum_sub_generationThreshold_lt`: if
+  `Z_{N_*}(t) > θ_{tl} + ε_Z` then `Z_n(t) > ε_Z`.
 
 ## Implementation notes
 
-The integer `M` is cast to `ℚ`, as in the definition of `Z_n(M)`.
+The integer `t` is cast to `ℚ`, as in the definition of `Z_n(t)`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §16.5.
 -/
 
 @[expose] public section
@@ -47,33 +48,28 @@ open Finset
 
 namespace CollatzPosDens
 
-/-- For an odd positive integer `M` and `n ≥ N_*`, `|Z_n(M) - Z_{N_*}(M)| < (47/32) 2^{-24}`. -/
+/-- **Variation of `Z_n` beyond `N_*`.** For an odd positive integer `t` and `n ≥ N_*`,
+`|Z_n(t) - Z_{N_*}(t)| < θ_{tl}`. -/
+theorem abs_weightedCentralSum_sub_weightedCentralSum_generationThreshold_lt {t : ℤ}
+    (hodd : Odd t) (ht : 0 < t) {n : ℕ} (hn : generationThreshold ≤ n) :
+    |weightedCentralSum n t - weightedCentralSum generationThreshold t| <
+      (tailMargin : ℝ) := by
+  rw [abs_sub_comm, ← Real.dist_eq]
+  refine (dist_le_Ico_sum_dist (fun j => weightedCentralSum j t) hn).trans_lt ?_
+  refine lt_of_le_of_lt (Finset.sum_le_sum fun j hj => ?_)
+    (sum_Ico_generationThreshold_propagationMajorant_lt n)
+  rw [Real.dist_eq, abs_sub_comm]
+  exact abs_weightedCentralSum_succ_sub_le hodd ht (mem_Ico.1 hj).1
+
+/-- **Tail of the variation.** For an odd positive integer `t` with
+`Z_{N_*}(t) > θ_{tl} + ε_Z` and `n ≥ N_*`, `Z_n(t) > ε_Z`. -/
 @[collatz_pos_dens "lem_Z_tail"]
-theorem abs_weightedCentralSum_sub_generationThreshold_lt {M : ℤ} (hodd : Odd M) (hM : 0 < M)
+theorem abs_weightedCentralSum_sub_generationThreshold_lt {t : ℤ} (hodd : Odd t) (ht : 0 < t)
+    (hZ : (tailMargin : ℝ) + centralSumMargin < weightedCentralSum generationThreshold t)
     {n : ℕ} (hn : generationThreshold ≤ n) :
-    |weightedCentralSum n M - weightedCentralSum generationThreshold M| <
-      47 / 32 * (2 : ℝ) ^ (-24 : ℤ) := by
-  set N := generationThreshold with hNdef
-  have hN : 6000000 ≤ N := by rw [hNdef, generationThreshold_eq]; norm_num
-  set g : ℕ → ℝ := fun j => (j : ℝ) ^ (5 / 2 : ℝ) * errorDecayRatio ^ j
-  obtain ⟨hs, htail⟩ := generationThreshold_central_tail_lt
-  have hg0 : ∀ j, 0 ≤ g j := fun j => by
-    have := errorDecayRatio_nonneg
-    positivity
-  have hF0 : 0 ≤ errorPrefactor := errorPrefactor_pos.le
-  have h1 : |weightedCentralSum n M - weightedCentralSum N M| ≤
-      ∑ j ∈ Ico N n, errorPrefactor * g j := by
-    rw [abs_sub_comm, ← Real.dist_eq]
-    refine (dist_le_Ico_sum_dist (fun j => weightedCentralSum j M) hn).trans ?_
-    refine Finset.sum_le_sum fun j hj => ?_
-    rw [Real.dist_eq, abs_sub_comm]
-    have := abs_weightedCentralSum_succ_sub_le hodd hM (hN.trans (mem_Ico.1 hj).1)
-    simpa only [g, mul_assoc] using this
-  have h2 : ∑ j ∈ Ico N n, g j ≤ ∑' j : Set.Ici N, g j := by
-    have := hs.sum_le_tsum ((Ico N n).subtype (· ∈ Set.Ici N)) (fun j _ => hg0 j)
-    rwa [Finset.sum_subtype_of_mem g (p := (· ∈ Set.Ici N))
-      (fun j hj => Set.mem_Ici.2 (mem_Ico.1 hj).1)] at this
-  rw [← Finset.mul_sum] at h1
-  exact h1.trans_lt ((mul_le_mul_of_nonneg_left h2 hF0).trans_lt htail)
+    (centralSumMargin : ℝ) < weightedCentralSum n t := by
+  have h := (abs_sub_lt_iff.1
+    (abs_weightedCentralSum_sub_weightedCentralSum_generationThreshold_lt hodd ht hn)).2
+  linarith
 
 end CollatzPosDens

@@ -12,22 +12,18 @@ public import Mathlib.Algebra.Order.Archimedean.Real.Basic
 /-!
 # Lower bound for the scale increment `e_b`
 
-For every `b ∈ ℕ` the scale increment satisfies `e_b ≥ max(1, b/100)`. For `b ≤ 12` this is
-`e_b = 1`; for `b ≥ 13` every candidate value of `e_b` is an integer `k ≥ ⌈b/100⌉ ≥ 1`.
+For every integer `b ≥ 1` the scale increment satisfies `e_b ≥ max(1, b/100)`: indeed
+`e_b = ⌈b/100⌉ ≥ b/100 > 0`, and a positive integer is at least `1`.
 
 ## Main results
 
 * `CollatzPosDens.eb_ge_ceil_div_hundred`: `⌈b/100⌉ = (b + 99) / 100 ≤ e_b`.
-* `CollatzPosDens.eb_lower`: `max 1 (b / 100) ≤ e_b` in `ℝ`.
+* `CollatzPosDens.eb_lower`: `max 1 (b / 100) ≤ e_b` in `ℝ` for `b ≥ 1`.
 
 ## Implementation notes
 
 The natural-number ceiling `⌈b/100⌉` is written `(b + 99) / 100`, matching the definition of
-`eb`. The bound `e_b ≥ ⌈b/100⌉` holds for every `b`, since `⌈b/100⌉ ≤ 1` for `b ≤ 12`.
-
-## References
-
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+`eb`.
 -/
 
 @[expose] public section
@@ -35,21 +31,13 @@ The natural-number ceiling `⌈b/100⌉` is written `(b + 99) / 100`, matching t
 namespace CollatzPosDens
 
 /-- `e_b ≥ ⌈b/100⌉`, with the ceiling written as `(b + 99) / 100`. -/
-theorem eb_ge_ceil_div_hundred (b : ℕ) : (b + 99) / 100 ≤ eb b := by
-  unfold eb
-  split_ifs with h₁ h₂
-  · omega
-  · obtain ⟨_, k, hkb, hk, hkp⟩ := h₂
-    exact (Nat.findGreatest_spec (P := fun k => (b + 99) / 100 ≤ k ∧
-      9 * 3 ^ b * 16 ^ k < 4 ^ (b + 1)) hkb ⟨hk, hkp⟩).1
-  · exact le_rfl
+theorem eb_ge_ceil_div_hundred (b : ℕ) : (b + 99) / 100 ≤ eb b := le_rfl
 
-/-- For every `b ∈ ℕ`, `e_b ≥ max(1, b/100)`. -/
+/-- For every integer `b ≥ 1`, `e_b ≥ max(1, b/100)`. -/
 @[collatz_pos_dens "lem_eb_lower"]
-theorem eb_lower (b : ℕ) : max 1 ((b : ℝ) / 100) ≤ eb b := by
-  refine max_le (mod_cast one_le_eb b) ?_
+theorem eb_lower {b : ℕ} (hb : 1 ≤ b) : max 1 ((b : ℝ) / 100) ≤ eb b := by
+  refine max_le (mod_cast one_le_eb_of_pos hb) ?_
   rw [div_le_iff₀ (by norm_num)]
-  have := eb_ge_ceil_div_hundred b
-  exact_mod_cast (by omega : b ≤ eb b * 100)
+  exact_mod_cast (by rw [eb_eq]; omega : b ≤ eb b * 100)
 
 end CollatzPosDens

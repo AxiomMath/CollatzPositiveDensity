@@ -6,18 +6,18 @@ Authors: Axiom Math
 module
 
 public import Mathlib.Algebra.BigOperators.Intervals
+public import Mathlib.Analysis.SpecialFunctions.Exp
 public import CollatzPosDens.Attr
-public import CollatzPosDens.CharSum.ChRaw3Factor
-public import CollatzPosDens.CharSum.ChWhiteFactor
+public import CollatzPosDens.CharSum.ChPaidReward
+public import CollatzPosDens.Transfer.S02Z
 
 /-!
 # The penalty of a letter sequence
 
-Fix `n`, `ξ ∈ G_n` and `ε`, let `w` be the white factor and `w₃` the raw-three factor. For a
-word `b = (b₁, …, b_k)` of integers, the *penalty* of `b` is
-`Pen(b) = ∏_{1 ≤ i ≤ k, b_i ∈ {4,5}} w(i, b₁ + ⋯ + b_i) ·
-  ∏_{1 ≤ i ≤ k, b_i = 3} w₃(i, b₁ + ⋯ + b_i)`,
-empty products being `1`.
+Fix `n`, `ξ ∈ G_n` and `ε`, and let `R_c(p)` be the paid reward. For a word
+`b = (b₁, …, b_k)` of integers, the *penalty* of `b` is
+`Pen(b) = ∏_{i=1}^{k} exp (-z_* R_{b_i}((i, b₁ + ⋯ + b_i)))`,
+the empty product being `1`.
 
 ## Main definitions
 
@@ -38,14 +38,14 @@ empty products being `1`.
 
 ## Implementation notes
 
-The parameters `n`, `ξ` and `ε`, suppressed in [mazur2026], are explicit. Words are `List ℤ`,
-indexed from `0`, so [mazur2026]'s letter `b_i` is `b.getD (i - 1) 0`. To state the behaviour
+The parameters `n`, `ξ` and `ε`, suppressed in the source, are explicit. Words are `List ℤ`,
+indexed from `0`, so the source's letter `b_i` is `b.getD (i - 1) 0`. To state the behaviour
 under concatenation the penalty is defined as the case `j = s = 0` of a penalty shifted by a
 starting index `j` and a starting height `s`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §7.2.
 -/
 
 @[expose] public section
@@ -53,30 +53,26 @@ starting index `j` and a starting height `s`.
 namespace CollatzPosDens
 
 /-- The penalty shifted by an index `j` and a height `s`:
-`∏_{b_i ∈ {4,5}} w(j + i, s + b₁ + ⋯ + b_i) · ∏_{b_i = 3} w₃(j + i, s + b₁ + ⋯ + b_i)`. -/
+`∏_{i=1}^{k} exp (-z_* R_{b_i}((j + i, s + b₁ + ⋯ + b_i)))`. -/
 noncomputable def chPenaltyFrom (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : ℤ) (b : List ℤ) :
     ℝ :=
-  (∏ i ∈ (Finset.range b.length).filter (fun i => b.getD i 0 ∈ ({4, 5} : Finset ℤ)),
-      chWhiteFactor n ξ ε (j + (i + 1 : ℕ), s + (b.take (i + 1)).sum)) *
-    ∏ i ∈ (Finset.range b.length).filter (fun i => b.getD i 0 = 3),
-      chRaw3Factor n ξ ε (j + (i + 1 : ℕ), s + (b.take (i + 1)).sum)
+  ∏ i ∈ Finset.range b.length,
+    Real.exp (-(zStar : ℝ) *
+      chPaidReward n ξ ε (b.getD i 0) (j + (i + 1 : ℕ), s + (b.take (i + 1)).sum))
 
 /-- The penalty of a word `b = (b₁, …, b_k)`:
-`Pen(b) = ∏_{b_i ∈ {4,5}} w(i, b₁ + ⋯ + b_i) · ∏_{b_i = 3} w₃(i, b₁ + ⋯ + b_i)`
-(empty products are `1`). -/
+`Pen(b) = ∏_{i=1}^{k} exp (-z_* R_{b_i}((i, b₁ + ⋯ + b_i)))` (the empty product is `1`). -/
 @[collatz_pos_dens "def_ch_penalty"]
 noncomputable def chPenalty (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b : List ℤ) : ℝ :=
   chPenaltyFrom n ξ ε 0 0 b
 
 /-- `Pen(b)` as an explicit product over `0`-based indices `i`: the letter `b.getD i 0`
-contributes `w(i + 1, b₁ + ⋯ + b_{i+1})` if it lies in `{4,5}` and `w₃(i + 1, b₁ + ⋯ + b_{i+1})`
-if it equals `3`. -/
+contributes `exp (-z_* R_{b_{i+1}}((i + 1, b₁ + ⋯ + b_{i+1})))`. -/
 theorem chPenalty_def (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b : List ℤ) :
     chPenalty n ξ ε b =
-      (∏ i ∈ (Finset.range b.length).filter (fun i => b.getD i 0 ∈ ({4, 5} : Finset ℤ)),
-          chWhiteFactor n ξ ε ((i + 1 : ℕ), (b.take (i + 1)).sum)) *
-        ∏ i ∈ (Finset.range b.length).filter (fun i => b.getD i 0 = 3),
-          chRaw3Factor n ξ ε ((i + 1 : ℕ), (b.take (i + 1)).sum) := by
+      ∏ i ∈ Finset.range b.length,
+        Real.exp (-(zStar : ℝ) *
+          chPaidReward n ξ ε (b.getD i 0) ((i + 1 : ℕ), (b.take (i + 1)).sum)) := by
   simp [chPenalty, chPenaltyFrom]
 
 /-- The shifted penalty of the empty word is `1`. -/
@@ -85,45 +81,34 @@ theorem chPenaltyFrom_nil (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : ℤ)
     chPenaltyFrom n ξ ε j s [] = 1 := by
   simp [chPenaltyFrom]
 
-/-- The shifted penalty of `a :: b`: the first letter contributes `w(j + 1, s + a)` if
-`a ∈ {4,5}` and `w₃(j + 1, s + a)` if `a = 3`, and the rest is the penalty of `b` shifted to
+/-- The shifted penalty of `a :: b`: the first letter contributes
+`exp (-z_* R_a((j + 1, s + a)))`, and the rest is the penalty of `b` shifted to
 `(j + 1, s + a)`. -/
 theorem chPenaltyFrom_cons (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s a : ℤ) (b : List ℤ) :
     chPenaltyFrom n ξ ε j s (a :: b) =
-      (if a ∈ ({4, 5} : Finset ℤ) then chWhiteFactor n ξ ε (j + 1, s + a) else 1) *
-        (if a = 3 then chRaw3Factor n ξ ε (j + 1, s + a) else 1) *
-          chPenaltyFrom n ξ ε (j + 1) (s + a) b := by
-  have key : ∀ (P : ℤ → Prop) [DecidablePred P] (f : ℤ × ℤ → ℝ),
-      (∏ i ∈ (Finset.range (a :: b).length).filter (fun i => P ((a :: b).getD i 0)),
-          f (j + (i + 1 : ℕ), s + ((a :: b).take (i + 1)).sum)) =
-        (if P a then f (j + 1, s + a) else 1) *
-          ∏ i ∈ (Finset.range b.length).filter (fun i => P (b.getD i 0)),
-            f (j + 1 + (i + 1 : ℕ), s + a + (b.take (i + 1)).sum) := by
-    intro P _ f
-    simp only [Finset.prod_filter, List.length_cons, Finset.prod_range_succ']
-    rw [mul_comm]
-    congr 1
-    · simp
-    · refine Finset.prod_congr rfl fun i _ => ?_
-      simp only [List.getD_cons_succ, List.take_succ_cons, List.sum_cons]
-      congr 3
-      · push_cast
-        ring
-      · ring
-  rw [chPenaltyFrom, chPenaltyFrom, key (· ∈ ({4, 5} : Finset ℤ)), key (· = 3)]
-  ring
+      Real.exp (-(zStar : ℝ) * chPaidReward n ξ ε a (j + 1, s + a)) *
+        chPenaltyFrom n ξ ε (j + 1) (s + a) b := by
+  simp only [chPenaltyFrom, List.length_cons, Finset.prod_range_succ']
+  rw [mul_comm]
+  congr 1
+  · simp
+  · refine Finset.prod_congr rfl fun i _ => ?_
+    simp only [List.getD_cons_succ, List.take_succ_cons, List.sum_cons]
+    congr 4
+    · push_cast
+      ring
+    · ring
 
 /-- The penalty of the empty word is `1`. -/
 @[simp]
 theorem chPenalty_nil (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) : chPenalty n ξ ε [] = 1 := by
   simp [chPenalty]
 
-/-- The penalty of `a :: b`: the first letter contributes `w(1, a)` if `a ∈ {4,5}` and
-`w₃(1, a)` if `a = 3`, and the rest is the penalty of `b` shifted to `(1, a)`. -/
+/-- The penalty of `a :: b`: the first letter contributes `exp (-z_* R_a((1, a)))`, and the
+rest is the penalty of `b` shifted to `(1, a)`. -/
 theorem chPenalty_cons (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (a : ℤ) (b : List ℤ) :
     chPenalty n ξ ε (a :: b) =
-      (if a ∈ ({4, 5} : Finset ℤ) then chWhiteFactor n ξ ε (1, a) else 1) *
-        (if a = 3 then chRaw3Factor n ξ ε (1, a) else 1) * chPenaltyFrom n ξ ε 1 a b := by
+      Real.exp (-(zStar : ℝ) * chPaidReward n ξ ε a (1, a)) * chPenaltyFrom n ξ ε 1 a b := by
   simp only [chPenalty, chPenaltyFrom_cons, zero_add]
 
 /-- The shifted penalty of a concatenation `b ++ c` is the product of the shifted penalty of `b`
@@ -151,17 +136,16 @@ theorem chPenalty_append (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b c : List 
 /-- The shifted penalty is positive. -/
 theorem chPenaltyFrom_pos (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : ℤ) (b : List ℤ) :
     0 < chPenaltyFrom n ξ ε j s b :=
-  mul_pos (Finset.prod_pos fun _ _ => chWhiteFactor_pos _ _ _ _)
-    (Finset.prod_pos fun _ _ => chRaw3Factor_pos _ _ _ _)
+  Finset.prod_pos fun _ _ => Real.exp_pos _
 
 /-- The shifted penalty is at most `1`. -/
 theorem chPenaltyFrom_le_one (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (j s : ℤ) (b : List ℤ) :
-    chPenaltyFrom n ξ ε j s b ≤ 1 :=
-  (mul_le_of_le_one_right (Finset.prod_nonneg fun _ _ => chWhiteFactor_nonneg _ _ _ _)
-      (Finset.prod_le_one₀ (fun _ _ => chRaw3Factor_nonneg _ _ _ _)
-        fun _ _ => chRaw3Factor_le_one _ _ _ _)).trans
-    (Finset.prod_le_one₀ (fun _ _ => chWhiteFactor_nonneg _ _ _ _)
-      fun _ _ => chWhiteFactor_le_one _ _ _ _)
+    chPenaltyFrom n ξ ε j s b ≤ 1 := by
+  have hz : (0 : ℝ) ≤ zStar := by exact_mod_cast zStar_pos.le
+  refine Finset.prod_le_one₀ (fun _ _ => (Real.exp_pos _).le) fun _ _ => ?_
+  refine Real.exp_le_one_iff.2 ?_
+  rw [neg_mul]
+  exact neg_nonpos.2 (mul_nonneg hz chPaidReward_nonneg)
 
 /-- The penalty is positive. -/
 theorem chPenalty_pos (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) (b : List ℤ) :

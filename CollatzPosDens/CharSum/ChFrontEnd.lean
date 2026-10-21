@@ -11,8 +11,8 @@ public import CollatzPosDens.CharSum.ChQfinite
 public import CollatzPosDens.CharSum.ChQfiniteStep
 public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.CharSum.ChInternalWeight
+public import CollatzPosDens.CharSum.ChInternalRange
 public import CollatzPosDens.CharSum.ChPenalty
-public import CollatzPosDens.CharSum.ChRaw3Factor
 public import CollatzPosDens.CharSum.ChWhiteFactor
 public import CollatzPosDens.Transfer.EpsStar
 public import CollatzPosDens.Characters.FxDft
@@ -20,7 +20,7 @@ public import CollatzPosDens.Renewal.RnHold
 public import CollatzPosDens.CharSum.ChQBeyond
 public import CollatzPosDens.CharSum.ChQHorizon
 public import CollatzPosDens.CharSum.ChQRange
-public import CollatzPosDens.CharSum.ChQRecursionLe
+public import CollatzPosDens.CharSum.ChBlockPoint
 public import CollatzPosDens.CharSum.ChBlockHold
 public import CollatzPosDens.CharSum.ChBlockListMass
 public import CollatzPosDens.CharSum.ChEnvelopeRhs
@@ -37,7 +37,7 @@ public import CollatzPosDens.Renewal.RnHoldMass
 Fix `n`, `ξ ∈ G_n` and `ε ≥ ε_*`, and let `J = ⌊n/2⌋`. Then
 `|μ̂_n(ξ)| ≤ ∑_{h ∈ 𝒫} η(h) Q(h)`.
 
-By `norm_refLawDft_le_tsum_chPairFactor` and `prod_chPairFactor_le_chPenalty` (which needs
+By the front Pascal bound and the comparison of the raw factors with the penalty (which needs
 `ε ≥ ε_*`), `|μ̂_n(ξ)| ≤ ∑_{b ∈ ℤ^J} ∏_i ϖ(b_i) Pen(b)`. By the law of the raw word, the right
 side is `∑_{β ∈ 𝔅^J} ∏_k bw(βᵏ) Pen(raw_J(β))`, and the penalty of a raw word factors along the
 block path as `∏_{k=1}^J w(Bp_k(β)) ∏_{k=1}^J I(Bp_{k-1}(β); βᵏ)`. Multiplied by `w((0, 0))`,
@@ -54,16 +54,16 @@ the bound `∑_h η(h) Q(h)`.
 
 ## Implementation notes
 
-Instead of splitting off the first block of `β ∈ 𝔅^J` directly, the proof uses the step recursion
-`Q^{(K+1)}(p) = w(p) ∑_β bw(β) I(p; β) Q^{(K)}(p + bpt(β))` at `p = (0, 0)`: the series
-`∑_β ∏_k bw(βᵏ) Pen(raw_J(β))` differs from the one defining `Q^{(J)}((0, 0))` only by the factor
-`w((0, 0)) > 0` (the `i = 0` factor of the white product), which cancels against the same factor
-in the step recursion. This also covers the case `J = 0` uniformly, as
+The first block of `β ∈ 𝔅^J` is not split off by hand; that splitting is delegated to the step
+recursion `Q^{(K+1)}(p) = w(p) ∑_β bw(β) I(p; β) Q^{(K)}(p + bpt(β))` at `p = (0, 0)`:
+the series `∑_β ∏_k bw(βᵏ) Pen(raw_J(β))` differs from the one defining `Q^{(J)}((0, 0))` only by
+the factor `w((0, 0)) > 0` (the `i = 0` factor of the white product), which cancels against the
+same factor in the step recursion. This also covers the case `J = 0` uniformly, as
 `Q^{(0)}((0, 0)) = w((0, 0))`.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §7.6.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -71,6 +71,35 @@ in the step recursion. This also covers the case `J = 0` uniformly, as
 open Finset
 
 namespace CollatzPosDens
+
+/-- Grouping by block points: `∑_{β ∈ 𝔅} bw(β) Q(bpt(β)) = ∑_{h ∈ 𝒫} η(h) Q(h)`. -/
+private theorem hasSum_chBlockWeight_mul_chQ_chBlockPoint (n : ℕ) (ξ : ResidueGroup n) (ε : ℝ) :
+    HasSum (fun β : {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)} ↦
+        chBlockWeight β * chQ n ξ ε (chBlockPoint β))
+      (∑' h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h) := by
+  set B := {b : List ℤ × ℤ // b.2 ∈ ({4, 5} : Set ℤ)}
+  set g : B → ℝ := fun β ↦ chBlockWeight β * chQ n ξ ε (chBlockPoint β)
+  have hg : Summable g := hasSum_prod_chBlockWeight_single.summable.of_nonneg_of_le
+    (fun _ ↦ mul_nonneg (chBlockWeight_nonneg _) (chQ_nonneg _ _ _ _))
+    fun _ ↦ mul_le_of_le_one_right (chBlockWeight_nonneg _) (chQ_le_one _ _ _ _)
+  let bpt : B → bkPoints := fun β ↦ ⟨chBlockPoint β, chBlockPoint_mem_bkPoints _⟩
+  have hfib := hg.hasSum.tsum_fiberwise bpt
+  suffices hfun : (fun c ↦ ∑' b : ↥(bpt ⁻¹' {c}), g b) =
+      fun h : bkPoints ↦ holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h by
+    rw [hfun] at hfib
+    exact hfib.tsum_eq ▸ hg.hasSum
+  funext h
+  let e : ↥(bpt ⁻¹' {h}) ≃
+      {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ) ∧ chBlockPoint β = h} :=
+    { toFun := fun β ↦ ⟨β.1.1, β.1.2, congrArg Subtype.val β.2⟩
+      invFun := fun β ↦ ⟨⟨β.1, β.2.1⟩, Subtype.ext β.2.2⟩
+      left_inv := fun _ ↦ rfl
+      right_inv := fun _ ↦ rfl }
+  have hg' (β : ↥(bpt ⁻¹' {h})) : g β = chBlockWeight (e β).1 * chQ n ξ ε h := by
+    have : chBlockPoint β.1.1 = h := congrArg Subtype.val β.2
+    simp only [g, e, Equiv.coe_fn_mk, this]
+  rw [tsum_congr hg', e.tsum_eq (fun β ↦ chBlockWeight β.1 * chQ n ξ ε h), tsum_mul_right,
+    holdLaw_eq_tsum_chBlockWeight h.2]
 
 /-- The prefix sums of a tuple, read as a list. -/
 private theorem sum_take_ofFn_eq_sum_Iio {J : ℕ} (b : Fin J → ℤ) (i : Fin J) :
@@ -180,14 +209,18 @@ private theorem chWhiteFactor_zero_mul_chPenalty_chRaw (n : ℕ) (ξ : ResidueGr
     rw [chQFiniteTerm, prod_eq_zero (mem_univ k) hk]
     simp
 
-private theorem prod_chPairFactor_le_chPenalty_ofFn {n : ℕ} (ξ : ResidueGroup n) {ε : ℝ}
+private theorem prod_chRawFactor_le_chPenalty_ofFn {n : ℕ} (ξ : ResidueGroup n) {ε : ℝ}
     (hε : (epsStar : ℝ) ≤ ε) (b : Fin (n / 2) → ℤ) :
-    ∏ i : Fin (n / 2), chPairFactor n ξ (i + 1) (∑ l ∈ Iio i, b l) (b i) ≤
+    ∏ i : Fin (n / 2), chRawFactor n ξ (b i) ((i : ℤ) + 1, ∑ l ∈ Iic i, b l) ≤
       chPenalty n ξ ε (List.ofFn b) := by
   refine le_of_eq_of_le ?_ (prod_chPairFactor_le_chPenalty hε (List.ofFn b))
   rw [← Fin.prod_congr' _ (List.length_ofFn).symm]
   refine prod_congr rfl fun i _ ↦ ?_
-  simp [sum_take_ofFn_eq_sum_Iio]
+  have hi : (i : ℕ) < (List.ofFn b).length := by simp
+  simp only [Fin.val_cast, Fin.getElem_fin, List.getElem_ofFn]
+  rw [← List.take_concat_get' _ _ hi, List.sum_append, sum_take_ofFn_eq_sum_Iio,
+    ← Iio_insert, sum_insert (by simp)]
+  simp [add_comm]
 
 /-- The series `∑_β ∏_k bw(βᵏ) Pen(raw_J(β))`, `J = ⌊n/2⌋`, times `w((0, 0))`, is
 `Q^{(J)}((0, 0))`. -/
@@ -205,11 +238,10 @@ theorem chWhiteFactor_zero_mul_tsum_eq_chQFinite (n : ℕ) (ξ : ResidueGroup n)
 theorem norm_refLawDft_le_tsum_holdLaw_mul_chQ (n : ℕ) (ξ : ResidueGroup n) {ε : ℝ}
     (hε : (epsStar : ℝ) ≤ ε) :
     ‖refLawDft n ξ‖ ≤ ∑' h : bkPoints, holdLaw h.1.1.toNat h.1.2 * chQ n ξ ε h := by
-  have hS1 := summable_chEnvelopeRhs n ξ (n / 2) 1 0
-  simp only [zero_add, add_comm 1] at hS1
-  refine (norm_refLawDft_le_tsum_chPairFactor n ξ).trans <|
+  obtain ⟨hP, hS1⟩ := norm_refLawDft_le_tsum_chPairFactor n ξ
+  refine hP.trans <|
     (Summable.tsum_le_tsum (fun b ↦ mul_le_mul_of_nonneg_left
-      (prod_chPairFactor_le_chPenalty_ofFn ξ hε b) (prod_nonneg fun i _ ↦ varpi_nonneg _)) hS1
+      (prod_chRawFactor_le_chPenalty_ofFn ξ hε b) (prod_nonneg fun i _ ↦ varpi_nonneg _)) hS1
       (summable_prod_varpi_mul _ (fun b ↦ (chPenalty_pos _ _ _ _).le)
         (chPenalty_le_one _ _ _))).trans ?_
   rw [tsum_varpi_mul_eq_tsum_chBlockWeight_mul _ _ (fun b ↦ (chPenalty_pos _ _ _ _).le)
@@ -231,8 +263,7 @@ theorem norm_refLawDft_le_tsum_holdLaw_mul_chQ (n : ℕ) (ξ : ResidueGroup n) {
     rw [chQ_eq_one_of_lt_bkJ n ξ ε (by omega), mul_one]
   | succ K =>
     rw [chQFinite_succ, mul_right_inj' hw0.ne'] at hsum
-    have hb := chQ_le_mul_tsum_hasSum_blocks n ξ ε 0
-    simp only [zero_add] at hb
+    have hb := hasSum_chBlockWeight_mul_chQ_chBlockPoint n ξ ε
     rw [hsum, ← hb.tsum_eq]
     refine Summable.tsum_le_tsum (fun β ↦ ?_) ?_ hb.summable
     · have hβ := mem_bkPoints.mp (chBlockPoint_mem_bkPoints β.1)

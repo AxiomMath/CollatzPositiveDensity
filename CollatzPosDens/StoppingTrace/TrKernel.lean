@@ -6,7 +6,7 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
-public import CollatzPosDens.Transfer.Gamma
+public import CollatzPosDens.Transfer.S02Gamma
 public import CollatzPosDens.StoppingTrace.TrCount
 public import CollatzPosDens.StoppingTrace.TrEntryWord
 public import CollatzPosDens.StoppingTrace.TrListWeight
@@ -17,12 +17,11 @@ public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 /-!
 # Powers of the entry kernel
 
-Fix a level `n` and a residue `ξ ∈ G_n`, and write `ε_*` for the colour scale
-`CollatzPosDens.epsStar`. A point `v ∈ ℤ × ℤ` is *black* when `CollatzPosDens.BkBlack n ξ ε_* v`
-holds. The *entry kernel* sends a black point `v` to the black points `x_{|u|}(v, u)` reached by
-the entry lists `u ∈ 𝓔(v)`, with weight `bw^⊗(u) e^{-γ_* N^*(v, u; |u|)}`. Its powers applied to
-the constant function `1` are the numbers `m_k(v) ∈ [0, ∞]`, defined by recursion on `k` for all
-points at once: `m_0(v) = 1` and
+Fix a level `n`, a residue `ξ ∈ G_n` and the colour scale `ε_*`, and call a point of `ℤ × ℤ`
+black when it is black for `(n, ξ, ε_*)`. The *entry kernel* sends a black point `v` to the black
+points `x_{|u|}(v, u)` reached by the entry lists `u ∈ 𝓔(v)`, with weight
+`bw^⊗(u) e^{-γ_* N^*(v, u; |u|)}`. Its powers applied to the constant function `1` are the numbers
+`m_k(v) ∈ [0, ∞]`, defined by recursion on `k` for all points at once: `m_0(v) = 1` and
 ```
 m_{k+1}(v) = ∑_{u ∈ 𝓔(v)} bw^⊗(u) e^{-γ_* N^*(v, u; |u|)} m_k(x_{|u|}(v, u)).
 ```
@@ -41,17 +40,17 @@ m_{k+1}(v) = ∑_{u ∈ 𝓔(v)} bw^⊗(u) e^{-γ_* N^*(v, u; |u|)} m_k(x_{|u|}(
 
 ## Implementation notes
 
-The sum ranges over the subtype of the set `𝓔(v)` (`CollatzPosDens.trEntryWords` at the
-colour scale `ε_*`) and is the unconditional sum `tsum` in `[0, ∞]`, so it is always defined and
-may be infinite. The real factors `bw^⊗(u)` and `e^{-γ_* N^*}` enter through `ENNReal.ofReal`;
-both are nonnegative, so nothing is truncated. The kernel is defined in [mazur2026] for black
-points `v` only, but the recursion makes sense for every `v ∈ ℤ × ℤ`, and `m_{k+1}(v)` only
-evaluates `m_k` at the black points `x_{|u|}(v, u)`, `u ∈ 𝓔(v)`; so the values at black points
-agree with [mazur2026], and the definition on all of `ℤ × ℤ` is a generalization.
+The sum ranges over the subtype of the set `𝓔(v)` (`CollatzPosDens.trEntryWords` at the colour
+scale `ε_*`) and is the unconditional sum `tsum` in `[0, ∞]`, so it is always defined and may be
+infinite. The real factors `bw^⊗(u)` and `e^{-γ_* N^*}` enter through `ENNReal.ofReal`; both are
+nonnegative, so nothing is truncated. The numbers `m_k(v)` are of interest for black points `v`,
+but the recursion makes sense for every `v ∈ ℤ × ℤ`, and `m_{k+1}(v)` only evaluates `m_k` at the
+black points `x_{|u|}(v, u)`, `u ∈ 𝓔(v)`; so the definition on all of `ℤ × ℤ` restricts to the
+kernel powers on black points.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §9.5.
+* [Mazur, *Collatz positive density*], §9.5.
 -/
 
 @[expose] public section

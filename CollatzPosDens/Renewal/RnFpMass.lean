@@ -18,18 +18,19 @@ public import CollatzPosDens.Renewal.RnHoldSupport
 /-!
 # The total mass of the first-passage law
 
-For every level `s ∈ ℕ`, the first-passage law is a probability distribution on `ℤ × ℤ`:
+Write `F_s = CollatzPosDens.firstPassageLaw s`, `𝒫 = CollatzPosDens.bkPoints`,
+`l = CollatzPosDens.bkL` and `η(h) = CollatzPosDens.holdLaw h.1.toNat h.2`. For every level
+`s ∈ ℕ`, the first-passage law is a probability distribution on `ℤ × ℤ`:
 `∑_{x ∈ ℤ × ℤ} F_s(x) = 1`. The proof is by strong induction on `s`: summing the first-step
 decomposition `F_s(x) = ∑_{l(h) > s} η(h) [x = h] + ∑_{1 ≤ l(h) ≤ s} η(h) F_{s - l(h)}(x - h)`
 over `x`, translating by `h` and using the induction hypothesis at the level `s - l(h) < s`, gives
 `∑_{l(h) > s} η(h) + ∑_{1 ≤ l(h) ≤ s} η(h) = ∑_{h ∈ 𝒫} η(h) = 1`, since `η(h) = 0` when
-`l(h) ≤ 0`. In particular each value `F_s(x)` lies in `[0, 1]`.
+`l(h) ≤ 0`.
 
 ## Main results
 
 * `CollatzPosDens.hasSum_firstPassageLaw`: `x ↦ F_s(x)` has sum `1`.
 * `CollatzPosDens.tsum_firstPassageLaw`: `∑_{x ∈ ℤ × ℤ} F_s(x) = 1`.
-* `CollatzPosDens.firstPassageLaw_le_one`: `F_s(x) ≤ 1`.
 * `CollatzPosDens.summable_firstPassageLaw_natCast`,
   `CollatzPosDens.tsum_firstPassageLaw_natCast_le_one`,
   `CollatzPosDens.tsum_ofReal_firstPassageLaw_natCast_le_one`: the restriction of `F_s` to
@@ -46,8 +47,7 @@ The total mass being finite then gives summability of the real series. The finit
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026],
-  §6.2.
+* [Mazur, *Collatz positive density*], §6.2.
 -/
 
 @[expose] public section
@@ -145,14 +145,14 @@ private lemma firstPassageLaw_mass_aux (s : ℕ) :
     have h := tsum_firstPassageLaw_ofReal s hb fun m hm ↦ (ih m hm).1
     exact ⟨h, hasSum_firstPassageLaw_of_tsum_ofReal s h⟩
 
-/-- **Total mass of the first-passage law.** For every `s ∈ ℕ`, `x ↦ F_s(x)` has sum `1`
-(in particular the series converges). -/
+/-- **Total mass of the first-passage law.** For every `s ∈ ℕ`, `x ↦ firstPassageLaw s x` has
+sum `1` (in particular the series converges). -/
 @[collatz_pos_dens "lem_rn_fp_mass"]
 theorem hasSum_firstPassageLaw (s : ℕ) : HasSum (fun x ↦ firstPassageLaw s x) 1 :=
   (firstPassageLaw_mass_aux s).2
 
 /-- **Total mass of the first-passage law.** For every `s ∈ ℕ`,
-`∑_{x ∈ ℤ × ℤ} F_s(x) = 1`. -/
+`∑_{x ∈ ℤ × ℤ} firstPassageLaw s x = 1`. -/
 @[collatz_pos_dens "lem_rn_fp_mass"]
 theorem tsum_firstPassageLaw (s : ℕ) : ∑' x, firstPassageLaw s x = 1 :=
   (hasSum_firstPassageLaw s).tsum_eq
@@ -160,24 +160,6 @@ theorem tsum_firstPassageLaw (s : ℕ) : ∑' x, firstPassageLaw s x = 1 :=
 /-- The first-passage law is summable at every level `s ∈ ℕ`. -/
 theorem summable_firstPassageLaw (s : ℕ) : Summable fun x ↦ firstPassageLaw s x :=
   (hasSum_firstPassageLaw s).summable
-
-/-- The first-passage law takes values at most `1`, at every level. -/
-theorem firstPassageLaw_le_one (s : ℤ) (x : ℤ × ℤ) : firstPassageLaw s x ≤ 1 := by
-  rcases lt_or_ge s 0 with h0 | h0
-  · simp [firstPassageLaw_of_neg h0]
-  · lift s to ℕ using h0
-    exact le_hasSum (hasSum_firstPassageLaw s) x fun _ _ ↦ firstPassageLaw_nonneg _ _
-
-open Classical in
-/-- **First-step decomposition of `F_s(x)` in `ℝ≥0∞`.**
-`F_s(x) = η(x) [x ∈ 𝒫, l(x) > s] + ∑_{h ∈ 𝒫, 1 ≤ l(h) ≤ s} η(h) F_{s - l(h)}(x - h)`. -/
-theorem ofReal_firstPassageLaw_eq_first_step (s : ℕ) (x : ℤ × ℤ) :
-    ENNReal.ofReal (firstPassageLaw s x) =
-      (if x ∈ bkPoints ∧ (s : ℤ) < bkL x then ENNReal.ofReal (holdLaw x.1.toNat x.2) else 0) +
-      ∑' h : {h : ℤ × ℤ // h ∈ bkPoints ∧ 1 ≤ bkL h ∧ bkL h ≤ s},
-        ENNReal.ofReal (holdLaw h.1.1.toNat h.1.2) *
-          ENNReal.ofReal (firstPassageLaw (s - bkL h) (x - h)) :=
-  firstPassageLaw_ofReal_eq s (fun t _ y ↦ firstPassageLaw_le_one t y) x
 
 /-- The first-passage law restricted to `ℕ × ℤ` is summable. -/
 theorem summable_firstPassageLaw_natCast (s : ℕ) :

@@ -13,7 +13,7 @@ public import CollatzPosDens.Renewal.RnMgfSixteenth
 /-!
 # Horizontal tail of hold lists
 
-For `P ∈ ℕ` and `m`, the product law `η^{⊗P}` gives mass at most `exp (P/2 - m/160)` to the
+For `P ∈ ℕ` and real `m`, the product law `η^{⊗P}` gives mass at most `exp (P/2 - m/160)` to the
 hold lists `h ∈ 𝒫^P` with `m ≤ 10 (j(h_1) + ⋯ + j(h_P))`.
 
 On that range `1 ≤ exp ((∑_i j(h_i) - m/10) / 16)`, so the sum is at most
@@ -23,16 +23,13 @@ On that range `1 ≤ exp ((∑_i j(h_i) - m/10) / 16)`, so the sum is at most
 ## Main results
 
 * `CollatzPosDens.tsum_holdListLaw_horTail_le`: the bound, as a sum in `[0, ∞]`.
-* `CollatzPosDens.summable_holdListLaw_horTail`: the restricted real series converges.
-* `CollatzPosDens.tsum_holdListLaw_horTail_le_real`: the bound for the real sum.
 
 ## Implementation notes
 
-Here `𝒫^P` is the set of tuples `h : Fin P → ℕ × ℤ` with `1 ≤ j(h_i)` for every `i`, and the
+The set `𝒫^P` is the set of tuples `h : Fin P → ℕ × ℤ` with `1 ≤ j(h_i)` for every `i`, and the
 summation range is the subtype of those which moreover satisfy `m ≤ 10 ∑_i j(h_i)`. The main
-statement is a sum in `ℝ≥0∞` of the nonnegative weights; since the bound is finite it also
-records convergence. The real-valued form is derived from it. The threshold `m` is allowed to be
-any real number rather than only a natural number.
+statement is a sum in `ℝ≥0∞` of the nonnegative weights; since the bound is finite it also records
+convergence.
 
 ## References
 
@@ -45,7 +42,7 @@ namespace CollatzPosDens
 
 open Real ENNReal
 
-/-- `5/4 ≤ e^{1/2}`, from `1 + 1/2 ≤ e^{1/2}`. -/
+/-- `5/4 ≤ e^{1/2}`. -/
 private lemma five_div_four_le_exp_half : (5 / 4 : ℝ≥0∞) ≤ ENNReal.ofReal (exp (1 / 2)) := by
   calc (5 / 4 : ℝ≥0∞) = ENNReal.ofReal (5 / 4) := by
         rw [ENNReal.ofReal_div_of_pos (by norm_num)]
@@ -92,24 +89,5 @@ theorem tsum_holdListLaw_horTail_le (P : ℕ) (m : ℝ) :
         rw [← ENNReal.ofReal_pow (exp_pos _).le, ← ENNReal.ofReal_mul (exp_pos _).le,
           ← exp_nat_mul, ← exp_add]
         ring_nf
-
-/-- The real series of `η^{⊗P}` over the horizontal tail converges. -/
-theorem summable_holdListLaw_horTail (P : ℕ) (m : ℝ) :
-    Summable fun h : {h : Fin P → ℕ × ℤ // (∀ i, 1 ≤ (h i).1) ∧ m ≤ 10 * ∑ i, ((h i).1 : ℝ)} ↦
-      holdListLaw h.1 := by
-  refine (ENNReal.summable_toReal (f := fun h : {h : Fin P → ℕ × ℤ //
-      (∀ i, 1 ≤ (h i).1) ∧ m ≤ 10 * ∑ i, ((h i).1 : ℝ)} ↦ ENNReal.ofReal (holdListLaw h.1))
-    (ne_top_of_le_ne_top ENNReal.ofReal_ne_top (tsum_holdListLaw_horTail_le P m))).congr
-    fun h ↦ ENNReal.toReal_ofReal (holdListLaw_nonneg _)
-
-/-- **Horizontal tail of hold lists**, real form: for `P ∈ ℕ` and real `m`,
-`∑ η^{⊗P}(h) ≤ exp (P/2 - m/160)` over `h ∈ 𝒫^P` with `m ≤ 10 (j(h_1) + ⋯ + j(h_P))`. -/
-theorem tsum_holdListLaw_horTail_le_real (P : ℕ) (m : ℝ) :
-    ∑' h : {h : Fin P → ℕ × ℤ // (∀ i, 1 ≤ (h i).1) ∧ m ≤ 10 * ∑ i, ((h i).1 : ℝ)},
-      holdListLaw h.1 ≤ exp (P / 2 - m / 160) := by
-  have h := tsum_holdListLaw_horTail_le P m
-  rw [← ENNReal.ofReal_tsum_of_nonneg (fun h ↦ holdListLaw_nonneg _)
-    (summable_holdListLaw_horTail P m)] at h
-  exact (ENNReal.ofReal_le_ofReal_iff (exp_pos _).le).1 h
 
 end CollatzPosDens

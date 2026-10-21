@@ -12,8 +12,9 @@ public import CollatzPosDens.FirstCrossing.Caps
 public import CollatzPosDens.FirstCrossing.CentralFamily
 public import CollatzPosDens.FirstCrossing.EbLower
 public import CollatzPosDens.FirstCrossing.Scales
-public import CollatzPosDens.Seed.BlockWeight
-public import CollatzPosDens.Seed.OffsetSmall
+public import CollatzPosDens.FirstCrossing.ScalesLinearLower
+public import CollatzPosDens.Seed.S05BlockWeight
+public import CollatzPosDens.Seed.S05OffsetSmall
 
 /-!
 # Offset of a central suffix
@@ -22,8 +23,9 @@ Let `0 ≤ i ≤ n` and let `w_j ∈ 𝒞(b_j, K_j)` for `i ≤ j < n`. Then
 $$0 \le \mathrm{off}(w_i w_{i+1} \cdots w_{n-1}) \le 2^{b_i + 1}.$$
 Writing `τ_j = off(w_j ⋯ w_{n-1})`, one shows `τ_j ≤ 2^{b_j + 1}` by downward induction on `j`:
 `τ_n = 0`, and for `j < n` the cocycle identity gives `τ_j = off(w_j) + ω(w_j) τ_{j+1}`, where
-`off(w_j) < 2^{b_j}`, `16^{e_{b_j}} ω(w_j) < 1` and `b_{j+1} = b_j + e_{b_j}` with
-`e_{b_j} ≥ 1`, so that `ω(w_j) τ_{j+1} ≤ 16^{-e_{b_j}} 2^{b_j + e_{b_j} + 1} ≤ 2^{b_j}`.
+`off(w_j) < 2^{b_j}` and `16^{e_{b_j}} ω(w_j) < 1` (as `b_j ≥ b_0 = 16544 ≥ 256`), and
+`b_{j+1} = b_j + e_{b_j}` with `e_{b_j} ≥ 1`, so that
+`ω(w_j) τ_{j+1} ≤ 16^{-e_{b_j}} 2^{b_j + e_{b_j} + 1} ≤ 2^{b_j}`.
 
 ## Main results
 
@@ -44,7 +46,7 @@ the first-crossing family and the weight bound of a central block are used.
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Collatz positive density*], §17.3.
 -/
 
 @[expose] public section
@@ -69,11 +71,12 @@ theorem off_flatten_le_of_mem_centralFamily (K : ℕ → ℕ) :
     rw [scale_succ] at ih
     rw [List.flatten_cons, off_append]
     have hoff := off_lt_two_pow_of_mem_firstCrossing (centralFamily_subset_firstCrossing _ _ hw)
-    have hwt := sixteen_pow_eb_mul_weight_lt_of_mem_centralFamily (nine_le_scale s) hw
+    have hwt := sixteen_pow_eb_mul_weight_lt_of_mem_centralFamily
+      (by have := scale_linear_lower s; omega) hw
     have hinv : (0 : ℚ) ≤ (2 ^ (3 * scale s))⁻¹ := by positivity
     have hwpos := Word.weight_pos w
     set e := eb (scale s)
-    have he : 1 ≤ e := one_le_eb _
+    have he : 1 ≤ e := one_le_eb_of_pos (scale_pos s)
     have h2 : (2 : ℚ) ^ (scale s + e + 1) ≤ 16 ^ e * 2 ^ scale s := by
       rw [show scale s + e + 1 = (e + 1) + scale s by omega, pow_add,
         show (16 : ℚ) = 2 ^ 4 by norm_num, ← pow_mul]

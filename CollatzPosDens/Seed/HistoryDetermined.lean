@@ -10,35 +10,37 @@ public import CollatzPosDens.Attr
 public import CollatzPosDens.Maps.Word
 public import CollatzPosDens.FirstCrossing.CentralFamily
 public import CollatzPosDens.FirstCrossing.FirstCrossingPrefixDisjoint
-public import CollatzPosDens.Seed.ConcatWord
+public import CollatzPosDens.Seed.S05ConcatWord
 
 /-!
 # Cuts are determined by the word
 
-Let `w_j, w'_j ∈ 𝒞(b_j, K_j)` for `j < n`, and let `w', w''` be words with
-`w₀ ⋯ w_{n-1} w' = w'₀ ⋯ w'_{n-1} w''`. Then `w_j = w'_j` for every `j < n` and `w' = w''`.
-This holds more generally for any sequence of prefix-free families, and `𝒞(b, K)` is
-prefix-free since it is contained in the prefix-free family `𝒲(b, r_b, K)`.
+Let `n ∈ ℕ`, let `w_j, w'_j ∈ 𝒞(b_j, K_j)` for `0 ≤ j < n`, where `𝒞(b, K)` is the central family
+`CollatzPosDens.centralFamily b K`, and let `w', w''` be words with
+`w_0 ⋯ w_{n-1} w' = w'_0 ⋯ w'_{n-1} w''` (the products of blocks being empty if `n = 0`). Then
+`(w_0, …, w_{n-1}, w') = (w'_0, …, w'_{n-1}, w'')`. More generally, a concatenation of words drawn
+from a sequence of prefix-free families of lists factors uniquely.
 
 ## Main results
 
-* `CollatzPosDens.historyDetermined_of_isPrefixFree`: the statement for an arbitrary
+* `CollatzPosDens.historyDetermined_of_isPrefixFree`: unique factorisation over an arbitrary
   sequence of prefix-free families of lists.
 * `CollatzPosDens.isPrefixFree_centralFamily`: the central family `𝒞(b, K)` is prefix-free.
-* `CollatzPosDens.historyDetermined`: the statement for the central families `𝒞(b_j, K_j)`.
+* `CollatzPosDens.historyDetermined`: the statement for the central families `𝒞(b_j, K_j)`,
+  `0 ≤ j < n`.
 
 ## Implementation notes
 
-A tuple `(w₀, …, w_{n-1})` is a function `Fin n → Word` and its concatenation is
-`CollatzPosDens.concatWord`. The levels `b_j` and caps `K_j` are arbitrary sequences of
-natural numbers. The conclusion `(w₀, …, w_{n-1}, w') = (w'₀, …, w'_{n-1}, w'')` is stated as
-the conjunction `h = h' ∧ w' = w''`.
+A tuple `(w_0, …, w_{n-1})` is a map `Fin n → Word`, its entry `k` being the word `w_k`, and its
+concatenation is `CollatzPosDens.concatWord`; for `n = 0` the index type is empty. The levels
+`b_j` and caps `K_j` are arbitrary sequences of natural numbers. The conclusion
+`(w_0, …, w_{n-1}, w') = (w'_0, …, w'_{n-1}, w'')` is stated as the conjunction
+`h = h' ∧ w' = w''`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §16.3.
 -/
-
 @[expose] public section
 
 namespace CollatzPosDens
@@ -66,21 +68,21 @@ theorem historyDetermined_of_isPrefixFree {α : Type*} {F : ℕ → Set (List α
       (fun j => hh j.succ) (fun j => hh' j.succ) heq
     exact ⟨funext fun i => Fin.cases h0 (congrFun htail) i, rfl⟩
 
-/-- The central family `𝒞(b, K)` is prefix-free, being contained in the prefix-free
-family `𝒲(b, r_b, K)`. -/
+/-- The central family `centralFamily b K` is prefix-free. -/
 theorem isPrefixFree_centralFamily (b K : ℕ) :
-    InformationTheory.IsPrefixFree (centralFamily b K) :=
-  (isPrefixFree_firstCrossing b (rb b) K).anti (centralFamily_subset_firstCrossing b K)
+    InformationTheory.IsPrefixFree (centralFamily b K) := fun _ hw _ hw' hp =>
+  isPrefixFree_firstCrossing b (rb b) K _ (centralFamily_subset_firstCrossing b K hw) _
+    (centralFamily_subset_firstCrossing b K hw') hp
 
-/-- Cuts are determined by the word: if `w_j, w'_j ∈ 𝒞(b_j, K_j)` for `j < n` and
-`w₀ ⋯ w_{n-1} w' = w'₀ ⋯ w'_{n-1} w''`, then
-`(w₀, …, w_{n-1}, w') = (w'₀, …, w'_{n-1}, w'')`. -/
+/-- Cuts are determined by the word: if `w_j, w'_j ∈ 𝒞(b_j, K_j)` for `0 ≤ j < n` and
+`w_0 ⋯ w_{n-1} w' = w'_0 ⋯ w'_{n-1} w''`, then `(w_0, …, w_{n-1}, w') = (w'_0, …, w'_{n-1}, w'')`.
+-/
 @[collatz_pos_dens "lem_history_determined"]
 theorem historyDetermined {n : ℕ} (b K : ℕ → ℕ) {h h' : Fin n → Word} {w' w'' : Word}
-    (hh : ∀ j : Fin n, h j ∈ centralFamily (b j) (K j))
-    (hh' : ∀ j : Fin n, h' j ∈ centralFamily (b j) (K j))
+    (hh : ∀ k : Fin n, h k ∈ centralFamily (b k) (K k))
+    (hh' : ∀ k : Fin n, h' k ∈ centralFamily (b k) (K k))
     (heq : concatWord h ++ w' = concatWord h' ++ w'') : h = h' ∧ w' = w'' :=
-  historyDetermined_of_isPrefixFree (F := fun j => centralFamily (b j) (K j))
-    (fun j => isPrefixFree_centralFamily (b j) (K j)) hh hh' heq
+  historyDetermined_of_isPrefixFree (F := fun k => centralFamily (b k) (K k))
+    (fun k => isPrefixFree_centralFamily (b k) (K k)) hh hh' heq
 
 end CollatzPosDens

@@ -11,7 +11,7 @@ public import CollatzPosDens.Maps.Admissible
 public import CollatzPosDens.Maps.AffineIdentity
 public import CollatzPosDens.Maps.InverseOrbit
 public import CollatzPosDens.Transfer.Transfer
-public import CollatzPosDens.Transfer.LiftedTransfer
+public import CollatzPosDens.Transfer.S02LiftedTransfer
 
 /-!
 # The transfer at an integer point
@@ -37,9 +37,9 @@ hence an integer, so `w` is admissible.
 
 ## Implementation notes
 
-[mazur2026] takes `R` to be a positive odd integer; the statement holds for every integer `R`,
-and is stated so. Since `src(w, R)` is a rational number, its reduction `[src(w, R)]_t` is
-written as the reduction of its numerator, which is `src(w, R)` itself when `w` is admissible.
+The results are stated for every integer `R`, not only for positive odd ones. Since `src(w, R)`
+is a rational number, its reduction `[src(w, R)]_t` is written as the reduction of its
+numerator, which is `src(w, R)` itself when `w` is admissible.
 
 ## References
 

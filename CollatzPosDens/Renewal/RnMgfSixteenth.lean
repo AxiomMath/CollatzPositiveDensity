@@ -19,7 +19,6 @@ The map `x ↦ 5x / (16 - 11x)` is increasing on `(0, 16/11)` and equals `5/4` a
 ## Main results
 
 * `CollatzPosDens.mgfNu45_one_div_sixteen_le`: `M₄₅(1/16) ≤ 5/4` in `ℝ≥0∞`.
-* `CollatzPosDens.mgfNu45_one_div_sixteen_toReal_le`: the same bound for the real value.
 
 ## Implementation notes
 
@@ -28,7 +27,7 @@ implies `M₄₅(1/16) < ∞`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §6.3.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -52,10 +51,5 @@ theorem mgfNu45_one_div_sixteen_le : mgfNu45 (1 / 16) ≤ 5 / 4 := by
     _ = 5 / 4 := by
       rw [ENNReal.ofReal_div_of_pos (by norm_num)]
       norm_num
-
-/-- The real value of `M₄₅(1/16)` is at most `5/4`. -/
-theorem mgfNu45_one_div_sixteen_toReal_le : (mgfNu45 (1 / 16)).toReal ≤ 5 / 4 :=
-  (ENNReal.toReal_mono (ENNReal.div_ne_top (by simp) (by simp))
-    mgfNu45_one_div_sixteen_le).trans_eq (by norm_num)
 
 end CollatzPosDens

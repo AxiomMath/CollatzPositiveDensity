@@ -11,9 +11,10 @@ public import CollatzPosDens.Attr
 /-!
 # Lattice points
 
-This file defines the lattice point set `𝒫 = ℤ_{≥1} × ℤ`. A point `p = (j, l)` has coordinates
-`j(p) = j` and `l(p) = l`; points are added coordinatewise whenever the sum lies in `𝒫`, and
-`|p - q| = ((j(p) - j(q))² + (l(p) - l(q))²)^{1/2}` is the Euclidean distance.
+The black-set analysis works on the lattice point set `𝒫 = ℤ_{≥1} × ℤ`. A point `p = (j, l)` has
+coordinates `j(p) = j` and `l(p) = l`, and points are added coordinatewise whenever the sum lies
+in `𝒫`. We also record the Euclidean distance `|p - q| = ((j(p) - j(q))² + (l(p) - l(q))²)^{1/2}`,
+used in the analysis of neighbouring points.
 
 ## Main definitions
 
@@ -37,11 +38,12 @@ This file defines the lattice point set `𝒫 = ℤ_{≥1} × ℤ`. A point `p =
 `𝒫` is a subset of `ℤ × ℤ` rather than a type of its own, since points are compared with, added
 to and subtracted from elements of `ℤ × ℤ`: addition is the addition of `ℤ × ℤ`, and "the sum
 lies in `𝒫`" is membership in `bkPoints`. The coordinates and the distance are defined on all of
-`ℤ × ℤ`, not only on `𝒫`.
+`ℤ × ℤ`. The definition of `𝒫` itself consists of `bkPoints`, `bkJ` and `bkL`; the distance
+`bkDist` and its square `bkDistSq` are auxiliary.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §5.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -61,11 +63,9 @@ abbrev bkJ (p : ℤ × ℤ) : ℤ := p.1
 abbrev bkL (p : ℤ × ℤ) : ℤ := p.2
 
 /-- The squared Euclidean distance `(j(p) - j(q))² + (l(p) - l(q))²` between two points. -/
-@[collatz_pos_dens "def_bk_points"]
 def bkDistSq (p q : ℤ × ℤ) : ℤ := (bkJ p - bkJ q) ^ 2 + (bkL p - bkL q) ^ 2
 
 /-- The Euclidean distance `|p - q| = ((j(p) - j(q))² + (l(p) - l(q))²)^{1/2}`. -/
-@[collatz_pos_dens "def_bk_points"]
 noncomputable def bkDist (p q : ℤ × ℤ) : ℝ := √(bkDistSq p q : ℝ)
 
 /-- A point lies in `𝒫` iff its first coordinate is at least `1`. -/

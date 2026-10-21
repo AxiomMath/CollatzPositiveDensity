@@ -11,9 +11,7 @@ public import CollatzPosDens.CharSum.ChBlockListMass
 public import CollatzPosDens.CharSum.ChBlockPath
 public import CollatzPosDens.CharSum.ChBlockWeight
 public import CollatzPosDens.CharSum.ChRaw
-public import CollatzPosDens.Renewal.RnP3
 public import CollatzPosDens.Renewal.RnRawMass
-public import CollatzPosDens.StoppingTrace.TrFirstRaw
 public import CollatzPosDens.StoppingTrace.TrListWeight
 public import CollatzPosDens.StoppingTrace.TrPassage
 public import CollatzPosDens.StoppingTrace.TrRaw3LastBlock
@@ -21,46 +19,52 @@ public import CollatzPosDens.StoppingTrace.TrRaw3Witness
 public import CollatzPosDens.StoppingTrace.TrRawSum
 
 /-!
-# Mass of the raw-three witnesses
+# Mass of the first raw crossing events
 
-For `s ∈ ℕ`, the raw-three witnesses `𝒜₃(s)` carry total weight `p₃(s)`:
-`∑_{π ∈ 𝒜₃(s)} bw^⊗(π) = p₃(s)`.
+For `s ∈ ℕ` and integers `c, o, r` with `1 ≤ o ≤ c` and `r ≥ 1`, the first raw crossing events
+`𝒳_{c,o,r}(s)` carry total weight `ϖ(c) 𝖱(r - 1, s + o - c)`:
+`∑_{π ∈ 𝒳_{c,o,r}(s)} bw^⊗(π) = ϖ(c) 𝖱(r - 1, s + o - c)`.
 
-Write `f = ⌊(5s + 16)/16⌋`. A raw-three witness `π` is described by a tuple `(r, O, b, c, e)`
-with `1 ≤ r ≤ f`, `O ∈ {1, 2, 3}`, a word `b ∈ ℤ^{r-1}` with letters `≥ 2` and sum `s + O - 3`,
-a block `(c, e)` with `e ∈ {4, 5}`: its raw word is `b (3) c (e)`, cut after each letter in
-`{4, 5}`. Indeed, by `trRawThreeWitness_lastBlock` the letter `3` read at the first raw
-crossing `r = i_s(π)` is a nonclosing letter of the last block, so `b` is the raw word before
-it and `(c, e)` the rest of the last block. Conversely, cutting `b (3) c (e)` after its letters
-in `{4, 5}` gives a passage list as soon as its weight is nonzero: the block endpoints before
-the last lie inside `b`, at height at most `s + O - 3 ≤ s`, and the first raw crossing is at
-position `r`, where the partial sum is `s + O`. The weight of the list is
-`∏ ϖ(bᵢ) · ϖ(3) · bw(c, e)`, so summing over the tuples gives
-`ϖ(3) ∑_{O=1}^{3} ∑_{r=1}^{f} 𝖱(r - 1, s + O - 3) · ∑_{(c, e) ∈ 𝔅} bw(c, e) = p₃(s)`,
-since the block weights have total mass `1`.
+The raw word `z = c¹ (e¹) ⋯ cᵏ (eᵏ)` of a live list `π` has letters `≥ 2`, its letters in
+`{4, 5}` are exactly the closing letters, and `bw^⊗(π) = ∏ ϖ(zᵢ)`; conversely a word whose last
+letter lies in `{4, 5}` is the raw word of exactly one list, obtained by cutting it after each
+of its letters in `{4, 5}`. A list `π ∈ 𝒳_{c,o,r}(s)` has, by `trRawThreeWitness_lastBlock`, its
+`r`-th letter `c` in the last block, so its raw word is `b (c) y`, where `b` has length `r - 1`,
+letters `≥ 2` and sum `s + o - c`, and `y` is the rest of the last block. Conversely, cutting
+such a word gives a list of `𝒳_{c,o,r}(s)` as soon as its weight is nonzero: the block endpoints
+before the last lie inside `b`, at height at most `s + o - c ≤ s`, and the last one is at height
+at least `s + o > s`.
+
+If `c ∈ {4, 5}`, the letter `c` closes the last block and `y` is empty, so the total weight is
+`ϖ(c) 𝖱(r - 1, s + o - c)`. Otherwise `c (y)` is a block `(c c', e)` with `(c', e)` an arbitrary
+block, of weight `ϖ(c) bw(c', e)`, and the block weights have total mass `1`.
 
 ## Main results
 
 * `CollatzPosDens.hasSum_trListWeight_trRawThreeWitness`: the series
-  `∑_{π ∈ 𝒜₃(s)} bw^⊗(π)` converges (unconditionally) to `p₃(s)`.
+  `∑_{π ∈ 𝒳_{c,o,r}(s)} bw^⊗(π)` converges (unconditionally) to `ϖ(c) 𝖱(r - 1, s + o - c)`.
 * `CollatzPosDens.tsum_trListWeight_trRawThreeWitness`: the same identity for `tsum`.
 
 ## Implementation notes
 
-The sum over `𝒜₃(s)` is stated as a `HasSum` over the subtype `trRawThreeWitness s`; this
-records the convergence of the series as well as its value, and since the terms are
-nonnegative it is the strongest form of the statement (it implies the identity in `[0, ∞]`).
-Rather than summing the factor `(∑_{a ∉ {4, 5}} ϖ(a))^m (ϖ(4) + ϖ(5))` over `m ≥ 0`, the
-tuples carry the whole block `(c, e)` and its weight `bw(c, e)`, which already vanishes when a
-letter of `c` lies in `{4, 5}`, and the factor is the total block mass
-`hasSum_prod_chBlockWeight_single`. The tuples whose block `(c, e)` has weight zero are kept:
-their list has weight zero too, so they do not contribute. This makes the tuple-to-list map
-injective on all tuples, which is what `Function.Injective.hasSum_iff` needs.
+The sum over `𝒳_{c,o,r}(s)` is stated as a `HasSum` over the subtype `trRawThreeWitness s c o r`;
+this records the convergence of the series as well as its value, and since the terms are
+nonnegative it is the strongest form of the statement. The hypothesis `c ≥ 2` is not
+needed: for `c < 2` both sides vanish, as every letter of a live list is at least `2` and
+`ϖ(c) = 0`.
+
+When `c ∉ {4, 5}`, the remaining letters are not summed as the geometric series
+`∑_{m ≥ 0} (∑_{a ∉ {4, 5}} ϖ(a))^m (ϖ(4) + ϖ(5))`; instead the words carry the whole remaining
+block `(c', e)` and its weight `bw(c', e)`, which already vanishes when a letter of `c'` lies in
+`{4, 5}`, and the factor is the total block mass `hasSum_prod_chBlockWeight_single`. The words
+whose list has weight zero are kept: they do not contribute, and keeping them makes the
+word-to-list map injective on all words, which is what `Function.Injective.hasSum_iff` needs.
 
 ## References
 
-* [Mazur, *Collatz positive density*], §9.3.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
+
 
 @[expose] public section
 
@@ -153,38 +157,32 @@ private lemma cutBlocks_flat_append (β : List (List ℤ × ℤ)) (u : List ℤ)
     simp only [List.nil_append]
     rw [ih fun b' hb' ↦ hβ b' (by simp [hb'])]
 
-/-! ### The list attached to a tuple -/
 
-/-- The list of blocks with raw word `b (3) c (e)`, cut after the letters of `b` in `{4, 5}` and
-after the final letter `e`. -/
-private def build (b c : List ℤ) (e : ℤ) : List (List ℤ × ℤ) :=
-  (cutBlocks [] b).1 ++ [((cutBlocks [] b).2 ++ 3 :: c, e)]
+/-! ### The list with a given raw word -/
 
-private lemma build_flat (b c : List ℤ) (e : ℤ) :
-    ((build b c e).flatMap fun b => b.1 ++ [b.2]) = b ++ 3 :: (c ++ [e]) := by
+/-- The list of blocks with raw word `b c (e)`: the word `b` cut after its letters in `{4, 5}`,
+followed by the block whose nonclosing word is the rest of `b` followed by `c`. -/
+private def buildList (b c : List ℤ) (e : ℤ) : List (List ℤ × ℤ) :=
+  (cutBlocks [] b).1 ++ [((cutBlocks [] b).2 ++ c, e)]
+
+private lemma buildList_flat (b c : List ℤ) (e : ℤ) :
+    ((buildList b c e).flatMap fun β => β.1 ++ [β.2]) = b ++ (c ++ [e]) := by
   have h := cutBlocks_flat [] b
   rw [List.nil_append] at h
   conv_rhs => rw [← h]
-  simp [build]
+  simp [buildList]
 
-private lemma build_length (b c : List ℤ) (e : ℤ) :
-    (build b c e).length = (cutBlocks [] b).1.length + 1 := by
-  simp [build]
-
-private lemma build_weight (b c : List ℤ) (e : ℤ) :
-    trListWeight (build b c e) = (b.map varpi).prod * varpi 3 * chBlockWeight (c, e) := by
+private lemma buildList_weight (b c : List ℤ) (e : ℤ) :
+    trListWeight (buildList b c e) = (b.map varpi).prod * chBlockWeight (c, e) := by
   have h := cutBlocks_weight [] b
   simp only [List.map_nil, List.prod_nil, one_mul] at h
-  have h3 : varpiIn 3 = varpi 3 := varpiIn_of_notMem (by norm_num)
-  rw [build, trListWeight_concat, chBlockWeight_append, chBlockWeight_cons]
-  change _ * (_ * (varpiIn 3 * _)) = _
-  rw [h3]
-  linear_combination (varpi 3 * chBlockWeight (c, e)) * h
+  rw [buildList, trListWeight_concat, chBlockWeight_append]
+  linear_combination chBlockWeight (c, e) * h
 
-private lemma build_closing {b c : List ℤ} {e : ℤ} (he : e ∈ ({4, 5} : Set ℤ)) :
-    ∀ x ∈ build b c e, x.2 ∈ ({4, 5} : Set ℤ) := by
+private lemma buildList_closing {b c : List ℤ} {e : ℤ} (he : e ∈ ({4, 5} : Set ℤ)) :
+    ∀ x ∈ buildList b c e, x.2 ∈ ({4, 5} : Set ℤ) := by
   intro x hx
-  simp only [build, List.mem_append, List.mem_singleton] at hx
+  simp only [buildList, List.mem_append, List.mem_singleton] at hx
   rcases hx with hx | rfl
   · exact cutBlocks_closing [] b x hx
   · exact he
@@ -195,44 +193,29 @@ private lemma sum_map_eq_sum_flat (β : List (List ℤ × ℤ)) :
   | nil => simp
   | cons b β ih => simp [ih, add_assoc]
 
-/-- The first raw crossing of the list attached to `(b, c, e)` is at the letter `3`. -/
-private lemma build_trFirstRaw {s : ℕ} {b c : List ℤ} {e : ℤ} (hb : ∀ x ∈ b, 0 ≤ x)
-    (hbs : b.sum ≤ s) (hbs' : (s : ℤ) < b.sum + 3) :
-    trFirstRaw s (build b c e) = b.length + 1 ∧
-      trRawSum (build b c e) (b.length + 1) = b.sum + 3 := by
-  have hσ : ∀ i, trRawSum (build b c e) i = ((b ++ 3 :: (c ++ [e])).take i).sum := by
-    intro i; rw [trRawSum_eq_sum_take, build_flat]
-  have hr : trRawSum (build b c e) (b.length + 1) = b.sum + 3 := by
-    rw [hσ, List.take_append, List.take_of_length_le (by omega)]
-    simp
-  have hle : ∀ i ≤ b.length, trRawSum (build b c e) i ≤ s := by
-    intro i hi
-    rw [hσ, List.take_append_of_le_length hi]
-    exact ((List.take_prefix i b).sublist.sum_le_sum hb).trans hbs
-  have hM : b.length + 1 ≤ (chBlockPath (build b c e) (build b c e).length).1.toNat := by
-    rw [toNat_chBlockPath_fst, build_flat]
-    simp
-  refine ⟨le_antisymm (trFirstRaw_le_of_lt (by omega) hM (by rw [hr]; exact hbs')) ?_, hr⟩
-  by_contra hlt
-  push Not at hlt
-  obtain ⟨hmem, hgt⟩ := trFirstRaw_spec (s := s) (π := build b c e)
-    ⟨b.length + 1, mem_Icc.mpr ⟨by omega, hM⟩, by rw [hr]; exact hbs'⟩
-  rw [mem_Icc] at hmem
-  have := hle (trFirstRaw s (build b c e)) (by omega)
-  omega
-
-/-- The list attached to `(b, c, e)` is a raw-three witness as soon as its weight is nonzero. -/
-private lemma build_mem {s : ℕ} {b c : List ℤ} {e : ℤ} (hb : ∀ x ∈ b, 0 ≤ x)
-    (hc : ∀ x ∈ c, 0 ≤ x) (hbs : b.sum ≤ s) (hbs' : (s : ℤ) < b.sum + 3)
-    (he : e ∈ ({4, 5} : Set ℤ)) (hr : b.length + 1 ≤ (5 * s + 16) / 16)
-    (hw : trListWeight (build b c e) ≠ 0) : build b c e ∈ trRawThreeWitness s := by
-  obtain ⟨hI, hσ⟩ := build_trFirstRaw (c := c) (e := e) hb hbs hbs'
-  refine ⟨⟨build_closing he, (trLive_iff_prod_ne_zero _).mpr hw, by simp [build], ?_, ?_⟩,
-    ?_, ?_, ?_⟩
+/-- The list with raw word `b (a) t` is a first raw crossing event of `𝒳_{a,o,|b|+1}(s)` as soon
+as its weight is nonzero, `0 < o ≤ a` and `∑ b = s + o - a`. -/
+private lemma buildList_mem {s : ℕ} {a o : ℤ} {b c t : List ℤ} {e : ℤ}
+    (hbs : b.sum = s + o - a) (ho : 0 < o) (hoa : o ≤ a) (hct : c ++ [e] = a :: t)
+    (he : e ∈ ({4, 5} : Set ℤ)) (hw : trListWeight (buildList b c e) ≠ 0) :
+    buildList b c e ∈ trRawThreeWitness s a o (b.length + 1) := by
+  have hlive : TrLive (buildList b c e) := (trLive_iff_prod_ne_zero _).mpr hw
+  have hflat : ((buildList b c e).flatMap fun β => β.1 ++ [β.2]) = b ++ a :: t := by
+    rw [buildList_flat, hct]
+  have hlet : ∀ x ∈ b ++ a :: t, 2 ≤ x := by
+    intro x hx
+    rw [← hflat] at hx
+    obtain ⟨β, hβ, hxβ⟩ := List.mem_flatMap.mp hx
+    exact two_le_of_mem_append_of_chBlockWeight_ne_zero (hlive β hβ) hxβ
+  have hb : ∀ x ∈ b, 0 ≤ x := fun x hx ↦ by linarith [hlet x (by simp [hx])]
+  have ht : 0 ≤ t.sum := List.sum_nonneg fun x hx ↦ by linarith [hlet x (by simp [hx])]
+  refine ⟨⟨buildList_closing he, hlive, by simp [buildList], ?_, ?_⟩, ?_, ?_, ?_⟩
   · intro i hi
-    rw [build_length] at hi
-    rw [chBlockPath_snd, build, List.take_append_of_le_length (by omega), sum_map_eq_sum_flat]
-    refine (List.IsPrefix.sublist ?_ |>.sum_le_sum hb).trans hbs
+    have hlen : (buildList b c e).length = (cutBlocks [] b).1.length + 1 := by simp [buildList]
+    rw [hlen] at hi
+    rw [chBlockPath_snd, buildList, List.take_append_of_le_length (by omega),
+      sum_map_eq_sum_flat]
+    refine (List.IsPrefix.sublist ?_ |>.sum_le_sum hb).trans (by omega)
     have h1 : ((cutBlocks [] b).1.take i).flatMap (fun b => b.1 ++ [b.2]) <+:
         (cutBlocks [] b).1.flatMap (fun b => b.1 ++ [b.2]) := by
       conv_rhs => rw [← List.take_append_drop i (cutBlocks [] b).1]
@@ -243,207 +226,249 @@ private lemma build_mem {s : ℕ} {b c : List ℤ} {e : ℤ} (hb : ∀ x ∈ b, 
     rw [List.nil_append] at h
     conv_rhs => rw [← h]
     exact List.prefix_append _ _
-  · rw [← sum_flatMap_eq_chBlockPath_snd, build_flat]
-    have h0 : 0 ≤ c.sum := List.sum_nonneg hc
-    have he4 : 4 ≤ e := by
-      simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at he; omega
-    simp only [List.sum_append, List.sum_cons, List.sum_nil]
+  · rw [← sum_flatMap_eq_chBlockPath_snd, hflat]
+    simp only [List.sum_append, List.sum_cons]
     omega
-  · rw [chRaw_toNat_chBlockPath_fst, build_flat, hI]
+  · rw [toNat_chBlockPath_fst, hflat]
     simp
-  · rw [hI]; exact hr
-  · rw [hI, hσ]; omega
+  · rw [chRaw_toNat_chBlockPath_fst, hflat]
+    simp
+  · rw [trRawSum_eq_sum_take, hflat, List.take_append, List.take_of_length_le (by omega)]
+    simp only [Nat.add_sub_cancel_left, List.take_succ_cons, List.take_zero, List.sum_append,
+      List.sum_cons, List.sum_nil]
+    omega
 
-/-! ### The tuples -/
+/-- Every first raw crossing event `π ∈ 𝒳_{a,o,r}(s)` with `0 < o` is the list with raw word
+`b c (e)`, where `b` has length `r - 1`, letters `≥ 2` and sum `s + o - a`, the word `c (e)`
+starts with the letter `a`, the letters of `c` lie outside `{4, 5}` and `e ∈ {4, 5}`. -/
+private lemma exists_buildList {s : ℕ} {a o : ℤ} {r : ℕ} (ho : 0 < o)
+    {π : List (List ℤ × ℤ)} (hπ : π ∈ trRawThreeWitness s a o r) :
+    ∃ b c e t, b.length = r - 1 ∧ (∀ x ∈ b, 2 ≤ x) ∧ b.sum = s + o - a ∧
+      c ++ [e] = a :: t ∧ (∀ x ∈ c, x ∉ ({4, 5} : Set ℤ)) ∧ e ∈ ({4, 5} : Set ℤ) ∧
+      π = buildList b c e := by
+  have hP := trRawThreeWitness_mem_trPassage hπ
+  have hlive := trLive_of_mem_trPassage hP
+  obtain ⟨π₀, ⟨d, e⟩, rfl⟩ : ∃ π₀ x, π = π₀ ++ [x] :=
+    ⟨_, _, (List.dropLast_append_getLast (ne_nil_of_mem_trPassage hP)).symm⟩
+  obtain ⟨i, hi1, hid, hci, hpt⟩ :=
+    trRawThreeWitness_lastBlock ho hπ (d := d) (e := e) (by simp)
+  have hlastw : chBlockWeight (d, e) ≠ 0 := hlive _ (by simp)
+  have he : e ∈ ({4, 5} : Set ℤ) := trRawThreeWitness_closing_mem hπ (b := (d, e)) (by simp)
+  have hd : ∀ x ∈ d, x ∉ ({4, 5} : Set ℤ) := fun x hx h ↦
+    hlastw (chBlockWeight_eq_zero_of_mem hx h)
+  have hπ₀ : ∀ β ∈ π₀, (∀ x ∈ β.1, ¬ (x = 4 ∨ x = 5)) ∧ (β.2 = 4 ∨ β.2 = 5) := by
+    intro β hβ
+    refine ⟨fun x hx h ↦
+      hlive β (by simp [hβ]) (chBlockWeight_eq_zero_of_mem hx (by simpa using h)), ?_⟩
+    simpa using trRawThreeWitness_closing_mem hπ (b := β) (by simp [hβ])
+  have hlen : (π₀ ++ [(d, e)]).length - 1 = π₀.length := by simp
+  rw [hlen, chBlockPath_append_of_le _ _ le_rfl] at hpt
+  set z₀ := π₀.flatMap fun β => β.1 ++ [β.2] with hz₀
+  have hfst : (chBlockPath π₀ π₀.length).1 = (z₀.length : ℤ) := by
+    rw [← toNat_chBlockPath_fst, Int.toNat_of_nonneg (chBlockPath_fst_nonneg _ _)]
+  have hsnd : (chBlockPath π₀ π₀.length).2 = z₀.sum := (sum_flatMap_eq_chBlockPath_snd π₀).symm
+  have hr := congrArg Prod.fst hpt
+  have hσ := congrArg Prod.snd hpt
+  simp only [Prod.fst_add, Prod.snd_add, hfst, hsnd] at hr hσ
+  obtain ⟨j, rfl⟩ : ∃ j, i = j + 1 := ⟨i - 1, by omega⟩
+  simp only [Nat.add_sub_cancel] at hci
+  have htake : (d ++ [e]).take (j + 1) = d.take j ++ [a] := by
+    rw [List.take_add_one, hci, List.take_append_of_le_length (by omega)]
+    rfl
+  rw [htake, List.sum_append, List.sum_singleton] at hσ
+  have hdrop : d.drop j ++ [e] = a :: (d ++ [e]).drop (j + 1) := by
+    rw [← List.drop_append_of_le_length (by omega), List.drop_eq_getElem_cons]
+    · obtain ⟨_, h⟩ := List.getElem?_eq_some_iff.mp hci
+      rw [h]
+    · simp only [List.length_append, List.length_singleton]
+      omega
+  refine ⟨z₀ ++ d.take j, d.drop j, e, (d ++ [e]).drop (j + 1), ?_, ?_, ?_, hdrop,
+    fun x hx ↦ hd x (List.mem_of_mem_drop hx), he, ?_⟩
+  · simp only [List.length_append, List.length_take]
+    omega
+  · intro x hx
+    rcases List.mem_append.mp hx with hx | hx
+    · obtain ⟨β, hβ, hxβ⟩ := List.mem_flatMap.mp hx
+      exact two_le_of_mem_append_of_chBlockWeight_ne_zero (hlive β (by simp [hβ])) hxβ
+    · exact two_le_of_chBlockWeight_ne_zero hlastw (List.mem_of_mem_take hx)
+  · rw [List.sum_append]
+    omega
+  · rw [buildList, cutBlocks_flat_append π₀ (d.take j) hπ₀
+      fun x hx h ↦ hd x (List.mem_of_mem_take hx) (by simpa using h), List.take_append_drop]
 
-/-- The finite set of the triples `(O, r, b)` with `O ∈ {1, 2, 3}`, `1 ≤ r ≤ ⌊(5s+16)/16⌋` and
-`b ∈ ℤ^{r-1}` a word with letters `≥ 2` and sum `s + O - 3`. -/
-private def tupleSet (s : ℕ) : Finset (Σ p : ℕ × ℕ, Fin (p.2 - 1) → ℤ) :=
-  (Icc 1 3 ×ˢ Icc 1 ((5 * s + 16) / 16)).sigma fun p ↦ rawWords (p.2 - 1) ((s : ℤ) + p.1 - 3)
+/-- A word of length `n` is `List.ofFn` of a tuple in `ℤⁿ`. -/
+private lemma exists_ofFn_eq {n : ℕ} {b : List ℤ} (hb : b.length = n) :
+    ∃ f : Fin n → ℤ, List.ofFn f = b := by
+  subst hb
+  exact ⟨b.get, List.ofFn_get b⟩
 
-private lemma mem_tupleSet {s : ℕ} {x : Σ p : ℕ × ℕ, Fin (p.2 - 1) → ℤ} :
-    x ∈ tupleSet s ↔ (1 ≤ x.1.1 ∧ x.1.1 ≤ 3) ∧ (1 ≤ x.1.2 ∧ x.1.2 ≤ (5 * s + 16) / 16) ∧
-      (∀ i, 2 ≤ x.2 i) ∧ ∑ i, x.2 i = (s : ℤ) + x.1.1 - 3 := by
-  simp [tupleSet, mem_sigma, mem_product, mem_rawWords, and_assoc]
+/-- A word `b` of length `r - 1`, with letters `≥ 2` and sum `t`, is `List.ofFn` of an element
+of `rawWords (r - 1) t`. -/
+private lemma exists_rawWords {r : ℕ} {t : ℤ} {b : List ℤ} (hb : b.length = r - 1)
+    (h2 : ∀ x ∈ b, 2 ≤ x) (hs : b.sum = t) :
+    ∃ f : rawWords (r - 1) t, List.ofFn f.1 = b := by
+  obtain ⟨f, rfl⟩ := exists_ofFn_eq hb
+  refine ⟨⟨f, mem_rawWords.mpr ⟨fun i ↦ h2 _ (List.mem_ofFn.mpr ⟨i, rfl⟩), ?_⟩⟩, rfl⟩
+  rwa [← List.sum_ofFn]
 
-private lemma tupleSet_facts {s : ℕ} {x : Σ p : ℕ × ℕ, Fin (p.2 - 1) → ℤ}
-    (hx : x ∈ tupleSet s) :
-    (∀ y ∈ List.ofFn x.2, 0 ≤ y) ∧ (List.ofFn x.2).sum ≤ s ∧
-      (s : ℤ) < (List.ofFn x.2).sum + 3 ∧ (List.ofFn x.2).length + 1 = x.1.2 ∧
-      (List.ofFn x.2).sum + 3 = s + x.1.1 ∧ x.1.2 ≤ (5 * s + 16) / 16 := by
-  obtain ⟨⟨hO1, hO3⟩, ⟨hr1, hrf⟩, h2, hsum⟩ := mem_tupleSet.mp hx
-  rw [List.sum_ofFn, hsum, List.length_ofFn]
-  refine ⟨fun y hy ↦ ?_, by omega, by omega, by omega, by omega, hrf⟩
-  obtain ⟨i, rfl⟩ := List.mem_ofFn.mp hy
-  linarith [h2 i]
+/-- The weight of a word `f`, as a list. -/
+private lemma prod_map_varpi_ofFn {n : ℕ} (f : Fin n → ℤ) :
+    ((List.ofFn f).map varpi).prod = ∏ i, varpi (f i) := by
+  rw [List.map_ofFn, List.prod_ofFn]
+  rfl
 
-private lemma sum_tupleSet (s : ℕ) :
-    ∑ x ∈ tupleSet s, (∏ i, varpi (x.2 i)) * varpi 3 = p3 s := by
-  rw [tupleSet, sum_sigma, p3, sum_product, mul_sum]
-  refine sum_congr rfl fun O _ ↦ ?_
-  rw [mul_sum]
-  refine sum_congr rfl fun r _ ↦ ?_
-  rw [← sum_mul, rawMass, mul_comm]
+/-! ### Parametrising the first raw crossing events -/
 
-/-! ### The mass of the raw-three witnesses -/
+/-- If `f : ι → List (List ℤ × ℤ)` is injective with range containing `W`, and the weight of
+`f x` restricted to `W` is `g x`, then `∑_{π ∈ W} bw^⊗(π)` has the sum of `g`. -/
+private lemma hasSum_of_parametrisation {ι : Type*} {W : Set (List (List ℤ × ℤ))}
+    (f : ι → List (List ℤ × ℤ)) (hf : Function.Injective f) (hW : ∀ π ∈ W, π ∈ Set.range f)
+    {g : ι → ℝ} (hg : ∀ x, W.indicator trListWeight (f x) = g x) {m : ℝ} (h : HasSum g m) :
+    HasSum (fun π : W ↦ trListWeight π.1) m := by
+  rw [show (fun π : W ↦ trListWeight π.1) = trListWeight ∘ Subtype.val from rfl,
+    hasSum_subtype_iff_indicator, ← hf.hasSum_iff
+    fun π hπ ↦ Set.indicator_of_notMem (fun hA ↦ hπ (hW π hA)) _]
+  convert h using 1
+  exact funext hg
+
+/-- The weight of a list `π`, restricted to a set `W` containing `π` whenever its weight is
+nonzero, is the weight of `π`. -/
+private lemma indicator_trListWeight_eq {W : Set (List (List ℤ × ℤ))} {π : List (List ℤ × ℤ)}
+    (h : trListWeight π ≠ 0 → π ∈ W) : W.indicator trListWeight π = trListWeight π := by
+  rw [Set.indicator_apply_eq_self]
+  intro hπ
+  by_contra hw
+  exact hπ (h hw)
 
 /-- The blocks `(c, e)` with closing letter `e ∈ {4, 5}`. -/
 private abbrev ClosingBlock := {β : List ℤ × ℤ // β.2 ∈ ({4, 5} : Set ℤ)}
 
-/-- The list attached to a tuple `((O, r, b), (c, e))`. -/
-private def tupleList (s : ℕ) (x : tupleSet s × ClosingBlock) : List (List ℤ × ℤ) :=
-  build (List.ofFn x.1.1.2) x.2.1.1 x.2.1.2
-
-private lemma tupleList_injective (s : ℕ) : Function.Injective (tupleList s) := by
-  rintro ⟨⟨⟨⟨O, r⟩, b⟩, hx⟩, ⟨⟨c, e⟩, he⟩⟩ ⟨⟨⟨⟨O', r'⟩, b'⟩, hx'⟩, ⟨⟨c', e'⟩, he'⟩⟩ h
-  simp only [tupleList] at h
-  obtain ⟨hb0, hbs, hbs', hlen, hsum, -⟩ := tupleSet_facts hx
-  obtain ⟨hb0', hbs₁, hbs₁', hlen', hsum', -⟩ := tupleSet_facts hx'
-  simp only at hb0 hbs hbs' hlen hsum hb0' hbs₁ hbs₁' hlen' hsum'
-  obtain ⟨t1, u1⟩ := build_trFirstRaw (c := c) (e := e) hb0 hbs hbs'
-  obtain ⟨t2, u2⟩ := build_trFirstRaw (c := c') (e := e') hb0' hbs₁ hbs₁'
-  rw [h, t2] at t1
-  rw [h, ← t1, u2] at u1
-  obtain rfl : r = r' := by omega
-  obtain rfl : O = O' := by omega
-  have hf := congrArg (fun π : List (List ℤ × ℤ) ↦ π.flatMap fun b => b.1 ++ [b.2]) h
-  simp only [build_flat] at hf
-  obtain ⟨hb, hce⟩ := List.append_inj hf (by simp)
-  obtain rfl := List.ofFn_injective hb
-  obtain ⟨rfl, he⟩ := List.append_inj' (List.cons_injective hce) rfl
-  obtain rfl : e = e' := by simpa using he
-  rfl
-
-/-- A raw-three witness whose last block `(c, e)` has its first raw crossing at the letter
-`c[j] = 3` is the list attached to a tuple. -/
-private lemma mem_range_tupleList_of_lastBlock {s : ℕ} {π₀ : List (List ℤ × ℤ)} {c : List ℤ}
-    {e : ℤ} {j : ℕ} (hA : π₀ ++ [(c, e)] ∈ trRawThreeWitness s) (hj : j < c.length)
-    (hcj : c[j] = 3)
-    (hI : trFirstRaw s (π₀ ++ [(c, e)]) = (π₀.flatMap fun b => b.1 ++ [b.2]).length + (j + 1))
-    (hσ : trRawSum (π₀ ++ [(c, e)]) (trFirstRaw s (π₀ ++ [(c, e)])) =
-      (π₀.flatMap fun b => b.1 ++ [b.2]).sum + (c.take j).sum + 3) :
-    π₀ ++ [(c, e)] ∈ Set.range (tupleList s) := by
-  have hlive := trLive_of_mem_trPassage (trRawThreeWitness_mem_trPassage hA)
-  have hgt := trRawThreeWitness_lt_trRawSum hA
-  have hle3 := trRawThreeWitness_trRawSum_le hA
-  have hI1 := trRawThreeWitness_one_le_trFirstRaw hA
-  have hIf := trRawThreeWitness_trFirstRaw_le hA
-  set I := trFirstRaw s (π₀ ++ [(c, e)])
-  set z₀ := π₀.flatMap fun b => b.1 ++ [b.2]
-  have hlastw : chBlockWeight (c, e) ≠ 0 := hlive _ (by simp)
-  have hπ₀ : ∀ b ∈ π₀, (∀ x ∈ b.1, ¬ (x = 4 ∨ x = 5)) ∧ (b.2 = 4 ∨ b.2 = 5) := by
-    intro b hb
-    refine ⟨fun x hx h ↦
-      hlive b (by simp [hb]) (chBlockWeight_eq_zero_of_mem hx (by simpa using h)), ?_⟩
-    simpa using trRawThreeWitness_closing_mem hA (b := b) (by simp [hb])
-  have hcj' : ∀ x ∈ c.take j, ¬ (x = 4 ∨ x = 5) := fun x hx ↦
-    fun h ↦ hlastw (chBlockWeight_eq_zero_of_mem (List.mem_of_mem_take hx) (by simpa using h))
-  set bw := z₀ ++ c.take j with hbw
-  have hbwlen : bw.length = I - 1 := by
-    simp only [hbw, List.length_append, List.length_take]
-    omega
-  have hbw2 : ∀ x ∈ bw, 2 ≤ x := by
-    intro x hx
-    rcases List.mem_append.mp hx with hx | hx
-    · obtain ⟨b, hb, hxb⟩ := List.mem_flatMap.mp hx
-      exact two_le_of_mem_append_of_chBlockWeight_ne_zero (hlive b (by simp [hb])) hxb
-    · exact two_le_of_chBlockWeight_ne_zero hlastw (List.mem_of_mem_take hx)
-  have hbwsum : bw.sum + 3 = trRawSum (π₀ ++ [(c, e)]) I := by
-    rw [hσ, hbw, List.sum_append]
-  set O := (trRawSum (π₀ ++ [(c, e)]) I - s).toNat
-  have hO : (O : ℤ) = trRawSum (π₀ ++ [(c, e)]) I - s := Int.toNat_of_nonneg (by omega)
-  let bf : Fin (I - 1) → ℤ := fun k ↦ bw.getD k 0
-  have hofn : List.ofFn bf = bw := by
-    refine List.ext_getElem (by simp [hbwlen]) fun n h1 h2 ↦ ?_
-    simp [bf, List.getElem?_eq_getElem h2]
-  have hmem : (⟨(O, I), bf⟩ : Σ p : ℕ × ℕ, Fin (p.2 - 1) → ℤ) ∈ tupleSet s := by
-    rw [mem_tupleSet]
-    have hO13 : 1 ≤ O ∧ O ≤ 3 := by omega
-    refine ⟨hO13, ⟨hI1, hIf⟩, fun k ↦ hbw2 _ ?_, ?_⟩
-    · rw [← hofn]; exact List.mem_ofFn.mpr ⟨k, rfl⟩
-    · rw [← List.sum_ofFn, hofn]; simp only; omega
-  refine ⟨(⟨⟨(O, I), bf⟩, hmem⟩, ⟨(c.drop (j + 1), e), ?_⟩), ?_⟩
-  · exact trRawThreeWitness_closing_mem hA (b := (c, e)) (by simp)
-  · change build (List.ofFn bf) (c.drop (j + 1)) e = π₀ ++ [(c, e)]
-    rw [hofn, build, hbw, cutBlocks_flat_append π₀ (c.take j) hπ₀ hcj']
-    have hd : c.drop j = 3 :: c.drop (j + 1) := by rw [List.drop_eq_getElem_cons hj, hcj]
-    simp only
-    rw [← hd, List.take_append_drop]
-
-/-- Every raw-three witness is the list attached to a tuple. -/
-private lemma mem_range_tupleList {s : ℕ} {π : List (List ℤ × ℤ)}
-    (hA : π ∈ trRawThreeWitness s) : π ∈ Set.range (tupleList s) := by
-  have hne := ne_nil_of_mem_trPassage (trRawThreeWitness_mem_trPassage hA)
-  obtain ⟨π₀, ⟨c, e⟩, rfl⟩ : ∃ π₀ x, π = π₀ ++ [x] :=
-    ⟨_, _, (List.dropLast_append_getLast hne).symm⟩
-  have hlast : (π₀ ++ [(c, e)]).getLast? = some (c, e) := by simp
-  obtain ⟨i, hi1, hic, hci, hpt⟩ := trRawThreeWitness_lastBlock hA hlast
-  obtain ⟨j, rfl⟩ : ∃ j, i = j + 1 := ⟨i - 1, by omega⟩
-  simp only [Nat.add_sub_cancel] at hci
-  obtain ⟨hj, hcj⟩ := List.getElem?_eq_some_iff.mp hci
-  have hlen : (π₀ ++ [(c, e)]).length - 1 = π₀.length := by simp
-  rw [hlen, chBlockPath_append_of_le _ _ le_rfl] at hpt
-  have hfst : (chBlockPath π₀ π₀.length).1 =
-      ((π₀.flatMap fun b => b.1 ++ [b.2]).length : ℤ) := by
-    rw [← toNat_chBlockPath_fst, Int.toNat_of_nonneg (chBlockPath_fst_nonneg _ _)]
-  have hsnd := (sum_flatMap_eq_chBlockPath_snd π₀).symm
-  have htake : c.take (j + 1) = c.take j ++ [3] := by
-    rw [List.take_add_one, hci]; rfl
-  refine mem_range_tupleList_of_lastBlock hA hj hcj ?_ ?_
-  · have := congrArg Prod.fst hpt
-    simp only [Prod.fst_add, hfst] at this
-    omega
-  · have := congrArg Prod.snd hpt
-    simp only [Prod.snd_add, hsnd, htake, List.sum_append, List.sum_cons,
-      List.sum_nil] at this
-    rw [this]; ring
-
-/-- The weight of the list attached to a tuple, restricted to the raw-three witnesses. -/
-private lemma indicator_tupleList (s : ℕ) (x : tupleSet s × ClosingBlock) :
-    (trRawThreeWitness s).indicator trListWeight (tupleList s x) =
-      (∏ i, varpi (x.1.1.2 i)) * varpi 3 * chBlockWeight x.2.1 := by
-  obtain ⟨⟨⟨⟨O, r⟩, b⟩, hx⟩, ⟨⟨c, e⟩, he⟩⟩ := x
-  have hw : trListWeight (tupleList s ⟨⟨⟨(O, r), b⟩, hx⟩, ⟨(c, e), he⟩⟩) =
-      (∏ i, varpi (b i)) * varpi 3 * chBlockWeight (c, e) := by
-    simp only [tupleList, build_weight, List.map_ofFn, List.prod_ofFn, Function.comp_def]
-  rw [← hw, Set.indicator_apply_eq_self]
-  intro hnot
-  by_contra hw0
-  obtain ⟨hb0, hbs, hbs', hlen, -, hrf⟩ := tupleSet_facts hx
-  simp only at hb0 hbs hbs' hlen hrf
-  have hcw : chBlockWeight (c, e) ≠ 0 := by
-    intro h0; rw [hw, h0, mul_zero] at hw0; exact hw0 rfl
-  refine hnot (build_mem (b := List.ofFn b) (c := c) hb0 (fun x hx ↦ ?_) hbs hbs' he
-    (by omega) hw0)
-  have := two_le_of_chBlockWeight_ne_zero hcw hx
-  omega
-
-private lemma hasSum_tupleSet (s : ℕ) :
-    HasSum (fun x : tupleSet s × ClosingBlock ↦
-      (∏ i, varpi (x.1.1.2 i)) * varpi 3 * chBlockWeight x.2.1) (p3 s) := by
-  have h1 : HasSum (fun a : tupleSet s ↦ (∏ i, varpi (a.1.2 i)) * varpi 3)
-      (∑ a : tupleSet s, (∏ i, varpi (a.1.2 i)) * varpi 3) := hasSum_fintype _
+/-- Summing `u(b) v bw(β)` over the pairs of an element `b` of a finite set `W` and a block `β`
+gives `v ∑_{b ∈ W} u(b)`, since the block weights have total mass `1`. -/
+private lemma hasSum_finset_mul_chBlockWeight {α : Type*} (W : Finset α) (u : α → ℝ)
+    (hu : ∀ a, 0 ≤ u a) {v : ℝ} (hv : 0 ≤ v) :
+    HasSum (fun x : W × ClosingBlock ↦ u x.1 * v * chBlockWeight x.2.1)
+      (v * ∑ a ∈ W, u a) := by
+  have h1 : HasSum (fun a : W ↦ u a * v) (∑ a : W, u a * v) := hasSum_fintype _
   have h2 := hasSum_prod_chBlockWeight_single
   have h := h1.mul h2 (Summable.mul_of_nonneg h1.summable h2.summable
-    (fun a ↦ mul_nonneg (prod_nonneg fun _ _ ↦ varpi_nonneg _) (varpi_nonneg _))
-    (fun β ↦ chBlockWeight_nonneg _))
-  rwa [mul_one, sum_coe_sort (tupleSet s) (fun a ↦ (∏ i, varpi (a.2 i)) * varpi 3),
-    sum_tupleSet] at h
+    (fun a ↦ mul_nonneg (hu _) hv) (fun β ↦ chBlockWeight_nonneg _))
+  rwa [mul_one, Finset.sum_coe_sort W (fun a ↦ u a * v), ← Finset.sum_mul, mul_comm] at h
 
-/-- **Mass of the raw-three witnesses.** For every `s ∈ ℕ`, the series
-`∑_{π ∈ 𝒜₃(s)} bw^⊗(π)` converges to `p₃(s)`. -/
+private lemma ofFn_eq_of_buildList_eq {n : ℕ} {f f' : Fin n → ℤ} {c c' : List ℤ} {e e' : ℤ}
+    (h : buildList (List.ofFn f) c e = buildList (List.ofFn f') c' e') :
+    f = f' ∧ c = c' ∧ e = e' := by
+  have hf := congrArg (fun π : List (List ℤ × ℤ) ↦ π.flatMap fun β => β.1 ++ [β.2]) h
+  simp only [buildList_flat] at hf
+  obtain ⟨hb, hce⟩ := List.append_inj hf (by simp)
+  obtain ⟨hc, he⟩ := List.append_inj' hce rfl
+  exact ⟨List.ofFn_injective hb, hc, by simpa using he⟩
+
+/-- The case `c ∉ {4, 5}`: the event `𝒳_{c,o,r}(s)` is parametrised by the words
+`b ∈ rawWords (r - 1) (s + o - c)` and the blocks `(c', e)`, through the raw word
+`b (c) c' (e)`. -/
+private lemma hasSum_of_notMem {s : ℕ} {c o : ℤ} {r : ℕ} (ho : 0 < o) (hoc : o ≤ c)
+    (hr : 1 ≤ r) (hc : c ∉ ({4, 5} : Set ℤ)) :
+    HasSum (fun π : trRawThreeWitness s c o r ↦ trListWeight π.1)
+      (varpi c * rawMass (r - 1) (s + o - c)) := by
+  let f : rawWords (r - 1) (s + o - c) × ClosingBlock → List (List ℤ × ℤ) :=
+    fun x ↦ buildList (List.ofFn x.1.1) (c :: x.2.1.1) x.2.1.2
+  have hf : Function.Injective f := by
+    rintro ⟨⟨b, hb⟩, ⟨⟨c₁, e₁⟩, he₁⟩⟩ ⟨⟨b', hb'⟩, ⟨⟨c₁', e₁'⟩, he₁'⟩⟩ h
+    obtain ⟨rfl, hc₁, rfl⟩ := ofFn_eq_of_buildList_eq h
+    obtain rfl := (List.cons_injective hc₁ : c₁ = c₁')
+    rfl
+  have hw : ∀ x, trListWeight (f x) = (∏ i, varpi (x.1.1 i)) * varpi c * chBlockWeight x.2.1 := by
+    intro x
+    simp only [f, buildList_weight, chBlockWeight_cons, varpiIn_of_notMem hc,
+      prod_map_varpi_ofFn]
+    ring
+  refine hasSum_of_parametrisation f hf ?_ (g := fun x ↦
+    (∏ i, varpi (x.1.1 i)) * varpi c * chBlockWeight x.2.1) ?_ ?_
+  · intro π hπ
+    obtain ⟨b, d, e, t, hlen, h2, hs, hdt, hd, he, rfl⟩ := exists_buildList ho hπ
+    obtain ⟨d', rfl⟩ : ∃ d', d = c :: d' := by
+      rcases d with _ | ⟨x, d'⟩
+      · simp only [List.nil_append, List.cons.injEq] at hdt
+        exact absurd (hdt.1 ▸ he) hc
+      · simp only [List.cons_append, List.cons.injEq] at hdt
+        exact ⟨d', by rw [hdt.1]⟩
+    obtain ⟨b', rfl⟩ := exists_rawWords hlen h2 hs
+    exact ⟨(b', ⟨(d', e), he⟩), rfl⟩
+  · intro x
+    rw [← hw, indicator_trListWeight_eq]
+    intro hne
+    obtain ⟨⟨b, hb⟩, ⟨⟨d, e⟩, he⟩⟩ := x
+    have hbs : (List.ofFn b).sum = s + o - c := by
+      rw [List.sum_ofFn]
+      exact (mem_rawWords.mp hb).2
+    have hdt : (c :: d) ++ [e] = c :: (d ++ [e]) := List.cons_append ..
+    have hmem := buildList_mem hbs ho hoc hdt he hne
+    rwa [List.length_ofFn, Nat.sub_add_cancel hr] at hmem
+  · rw [rawMass]
+    exact hasSum_finset_mul_chBlockWeight (rawWords (r - 1) (s + o - c))
+      (fun b ↦ ∏ i, varpi (b i)) (fun _ ↦ Finset.prod_nonneg fun _ _ ↦ varpi_nonneg _)
+      (varpi_nonneg c)
+
+/-- The case `c ∈ {4, 5}`: the event `𝒳_{c,o,r}(s)` is parametrised by the words
+`b ∈ rawWords (r - 1) (s + o - c)`, through the raw word `b (c)`. -/
+private lemma hasSum_of_mem {s : ℕ} {c o : ℤ} {r : ℕ} (ho : 0 < o) (hoc : o ≤ c)
+    (hr : 1 ≤ r) (hc : c ∈ ({4, 5} : Set ℤ)) :
+    HasSum (fun π : trRawThreeWitness s c o r ↦ trListWeight π.1)
+      (varpi c * rawMass (r - 1) (s + o - c)) := by
+  let f : rawWords (r - 1) (s + o - c) → List (List ℤ × ℤ) :=
+    fun b ↦ buildList (List.ofFn b.1) [] c
+  have hf : Function.Injective f := by
+    rintro ⟨b, hb⟩ ⟨b', hb'⟩ h
+    obtain ⟨rfl, -, -⟩ := ofFn_eq_of_buildList_eq h
+    rfl
+  have hw : ∀ b, trListWeight (f b) = (∏ i, varpi (b.1 i)) * varpi c := by
+    intro b
+    simp only [f, buildList_weight, chBlockWeight_nil, prod_map_varpi_ofFn]
+  refine hasSum_of_parametrisation f hf ?_ (g := fun b ↦ (∏ i, varpi (b.1 i)) * varpi c) ?_ ?_
+  · intro π hπ
+    obtain ⟨b, d, e, t, hlen, h2, hs, hdt, hd, he, rfl⟩ := exists_buildList ho hπ
+    obtain ⟨rfl, rfl⟩ : d = [] ∧ e = c := by
+      rcases d with _ | ⟨x, d'⟩
+      · simp only [List.nil_append, List.cons.injEq] at hdt
+        exact ⟨rfl, hdt.1⟩
+      · simp only [List.cons_append, List.cons.injEq] at hdt
+        exact absurd (hdt.1 ▸ hc) (hd x (by simp))
+    obtain ⟨b', rfl⟩ := exists_rawWords hlen h2 hs
+    exact ⟨b', rfl⟩
+  · intro b
+    rw [← hw, indicator_trListWeight_eq]
+    intro hne
+    have hbs : (List.ofFn b.1).sum = s + o - c := by
+      rw [List.sum_ofFn]
+      exact (mem_rawWords.mp b.2).2
+    have hdt : ([] : List ℤ) ++ [c] = c :: [] := rfl
+    have hmem := buildList_mem hbs ho hoc hdt hc hne
+    rwa [List.length_ofFn, Nat.sub_add_cancel hr] at hmem
+  · convert hasSum_fintype (fun b : rawWords (r - 1) (s + o - c) ↦ (∏ i, varpi (b.1 i)) * varpi c)
+      using 1
+    rw [Finset.sum_coe_sort (rawWords (r - 1) (s + o - c)) (fun b ↦ (∏ i, varpi (b i)) * varpi c),
+      ← Finset.sum_mul, ← rawMass, mul_comm]
+
+/-! ### The mass of the first raw crossing events -/
+
+/-- **Mass of the first raw crossing events.** For every `s ∈ ℕ` and all integers `c, o, r` with
+`1 ≤ o ≤ c` and `r ≥ 1`, the series `∑_{π ∈ 𝒳_{c,o,r}(s)} bw^⊗(π)` converges to
+`ϖ(c) 𝖱(r - 1, s + o - c)`. -/
 @[collatz_pos_dens "lem_tr_passage_raw3"]
-theorem hasSum_trListWeight_trRawThreeWitness (s : ℕ) :
-    HasSum (fun π : trRawThreeWitness s ↦ trListWeight π.1) (p3 s) := by
-  rw [show (fun π : trRawThreeWitness s ↦ trListWeight π.1) = trListWeight ∘ Subtype.val
-    from rfl, hasSum_subtype_iff_indicator, ← (tupleList_injective s).hasSum_iff
-    fun π hπ ↦ Set.indicator_of_notMem (fun hA ↦ hπ (mem_range_tupleList hA)) _]
-  convert hasSum_tupleSet s using 1
-  exact funext (indicator_tupleList s)
+theorem hasSum_trListWeight_trRawThreeWitness (s : ℕ) {c o : ℤ} {r : ℕ} (ho : 1 ≤ o)
+    (hoc : o ≤ c) (hr : 1 ≤ r) :
+    HasSum (fun π : trRawThreeWitness s c o r ↦ trListWeight π.1)
+      (varpi c * rawMass (r - 1) (s + o - c)) := by
+  by_cases hc : c ∈ ({4, 5} : Set ℤ)
+  · exact hasSum_of_mem (by omega) hoc hr hc
+  · exact hasSum_of_notMem (by omega) hoc hr hc
 
-/-- **Mass of the raw-three witnesses**, as a `tsum`: `∑_{π ∈ 𝒜₃(s)} bw^⊗(π) = p₃(s)`. -/
-theorem tsum_trListWeight_trRawThreeWitness (s : ℕ) :
-    ∑' π : trRawThreeWitness s, trListWeight π.1 = p3 s :=
-  (hasSum_trListWeight_trRawThreeWitness s).tsum_eq
+/-- **Mass of the first raw crossing events**, as a `tsum`:
+`∑_{π ∈ 𝒳_{c,o,r}(s)} bw^⊗(π) = ϖ(c) 𝖱(r - 1, s + o - c)`. -/
+theorem tsum_trListWeight_trRawThreeWitness (s : ℕ) {c o : ℤ} {r : ℕ} (ho : 1 ≤ o)
+    (hoc : o ≤ c) (hr : 1 ≤ r) :
+    ∑' π : trRawThreeWitness s c o r, trListWeight π.1 = varpi c * rawMass (r - 1) (s + o - c) :=
+  (hasSum_trListWeight_trRawThreeWitness s ho hoc hr).tsum_eq
 
 end CollatzPosDens

@@ -9,26 +9,26 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import CollatzPosDens.Attr
 public import CollatzPosDens.FirstCrossing.FirstCrossing
 public import CollatzPosDens.FirstCrossing.Rb
-public import CollatzPosDens.FirstCrossing.BarrierPower
+public import CollatzPosDens.FirstCrossing.S03BarrierPower
 public import CollatzPosDens.Maps.Weight
 
 /-!
 # A lower bound on the weight of a first-crossing word
 
 Every word `w` of the first-crossing family `𝒲(b, u, K)` has weight
-$$\omega(w) \ge 2^{-K-1+r_b-u}\,(3/4)^b.$$
+$$\omega(w) > 2^{-K-1+r_b-u}\,(3/4)^b.$$
 Indeed, with `s = |w|`, the crossing condition gives `A(w) ≤ H_{b,u}(s) + K`, and the upper
-bound `2^{H_{b,u}(s)} ≤ 2 · 4^b 3^{s-b} 2^{u-r_b}` turns `ω(w) = 3^s 2^{-A(w)}` into the
-claimed bound.
+bound `2^{H_{b,u}(s)} < 2 · 4^b 3^{s-b} 2^{u-r_b}` turns `ω(w) = 3^s 2^{-A(w)}` into the
+claimed strict bound.
 
 ## Main results
 
-* `CollatzPosDens.le_weight_of_mem_firstCrossing`: the lower bound on `ω(w)`.
+* `CollatzPosDens.le_weight_of_mem_firstCrossing`: the strict lower bound on `ω(w)`.
 
 ## Implementation notes
 
-The bound is stated for every natural number `b`, not only for `b ≥ 1`. The weight is rational
-and the power of `2` has an integer exponent (`zpow`).
+The bound is stated for every natural number `b`, including `b = 0`.
+The weight is rational and the power of `2` has an integer exponent (`zpow`).
 
 ## References
 
@@ -39,20 +39,20 @@ and the power of `2` has an integer exponent (`zpow`).
 
 namespace CollatzPosDens
 
-/-- Every word `w ∈ 𝒲(b, u, K)` has weight `ω(w) ≥ 2^(-K-1+r_b-u) (3/4)^b`. -/
+/-- Every word `w ∈ 𝒲(b, u, K)` has weight `ω(w) > 2^(-K-1+r_b-u) (3/4)^b`. -/
 @[collatz_pos_dens "lem_weight_lower"]
 theorem le_weight_of_mem_firstCrossing {b : ℕ} {u : ℤ} {K : ℕ} {w : Word}
     (hw : w ∈ firstCrossing b u K) :
-    (2 : ℚ) ^ (-(K : ℤ) - 1 + rb b - u) * (3 / 4) ^ b ≤ w.weight := by
+    (2 : ℚ) ^ (-(K : ℤ) - 1 + rb b - u) * (3 / 4) ^ b < w.weight := by
   set s := w.length with hs
   have h2 : (2 : ℝ) ≠ 0 := two_ne_zero
-  have hAle : (2 : ℝ) ^ w.valSum ≤
+  have hAle : (2 : ℝ) ^ w.valSum <
       2 * 4 ^ b * (3 : ℝ) ^ ((s : ℤ) - b) * 2 ^ (u - rb b) * 2 ^ (K : ℤ) := by
     rw [← zpow_natCast]
     refine (zpow_le_zpow_right₀ one_le_two
-      (valSum_le_barrier_add_of_mem_firstCrossing hw)).trans ?_
+      (valSum_le_barrier_add_of_mem_firstCrossing hw)).trans_lt ?_
     rw [zpow_add₀ h2]
-    exact mul_le_mul_of_nonneg_right (barrier_power_bounds b s u).2 (by positivity)
+    exact mul_lt_mul_of_pos_right (barrier_power_bounds b s u).2 (by positivity)
   have e1 : (2 : ℝ) ^ (-(K : ℤ) - 1 + rb b - u) * 2 * 2 ^ (u - rb b) * 2 ^ (K : ℤ) = 1 := by
     rw [← zpow_add_one₀ h2, ← zpow_add₀ h2, ← zpow_add₀ h2, ← zpow_zero (2 : ℝ)]
     congr 1
@@ -62,11 +62,11 @@ theorem le_weight_of_mem_firstCrossing {b : ℕ} {u : ℤ} {K : ℕ} {w : Word}
       (by norm_num : (3 : ℝ) ≠ 0), ← zpow_natCast]
     congr 1
     ring
-  rw [← Rat.cast_le (K := ℝ)]
+  rw [← Rat.cast_lt (K := ℝ)]
   simp only [Word.weight, ← hs]
   push_cast
-  rw [le_div_iff₀ (by positivity)]
-  refine (mul_le_mul_of_nonneg_left hAle (by positivity)).trans_eq ?_
+  rw [lt_div_iff₀ (by positivity)]
+  refine (mul_lt_mul_of_pos_left hAle (by positivity)).trans_eq ?_
   calc _ = ((2 : ℝ) ^ (-(K : ℤ) - 1 + rb b - u) * 2 * 2 ^ (u - rb b) * 2 ^ (K : ℤ)) *
         ((3 / 4 : ℝ) ^ b * 4 ^ b * (3 : ℝ) ^ ((s : ℤ) - b)) := by ring
     _ = 3 ^ s := by rw [e1, e2, one_mul]

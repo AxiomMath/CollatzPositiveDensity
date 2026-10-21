@@ -6,6 +6,7 @@ Authors: Axiom Math
 module
 
 public import CollatzPosDens.Attr
+public import CollatzPosDens.CharSum.ChExpQuadratic
 public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 public import Mathlib.Analysis.Calculus.Deriv.MeanValue
 public import Mathlib.Analysis.Calculus.Deriv.Pow
@@ -13,18 +14,23 @@ public import Mathlib.Analysis.Calculus.Deriv.Pow
 /-!
 # A cubic lower bound for `exp (-t)`
 
-For every real `t ≥ 0`, `e^{-t} ≥ 1 - t + t²/2 - t³/6`, where the right-hand side is the third
-Taylor polynomial of `e^{-t}` at `0`.
+For every real `t ≥ 0`,
+`e^{-t} ≥ 1 - t + t²/2 - t³/6`,
+the third Taylor polynomial of `e^{-t}` at `0`.
 
-The proof iterates the elementary fact that a function vanishing at `0` with nonnegative
-derivative on `[0, ∞)` is nonnegative there. Applied successively to
-`g₁(t) = e^{-t} - 1 + t`, `g₂(t) = 1 - t + t²/2 - e^{-t}` and
-`g₃(t) = e^{-t} - 1 + t - t²/2 + t³/6`, whose derivatives are `1 - e^{-t}`, `g₁` and `g₂`
-respectively, it gives `g₃ ≥ 0`, which is the claim.
+The function `g₃(t) = e^{-t} - 1 + t - t²/2 + t³/6` vanishes at `0`, and its derivative
+`1 - t + t²/2 - e^{-t}` is nonnegative on `[0, ∞)` by the quadratic upper bound
+`CollatzPosDens.exp_neg_le_one_sub_add_sq_div_two`. A function vanishing at `0` with
+nonnegative derivative on `[0, ∞)` is nonnegative there (mean value theorem), so `g₃ ≥ 0`,
+which is the claim.
 
 ## Main results
 
 * `CollatzPosDens.cubic_le_exp_neg`: `1 - t + t²/2 - t³/6 ≤ e^{-t}` for `0 ≤ t`.
+
+## References
+
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -51,19 +57,6 @@ theorem cubic_le_exp_neg {t : ℝ} (ht : 0 ≤ t) :
     1 - t + t ^ 2 / 2 - t ^ 3 / 6 ≤ exp (-t) := by
   have hd : ∀ x, HasDerivAt (fun x => exp (-x)) (-exp (-x)) x := fun x => by
     simpa using (hasDerivAt_neg x).exp
-  have h1 : ∀ s, 0 ≤ s → 0 ≤ exp (-s) - 1 + s := fun s hs =>
-    nonneg_of_hasDerivAt_nonneg (f := fun x => exp (-x) - 1 + x)
-      (fun x => ((hd x).sub_const 1).add (hasDerivAt_id' x))
-      (by simp) (fun x hx => by linarith [exp_le_one_iff.mpr (neg_nonpos.mpr hx)]) hs
-  have h2 : ∀ s, 0 ≤ s → 0 ≤ 1 - s + s ^ 2 / 2 - exp (-s) := fun s hs =>
-    nonneg_of_hasDerivAt_nonneg (f := fun x => 1 - x + x ^ 2 / 2 - exp (-x))
-      (f' := fun x => -1 + x + exp (-x))
-      (fun x => by
-        convert (((hasDerivAt_id' x).const_sub 1).add
-          ((hasDerivAt_pow 2 x).div_const 2)).sub (hd x) using 1
-        push_cast
-        ring)
-      (by simp) (fun x hx => by linarith [h1 x hx]) hs
   have h3 := nonneg_of_hasDerivAt_nonneg
       (f := fun x => exp (-x) - 1 + x - x ^ 2 / 2 + x ^ 3 / 6)
       (f' := fun x => -exp (-x) + 1 - x + x ^ 2 / 2)
@@ -72,7 +65,7 @@ theorem cubic_le_exp_neg {t : ℝ} (ht : 0 ≤ t) :
           ((hasDerivAt_pow 2 x).div_const 2)).add ((hasDerivAt_pow 3 x).div_const 6) using 1
         push_cast
         ring)
-      (by simp) (fun x hx => by linarith [h2 x hx]) ht
+      (by simp) (fun x hx => by linarith [exp_neg_le_one_sub_add_sq_div_two hx]) ht
   linarith
 
 end CollatzPosDens

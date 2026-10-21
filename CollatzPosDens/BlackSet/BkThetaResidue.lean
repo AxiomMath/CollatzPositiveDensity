@@ -7,7 +7,7 @@ module
 
 public import CollatzPosDens.Attr
 public import CollatzPosDens.BlackSet.BkPoints
-public import CollatzPosDens.Transfer.DyadicReduction
+public import CollatzPosDens.Transfer.S02DyadicReduction
 
 /-!
 # The angle residue
@@ -33,11 +33,11 @@ rational and `[·]_n : ℤ[1/2] → G_n` is the reduction modulo `3^n`.
 
 The exponent `1 - l` may be negative, so `2^{1-l}` is the integer power of the unit `2` of
 `ℤ[1/2]`. The exponent `2(j-1)` is a natural number on `𝒫`; the definition is stated for all of
-`ℤ × ℤ`, using `Int.toNat` of the exponent, which agrees with `2(j-1)` on `𝒫`.
+`ℤ × ℤ`, using `Int.toNat` of the exponent, and agrees with the formula above on `𝒫`.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §5.1.
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section

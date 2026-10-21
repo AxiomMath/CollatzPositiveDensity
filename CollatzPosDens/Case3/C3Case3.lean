@@ -12,84 +12,101 @@ public import CollatzPosDens.Transfer.Pstar
 public import CollatzPosDens.Transfer.Tstar
 public import CollatzPosDens.BlackSet.BkFamily
 public import CollatzPosDens.BlackSet.BkTriangle
+public import CollatzPosDens.BlackSet.BkCover
+public import CollatzPosDens.BlackSet.BkEpsStarRange
+public import CollatzPosDens.BlackSet.BkRightEdge
 public import CollatzPosDens.CharSum.ChQ
 public import CollatzPosDens.CharSum.ChQm
-public import CollatzPosDens.CharSum.ChBlockPath
-public import CollatzPosDens.CharSum.ChBlockPoint
+public import CollatzPosDens.CharSum.ChQmBounded
+public import CollatzPosDens.CharSum.ChBoundaryStep
 public import CollatzPosDens.Transfer.EpsStar
 public import CollatzPosDens.Transfer.ResidueGroup
-public import CollatzPosDens.Transfer.Aexp
-public import CollatzPosDens.Transfer.Dbad
-public import CollatzPosDens.Transfer.Dsc
-public import CollatzPosDens.Transfer.H
-public import CollatzPosDens.Transfer.K
-public import CollatzPosDens.Transfer.PT
-public import CollatzPosDens.Transfer.PW
-public import CollatzPosDens.Transfer.Qpack
-public import CollatzPosDens.Transfer.Budget
-public import CollatzPosDens.Transfer.Cont
+public import CollatzPosDens.Transfer.S02Aexp
+public import CollatzPosDens.Transfer.S02Dbad
+public import CollatzPosDens.Transfer.S02Dsc
+public import CollatzPosDens.Transfer.S02FarB
+public import CollatzPosDens.Transfer.S02FarS
+public import CollatzPosDens.Transfer.S02OmegaLower
+public import CollatzPosDens.Transfer.S02PW
+public import CollatzPosDens.Transfer.Rstar
+public import CollatzPosDens.Transfer.S02Qmass
+public import CollatzPosDens.Transfer.S02PiAd
+public import CollatzPosDens.Transfer.S02Eta
+public import CollatzPosDens.Transfer.S02Split
+public import CollatzPosDens.Transfer.S02WeightedSqrt
+public import CollatzPosDens.Transfer.S02Uo
+public import CollatzPosDens.Transfer.S02Uv
+public import CollatzPosDens.Transfer.S02Ud
+public import CollatzPosDens.Transfer.S02EpsInit
+public import CollatzPosDens.Transfer.S02Epiece
+public import CollatzPosDens.Transfer.S02Budget
+public import CollatzPosDens.Transfer.S02BudgetLem
+public import CollatzPosDens.Transfer.S02Cont
+public import CollatzPosDens.Transfer.S02ContLem
+public import CollatzPosDens.Transfer.S02WhiteTerm
 public import CollatzPosDens.StoppingTrace.TrBad
-public import CollatzPosDens.StoppingTrace.TrEstar
 public import CollatzPosDens.StoppingTrace.TrFreshPath
 public import CollatzPosDens.StoppingTrace.TrLow
 public import CollatzPosDens.StoppingTrace.TrPath
+public import CollatzPosDens.StoppingTrace.TrPrefixFreeMass
 public import CollatzPosDens.StoppingTrace.TrWhiteCount
-public import CollatzPosDens.BlackSet.BkEpsStarRange
-public import CollatzPosDens.BlackSet.BkRightEdge
 public import CollatzPosDens.Case3.C3BadMass
 public import CollatzPosDens.Case3.C3Continuation
 public import CollatzPosDens.Case3.C3EstarMass
-public import CollatzPosDens.Case3.C3ScaleRoom
-public import CollatzPosDens.CharSum.ChQmBounded
-public import CollatzPosDens.CharSum.ChBoundaryStep
-public import CollatzPosDens.Renewal.RnFpMass
-public import CollatzPosDens.Renewal.RnFpSupport
-public import CollatzPosDens.Renewal.RnListMarginal
-public import CollatzPosDens.Transfer.PBits
-public import CollatzPosDens.Transfer.BudgetLem
-public import CollatzPosDens.Transfer.ContLem
-public import CollatzPosDens.Transfer.WhiteTerm
-public import CollatzPosDens.StoppingTrace.TrFreshMarginal
-public import CollatzPosDens.StoppingTrace.TrSurvivalExport
+public import CollatzPosDens.Case3.C3GapRatio
+public import CollatzPosDens.Case3.C3GapTop
+public import CollatzPosDens.Case3.C3InitialMass
+public import CollatzPosDens.Case3.C3PaidDom
+public import CollatzPosDens.Case3.C3PaidLaw
 
 /-!
-# Case 3 of the monotonicity step
+# The bound on `Q(e)` above the split level
 
-Let `ξ` be a unit, `m` an integer with `m ≥ D_sc`, `m ≥ D_bad` and `m ≤ J = ⌊n/2⌋`, and
-`e ∈ 𝒫` with `j(e) + m = J`. Suppose `e ∈ Δ` for a triangle `Δ ∈ 𝔗_{n,ξ,ε_*}` whose corner lies
-far above `e`: `l_Δ - l(e) > m / (log m)^2`. Then
-$$\mathsf Q(e) \le m^{-A_*}\,\mathsf Q_{m-1},$$
-both sides formed with `ε = ε_*` and `A = A_*`.
+Let `ι` be a Fourier index, `ξ` a unit, `m` an integer with `m ≥ D_sc(ι)`, `m ≥ D_bad(ι)` and
+`m ≤ J = ⌊n/2⌋`, and `e ∈ 𝒫` with `j(e) + m = J`. Suppose `e ∈ Δ` for a triangle
+`Δ ∈ 𝔗_{n,ξ,ε_*}` and that the gap `ω = gap(e)` exceeds the split level, `ω > ς(ι, m)`. Then
+$$\mathsf Q(e) \le m^{-A_*(\iota)}\,\mathsf Q_{m-1},$$
+both sides formed with `ε = ε_*` and `A = A_*(ι)`. Throughout the proof `ι` is fixed and every
+recipe constant (`A_*`, `P_*`, `T_*`, `c_cont`, `P_W`, the budget terms, `Bud`) is taken at `ι`.
 
-Write `g = l_Δ - l(e)`. The continuation lemma (at `P = P_*`) bounds `Q(e)` by the average,
-over the fresh law `μ_{e,g}`, of `e^{-z_* N(a)} Q(y^e_{P_*}(a))`, `N(a)` the weighted white count
-up to time `P_* - 1`. On an atom of positive mass the advance `Adv(a) = j(y^e_{P_*}(a)) - j(e)` is
-at least `1`, so the boundary step bounds `Q(y^e_{P_*}(a))` by
-`max(m - Adv(a), 1)^{-A_*} Q_{m-1}`. Off `Bad^e_m` this is at most
-`(400/83)^{A_*} m^{-A_*} Q_{m-1} ≤ c_cont m^{-A_*} Q_{m-1}`, and off `Low^e` moreover
-`e^{-z_* N(a)} (400/83)^{A_*} ≤ e^{-101 z_*} (400/83)^{A_*} < 1/P_W`. Summing against `μ_{e,g}`,
-the masses of `Bad^e_m`, of `Low^e \ Bad^e_m` and of the whole law are controlled by the outer
-horizontal tail, by the survival export together with the large-triangle mass, and by the total
-mass `≤ 1`; the bracket is then below the six-term budget `Bud < 1`.
+The point `e` is black and `l_Δ - l(e) = ω`, so `ω log 2 ≤ m log 9` by the right edge of `Δ`.
+The continuation through the paid passage (at `L = P_*`) bounds `Q(e)` by the sum, over the
+paid fresh law `μ̃_e`, of `e^{-z_* N(a)} Q(y^e_{P_*}(a))`, `N(a)` the weighted white count up to
+time `P_* - 1`. On an atom of positive mass the advance `Adv(a) = j(y^e_{P_*}(a)) - j(e)` is at
+least `1`, so the boundary step bounds `Q(y^e_{P_*}(a))` by `max(m - Adv(a), 1)^{-A_*} Q_{m-1}`.
+Off `Bad^e_m` this is at most `(400/83)^{A_*} m^{-A_*} Q_{m-1} < c_cont m^{-A_*} Q_{m-1}`, and
+off `Low^e` moreover `e^{-z_* N(a)} (400/83)^{A_*} < e^{-z_* T_*} (400/83)^{A_*} < 1/P_W = w`.
+Hence the integrand is at most `m^{-A_*} Q_{m-1}` times
+`m^{A_*} 1_{Bad} + (c_cont - w) e^{-z_* N} 1_{Low \ Bad} + w`. Summing, the three masses are
+controlled by the outer horizontal tail (through the domination `μ̃_e ≤ μ_{e,ω}`), by the
+discounted mass of `Low^e \ Bad^e_m` (at most
+`Π_ad + q_mass η_{r_*} + 𝓔_sq + U_o + ε_init + q_mass (U_v + U_d + E_piece)`), and by the
+initial paid mass `< q_mass` (valid as `ω > ς(ι, m) ≥ Ω_far ≥ 2^34`); the bracket is then at most
+the budget `Bud < 1`.
 
 ## Main results
 
-* `CollatzPosDens.chQ_le_rpow_mul_chQm_of_gap_gt`: the statement.
-* `CollatzPosDens.chQ_le_rpow_mul_chQm_of_gap_gt_natCast_mul_log_two_le`: the
-  vertical gap `g = l_Δ - l(e)` satisfies `g log 2 ≤ m log 9`.
-* `CollatzPosDens.chQ_le_rpow_mul_chQm_of_gap_gt_tsum_le_one`: the fresh law has total
-  mass at most `1` on the atoms.
+* `CollatzPosDens.chQ_le_rpow_mul_chQm_of_gap_gt`: if `gap(e) > ς(ι, m)`, then
+  `Q(e) ≤ m^{-A_*(ι)} Q_{m-1}`.
+* `CollatzPosDens.natCast_trGap_toNat_mul_log_two_le`: the gap satisfies `ω log 2 ≤ m log 9`.
+* `CollatzPosDens.c3PaidLaw_mul_ofReal_exp_mul_chQ_le`: the pointwise bound on a fresh atom.
+* `CollatzPosDens.tsum_trAtoms_c3PaidLaw_le`: the paid fresh law of `𝒜_n` is at most the total
+  paid passage mass.
 
 ## Implementation notes
 
-The hypotheses `n ≥ 1`, `e ∈ 𝒫` and `m ≤ ⌊n/2⌋` of the source are omitted: `e ∈ 𝒫` follows from
+The hypotheses `n ≥ 1`, `e ∈ 𝒫` and `m ≤ ⌊n/2⌋` are not assumed: `e ∈ 𝒫` follows from
 `e ∈ Δ`, and then `m ≤ ⌊n/2⌋` (hence `n ≥ 1`) follows from `j(e) + m = ⌊n/2⌋`. The integer
-`m ≥ D_sc ≥ 2` is taken in `ℕ`, and `m^{-A_*}` is the real power `(m : ℝ) ^ (-A_*)`.
+`m ≥ D_sc(ι) ≥ 2` is taken in `ℕ`, and `m^{-A_*(ι)}` is the real power `(m : ℝ) ^ (-A_*(ι))`.
+The paid fresh law is `[0, ∞]`-valued, so the summation is carried out in `[0, ∞]`, where it
+needs no summability side conditions.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
+* [Mazur, *Collatz positive density*], §10.6.
 -/
+
+open scoped ENNReal
 
 @[expose] public section
 
@@ -99,7 +116,7 @@ open Real
 
 /-- If `e ∈ Δ ∈ 𝔗_{n,ξ,ε_*}` with `j(e) + m = ⌊n/2⌋` and `l(e) + g = l_Δ`, then
 `g log 2 ≤ m log 9`. -/
-theorem chQ_le_rpow_mul_chQm_of_gap_gt_natCast_mul_log_two_le {n : ℕ}
+theorem natCast_mul_log_two_le_of_add_eq {n : ℕ}
     {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ) {m : ℕ} {e : ℤ × ℤ}
     (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) {Δ : BkTriangle}
     (hΔ : Δ ∈ bkFamily n ξ (epsStar : ℝ)) (heΔ : e ∈ Δ) {g : ℕ} (hg : bkL e + g = Δ.l) :
@@ -120,51 +137,16 @@ theorem chQ_le_rpow_mul_chQm_of_gap_gt_natCast_mul_log_two_le {n : ℕ}
   push_cast at hw
   linear_combination hw + hs - log 9 * hjR
 
-/-- The fresh law `μ_{e,g}` has total mass at most `1` on the atoms `𝒜_n`. -/
-theorem chQ_le_rpow_mul_chQm_of_gap_gt_tsum_le_one (n : ℕ) (e : ℤ × ℤ) (g : ℕ) :
-    ∑' a : trAtoms n, ENNReal.ofReal (trFreshLaw n e g a) ≤ 1 := by
-  have h := tsum_trFreshLaw_mul_chBlockPoint n e g 0 (Nat.zero_le _) (fun _ _ ↦ 1)
-  simp only [mul_one] at h
-  rw [h]
-  have hin : ∑' h : {h : Fin 0 → ℤ × ℤ // ∀ i, h i ∈ bkPoints},
-      ENNReal.ofReal (holdListLaw fun i ↦ ((h.1 i).1.toNat, (h.1 i).2)) = 1 := by
-    have : Unique {h : Fin 0 → ℤ × ℤ // ∀ i, h i ∈ bkPoints} :=
-      ⟨⟨⟨Fin.elim0, fun i ↦ i.elim0⟩⟩, fun h ↦ Subtype.ext (funext fun i ↦ i.elim0)⟩
-    rw [tsum_fintype, Fintype.sum_unique, holdListLaw_zero, ENNReal.ofReal_one]
-  rw [tsum_congr fun _ ↦ by rw [hin, mul_one]]
-  exact tsum_ofReal_firstPassageLaw_natCast_le_one g
-
-/-- The pointwise weight bound behind Case 3: with `X ≤ ρ m^{-A}` off `B`, `ρ ≤ c`, `E ≤ η` off
-`L` and `η ρ ≤ w`, the product `μ E X` is at most
-`m^{-A} (m^A μ 1_B + c μ 1_{L \ B} + w μ)`. -/
-private lemma c3Case3_atom_le {α : Type*} (B L : Set α) (a : α) {μa E X Mi Mp η ρ c w : ℝ}
-    (hμ : 0 ≤ μa) (hE0 : 0 ≤ E) (hE1 : E ≤ 1) (hX0 : 0 ≤ X) (hX1 : X ≤ 1) (hMi : 0 ≤ Mi)
-    (hMM : Mi * Mp = 1) (hρ : a ∉ B → X ≤ ρ * Mi) (hρc : ρ ≤ c) (hη : a ∉ L → E ≤ η)
-    (hηρ : η * ρ ≤ w) (hw : 0 ≤ w) :
-    μa * E * X ≤ Mi * (Mp * B.indicator (fun _ ↦ μa) a + c * (L \ B).indicator (fun _ ↦ μa) a +
-      w * μa) := by
-  have hEX1 : E * X ≤ 1 := (mul_le_of_le_one_left hX0 hE1).trans hX1
-  have hwμ : 0 ≤ Mi * (w * μa) := mul_nonneg hMi (mul_nonneg hw hμ)
-  by_cases haB : a ∈ B
-  · rw [Set.indicator_of_mem haB, Set.indicator_of_notMem (fun h ↦ h.2 haB), mul_zero,
-      add_zero]
-    have h1 : μa * (E * X) ≤ μa * 1 := mul_le_mul_of_nonneg_left hEX1 hμ
-    have h2 : Mi * (Mp * μa) = μa := by rw [← mul_assoc, hMM, one_mul]
-    nlinarith
-  rw [Set.indicator_of_notMem haB, mul_zero, zero_add]
-  have hX := hρ haB
-  by_cases haL : a ∈ L
-  · rw [Set.indicator_of_mem (show a ∈ L \ B from ⟨haL, haB⟩)]
-    have h : E * X ≤ c * Mi := (mul_le_of_le_one_left hX0 hE1).trans
-      (hX.trans (mul_le_mul_of_nonneg_right hρc hMi))
-    nlinarith [mul_le_mul_of_nonneg_left h hμ]
-  · rw [Set.indicator_of_notMem (fun h ↦ haL h.1), mul_zero, zero_add]
-    have hE := hη haL
-    have h : E * X ≤ w * Mi := calc
-      E * X ≤ η * (ρ * Mi) := mul_le_mul hE hX hX0 (hE0.trans hE)
-      _ = (η * ρ) * Mi := by ring
-      _ ≤ w * Mi := mul_le_mul_of_nonneg_right hηρ hMi
-    nlinarith [mul_le_mul_of_nonneg_left h hμ]
+/-- **Gap versus distance.** If `e ∈ Δ ∈ 𝔗_{n,ξ,ε_*}` with `j(e) + m = ⌊n/2⌋`, then the gap
+`ω = gap(e)` satisfies `ω log 2 ≤ m log 9`. -/
+theorem natCast_trGap_toNat_mul_log_two_le {n : ℕ}
+    {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ) {m : ℕ} {e : ℤ × ℤ}
+    (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) {Δ : BkTriangle}
+    (hΔ : Δ ∈ bkFamily n ξ (epsStar : ℝ)) (heΔ : e ∈ Δ) :
+    ((trGap n ξ (epsStar : ℝ) e).toNat : ℝ) * log 2 ≤ m * log 9 :=
+  natCast_mul_log_two_le_of_add_eq hξ hje hΔ heΔ (by
+    rw [Int.toNat_of_nonneg (trGap_nonneg _ _ _ _)]
+    exact (bkFamily_epsStar_l_eq_add_trGap hξ hΔ heΔ).symm)
 
 /-- If `κ m ≤ D` with `κ, m > 0` and `A ≥ 0`, then `D ^ (-A) ≤ κ⁻¹ ^ A * m ^ (-A)`. -/
 theorem rpow_neg_le_inv_rpow_mul_rpow_neg {m D A κ : ℝ} (hm : 0 < m) (hκ : 0 < κ) (hA : 0 ≤ A)
@@ -176,11 +158,12 @@ theorem rpow_neg_le_inv_rpow_mul_rpow_neg {m D A κ : ℝ} (hm : 0 < m) (hκ : 0
 
 /-- Off the bad atoms, the boundary weight `max(m - r, 1)^{-A}` is at most `(400/83)^A m^{-A}`,
 where `r` is the advance of the fresh path. -/
-theorem rpow_neg_max_sub_le_of_notMem_trBad {n : ℕ} {e : ℤ × ℤ} {m : ℕ} (hm : 0 < m) {A : ℝ}
-    (hA : 0 ≤ A) {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (ha : a ∈ trAtoms n) (hb : a ∉ trBad n e m)
-    {r : ℕ} (hr : (r : ℤ) = bkJ (trFreshPath e a pStar) - bkJ e) :
+theorem rpow_neg_max_sub_le_of_notMem_trBad {ι : FIndex} {n : ℕ} {e : ℤ × ℤ} {m : ℕ}
+    (hm : 0 < m) {A : ℝ} (hA : 0 ≤ A) {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (ha : a ∈ trAtoms n)
+    (hb : a ∉ trBad ι n e m)
+    {r : ℕ} (hr : (r : ℤ) = bkJ (trFreshPath e a (pStar ι)) - bkJ e) :
     ((max ((m : ℤ) - r) 1 : ℤ) : ℝ) ^ (-A) ≤ (400 / 83 : ℝ) ^ A * (m : ℝ) ^ (-A) := by
-  have h := lt_of_notMem_trBad ha hb
+  have h := lt_of_not_mem_trBad ha hb
   rw [← hr] at h
   have hZ : 83 * (m : ℤ) < 400 * max ((m : ℤ) - r) 1 :=
     (show 83 * (m : ℤ) < 400 * ((m : ℤ) - r) by omega).trans_le
@@ -193,235 +176,283 @@ theorem rpow_neg_max_sub_le_of_notMem_trBad {n : ℕ} {e : ℤ × ℤ} {m : ℕ}
   have := rpow_neg_le_inv_rpow_mul_rpow_neg (by exact_mod_cast hm) (by norm_num) hA hR
   rwa [inv_div] at this
 
-/-- The Case 3 bound on a charged atom `a ∈ 𝒜_n`: its contribution to the continuation sum for
-`Q(e)` is at most `m^{-A} (m^A μ 1_B + c μ 1_{L \ B} + μ / P_W) Q_{m-1}`. -/
-theorem trFreshLaw_mul_exp_mul_chQ_le_of_mem_trAtoms {n : ℕ} {ξ : ResidueGroup n} {m : ℕ}
-    (hm : 0 < m) {e : ℤ × ℤ} (he : e ∈ bkPoints) (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) {g : ℕ}
-    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (ha : a ∈ trAtoms n) (hμa : trFreshLaw n e g a ≠ 0) :
-    trFreshLaw n e g a * Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar - 1))) *
-        chQ n ξ (epsStar : ℝ) (trFreshPath e a pStar) ≤
-      (m : ℝ) ^ (-(Aexp : ℝ)) * ((m : ℝ) ^ (Aexp : ℝ) *
-        (trBad n e m).indicator (fun _ ↦ trFreshLaw n e g a) a +
-        (ccont : ℝ) * (trLow n ξ e \ trBad n e m).indicator (fun _ ↦ trFreshLaw n e g a) a +
-        1 / (PW : ℝ) * trFreshLaw n e g a) * chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) := by
+/-- **The atom bound of Case 3.** Let `e ∈ 𝒫`, `m ≥ 1` with `j(e) + m = ⌊n/2⌋`, and `a ∈ 𝒜_n`.
+With `E(a) = e^{-z_* N^e_{P_*-1}(a)}` and `w = 1/P_W`, the contribution
+`μ̃_e(a) E(a) Q(y^e_{P_*}(a))` of `a` to the continuation sum is at most
+`m^{-A_*} Q_{m-1} (m^{A_*} μ̃_e(a) 1_{Bad^e_m}(a)
+  + (c_cont - w) μ̃_e(a) E(a) 1_{Low^e \ Bad^e_m}(a) + w μ̃_e(a))`. -/
+theorem c3PaidLaw_mul_ofReal_exp_mul_chQ_le (ι : FIndex) {n : ℕ} {ξ : ResidueGroup n} {m : ℕ}
+    (hm : 0 < m) {e : ℤ × ℤ} (he : e ∈ bkPoints) (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ))
+    {a : (ℕ × ℤ) × List (List ℤ × ℤ)} (ha : a ∈ trAtoms n) :
+    c3PaidLaw n ξ e a *
+        ENNReal.ofReal (Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar ι - 1))) *
+          chQ n ξ (epsStar : ℝ) (trFreshPath e a (pStar ι))) ≤
+      ENNReal.ofReal ((m : ℝ) ^ (-(Aexp ι : ℝ)) * chQm n ξ (epsStar : ℝ) (Aexp ι : ℝ) (m - 1)) *
+        (ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) * (trBad ι n e m).indicator (c3PaidLaw n ξ e) a +
+          ENNReal.ofReal ((ccont ι : ℝ) - 1 / (PW ι : ℝ)) *
+            (trLow ι n ξ e \ trBad ι n e m).indicator (fun a ↦ c3PaidLaw n ξ e a *
+              ENNReal.ofReal (Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar ι - 1))))) a +
+          ENNReal.ofReal (1 / (PW ι : ℝ)) * c3PaidLaw n ξ e a) := by
+  set μa := c3PaidLaw n ξ e a with hμa_def
+  by_cases hμa : μa = 0
+  · rw [hμa, zero_mul]
+    exact zero_le
   have hmpos : (0 : ℝ) < m := by exact_mod_cast hm
-  have hA0 : (0 : ℝ) ≤ (Aexp : ℝ) := by exact_mod_cast Aexp_pos.le
+  have hA0 : (0 : ℝ) ≤ (Aexp ι : ℝ) := by exact_mod_cast (Aexp_pos ι).le
   have hz0 : (0 : ℝ) ≤ (zStar : ℝ) := by exact_mod_cast zStar_nonneg
-  have hMM : (m : ℝ) ^ (-(Aexp : ℝ)) * (m : ℝ) ^ (Aexp : ℝ) = 1 := by
-    rw [Real.rpow_neg hmpos.le, inv_mul_cancel₀ (Real.rpow_pos_of_pos hmpos _).ne']
-  have hw0 : (0 : ℝ) ≤ 1 / (PW : ℝ) := by
-    have : (0 : ℝ) < PW := by exact_mod_cast PW_pos
-    positivity
-  have hr1 : 1 ≤ (a.1.1 : ℤ) := (firstPassageLaw_support (left_ne_zero_of_mul hμa)).1
-  set y := trFreshPath e a pStar with hy_def
+  have hPW : (0 : ℝ) < PW ι := by exact_mod_cast (PW_pos ι)
+  have hw0 : (0 : ℝ) ≤ 1 / (PW ι : ℝ) := by positivity
+  have hw1 : 1 / (PW ι : ℝ) ≤ 1 := by
+    rw [div_le_one hPW]
+    exact_mod_cast (one_le_PW ι)
+  have hc1 : (1 : ℝ) < ccont ι := by exact_mod_cast (one_lt_ccont ι)
+  -- the advance is at least `1`
+  have hr1 : 1 ≤ (a.1.1 : ℤ) := by
+    by_contra h
+    apply hμa
+    rw [hμa_def, c3PaidLaw_def, c3PaidPassage_eq_zero_of_fst_lt_one (by simpa using h),
+      zero_mul]
+  set y := trFreshPath e a (pStar ι) with hy_def
   have hadv : bkJ e + a.1.1 ≤ bkJ y := by
-    have := trPath_fst_ge (bkJ e + a.1.1, bkL e + a.1.2) a.2 pStar
+    have := trPath_fst_ge (bkJ e + a.1.1, bkL e + a.1.2) a.2 (pStar ι)
     simpa [hy_def, trFreshPath] using this
   set r : ℕ := (bkJ y - bkJ e).toNat with hr_def
   have hrZ : (r : ℤ) = bkJ y - bkJ e := Int.toNat_of_nonneg (by omega)
   have hbd := chQ_le_boundary_step n ξ (epsStar : ℝ) hA0 (m := m) (r := r) (by omega)
-    (trFreshPath_mem_bkPoints he a pStar) (by rw [← hy_def]; omega)
+    (trFreshPath_mem_bkPoints he a (pStar ι)) (by rw [← hy_def]; omega)
   rw [← hy_def] at hbd
   set D : ℝ := ((max ((m : ℤ) - r) 1 : ℤ) : ℝ) with hD_def
   have hD1 : 1 ≤ D := by
     rw [hD_def]
     exact_mod_cast le_max_right _ _
-  have hD0 : 0 < D := by linarith
-  set E : ℝ := Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar - 1))) with hE_def
-  have hN0 := trWhiteCount_nonneg (n := n) (ξ := ξ) e a (pStar - 1)
-  have hE1 : E ≤ 1 := Real.exp_le_one_iff.2 (neg_nonpos.2 (mul_nonneg hz0 hN0))
-  have hη : a ∉ trLow n ξ e → E ≤ Real.exp (-(101 * (zStar : ℝ))) := by
-    intro haL
-    have h := lt_trWhiteCount_of_notMem_trLow ha haL
-    rw [tStar_def, Nat.cast_ofNat] at h
-    rw [hE_def, Real.exp_le_exp]
+  set K : ℝ := D ^ (-(Aexp ι : ℝ)) with hK_def
+  have hK0 : 0 ≤ K := Real.rpow_nonneg (by linarith) _
+  have hK1 : K ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hD1 (neg_nonpos.2 hA0)
+  set Qm := chQm n ξ (epsStar : ℝ) (Aexp ι : ℝ) (m - 1) with hQm_def
+  have hQm : 0 ≤ Qm := chQm_nonneg _ _ _ _ _
+  set M : ℝ := (m : ℝ) ^ (-(Aexp ι : ℝ)) with hM_def
+  have hM0 : 0 ≤ M := Real.rpow_nonneg hmpos.le _
+  have hMM : M * (m : ℝ) ^ (Aexp ι : ℝ) = 1 := by
+    rw [hM_def, Real.rpow_neg hmpos.le, inv_mul_cancel₀ (Real.rpow_pos_of_pos hmpos _).ne']
+  set E : ℝ := Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar ι - 1))) with hE_def
+  have hE0 : 0 ≤ E := (Real.exp_pos _).le
+  have hE1 : E ≤ 1 := Real.exp_le_one_iff.2
+    (neg_nonpos.2 (mul_nonneg hz0 (trWhiteCount_nonneg _ _ _)))
+  have hQy : chQ n ξ (epsStar : ℝ) y ≤ K * Qm := hbd
+  have hQy0 : 0 ≤ chQ n ξ (epsStar : ℝ) y := chQ_nonneg _ _ _ _
+  have hEQ : E * chQ n ξ (epsStar : ℝ) y ≤ E * (K * Qm) := mul_le_mul_of_nonneg_left hQy hE0
+  set R := ENNReal.ofReal (M * Qm) with hR_def
+  -- reduce to a bound `E Q(y) ≤ x` and `μ̃(a) ofReal x ≤ RHS`
+  suffices h : ∃ x : ℝ, E * chQ n ξ (epsStar : ℝ) y ≤ x ∧ μa * ENNReal.ofReal x ≤
+      R * (ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) * (trBad ι n e m).indicator (c3PaidLaw n ξ e) a +
+          ENNReal.ofReal ((ccont ι : ℝ) - 1 / (PW ι : ℝ)) *
+            (trLow ι n ξ e \ trBad ι n e m).indicator (fun a ↦ c3PaidLaw n ξ e a *
+              ENNReal.ofReal (Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar ι - 1))))) a +
+          ENNReal.ofReal (1 / (PW ι : ℝ)) * μa) by
+    obtain ⟨x, hx, hx'⟩ := h
+    exact (mul_le_mul_of_nonneg_left (ENNReal.ofReal_le_ofReal hx) zero_le).trans hx'
+  by_cases haB : a ∈ trBad ι n e m
+  · refine ⟨Qm, ?_, ?_⟩
+    · exact hEQ.trans (by nlinarith)
+    · rw [Set.indicator_of_mem haB]
+      calc μa * ENNReal.ofReal Qm = R * (ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) * μa) := by
+            rw [hR_def, ← mul_assoc, ← ENNReal.ofReal_mul (mul_nonneg hM0 hQm),
+              mul_comm, mul_right_comm M, hMM, one_mul]
+        _ ≤ _ := by gcongr; exact le_self_add.trans le_self_add
+  have hKb : K ≤ (400 / 83 : ℝ) ^ (Aexp ι : ℝ) * M :=
+    rpow_neg_max_sub_le_of_notMem_trBad hm hA0 ha haB (by rw [hrZ])
+  have hcont : (400 / 83 : ℝ) ^ (Aexp ι : ℝ) < ccont ι := (rpow_Aexp_lt_ccont ι)
+  rw [Set.indicator_of_notMem haB, mul_zero, zero_add]
+  by_cases haL : a ∈ trLow ι n ξ e
+  · refine ⟨M * Qm * (((ccont ι : ℝ) - 1 / PW ι) * E + 1 / PW ι), ?_, ?_⟩
+    · have hKc : K ≤ ccont ι * M := hKb.trans (mul_le_mul_of_nonneg_right hcont.le hM0)
+      have : E * (K * Qm) ≤ E * (ccont ι * M * Qm) :=
+        mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right hKc hQm) hE0
+      have h2 : E * (ccont ι * M * Qm) ≤ M * Qm * (((ccont ι : ℝ) - 1 / PW ι) * E + 1 / PW ι) := by
+        have : 0 ≤ M * Qm * (1 / PW ι * (1 - E)) :=
+          mul_nonneg (mul_nonneg hM0 hQm) (mul_nonneg hw0 (by linarith))
+        nlinarith
+      linarith
+    · rw [Set.indicator_of_mem (show a ∈ trLow ι n ξ e \ trBad ι n e m from ⟨haL, haB⟩)]
+      rw [ENNReal.ofReal_mul (mul_nonneg hM0 hQm), ← hR_def, ENNReal.ofReal_add
+        (mul_nonneg (by linarith) hE0) hw0, ENNReal.ofReal_mul (by linarith)]
+      apply le_of_eq
+      ring
+  · refine ⟨M * Qm * (1 / PW ι), ?_, ?_⟩
+    · have hN := lt_trWhiteCount_of_notMem_trLow ha haL
+      have hEle : E ≤ Real.exp (-((zStar : ℝ) * tStar ι)) := by
+        rw [hE_def, Real.exp_le_exp]
+        nlinarith
+      have hwt := (exp_neg_zStar_mul_rpow_Aexp_lt ι)
+      have : E * K ≤ Real.exp (-((zStar : ℝ) * tStar ι)) * ((400 / 83 : ℝ) ^ (Aexp ι : ℝ) * M) :=
+        mul_le_mul hEle hKb hK0 (Real.exp_pos _).le
+      have h3 : E * K ≤ 1 / PW ι * M := this.trans (by
+        rw [← mul_assoc]; exact mul_le_mul_of_nonneg_right hwt.le hM0)
+      calc E * chQ n ξ (epsStar : ℝ) y ≤ E * K * Qm := by rw [mul_assoc]; exact hEQ
+        _ ≤ 1 / PW ι * M * Qm := mul_le_mul_of_nonneg_right h3 hQm
+        _ = M * Qm * (1 / PW ι) := by ring
+    · rw [Set.indicator_of_notMem (fun h ↦ haL h.1), mul_zero, zero_add,
+        ENNReal.ofReal_mul (mul_nonneg hM0 hQm), ← hR_def]
+      apply le_of_eq
+      ring
+
+/-- The paid fresh law of the fresh atoms is at most the total paid passage mass:
+`μ̃_e(𝒜_n) ≤ ∑_{x ∈ ℤ × ℤ} F̃_e(x)`, since the block lists of `𝔅^{⌊n/2⌋}` have total weight `1`. -/
+theorem tsum_trAtoms_c3PaidLaw_le (n : ℕ) (ξ : ResidueGroup n) (e : ℤ × ℤ) :
+    ∑' a : trAtoms n, c3PaidLaw n ξ e a ≤ ∑' x : ℤ × ℤ, c3PaidPassage n ξ e x := by
+  rw [← (trAtomsEquiv n).symm.tsum_eq, ENNReal.tsum_prod']
+  calc _ = ∑' y : ℕ × ℤ, c3PaidPassage n ξ e ((y.1 : ℤ), y.2) := by
+        refine tsum_congr fun y ↦ ?_
+        simp only [trAtomsEquiv, Equiv.coe_fn_symm_mk, c3PaidLaw_def]
+        rw [ENNReal.tsum_mul_left, tsum_ofReal_trListWeight_length_eq, mul_one]
+    _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective
+        (f := fun y : ℕ × ℤ ↦ ((y.1 : ℤ), y.2))
+        (fun y y' h ↦ by
+          simp only [Prod.mk.injEq, Nat.cast_inj] at h
+          exact Prod.ext h.1 h.2) _
+
+/-- A sum over `𝒜_n` of an indicator of `s` is at most the sum over `s`. -/
+theorem tsum_trAtoms_indicator_le (n : ℕ) (s : Set ((ℕ × ℤ) × List (List ℤ × ℤ)))
+    (f : (ℕ × ℤ) × List (List ℤ × ℤ) → ℝ≥0∞) :
+    ∑' a : trAtoms n, s.indicator f a ≤ ∑' a : s, f a := by
+  rw [tsum_subtype s f]
+  exact ENNReal.tsum_comp_le_tsum_of_injective Subtype.val_injective _
+
+/-- **Bad atoms under the paid law.** With `ω = gap(e)` and `m ≥ D_bad`, `P_* ≤ ⌊n/2⌋` and
+`ω log 2 ≤ m log 9`, the paid fresh law of `Bad^e_m` satisfies `m^{A_*} μ̃_e(Bad^e_m) ≤ 1/8000`. -/
+theorem ofReal_rpow_mul_tsum_trBad_c3PaidLaw_le (ι : FIndex) {n : ℕ} {ξ : ResidueGroup n}
+    {e : ℤ × ℤ} {m : ℕ} (hm : (Dbad ι : ℝ) ≤ m) (hP : pStar ι ≤ n / 2)
+    (hω : ((trGap n ξ (epsStar : ℝ) e).toNat : ℝ) * log 2 ≤ m * log 9) :
+    ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) * ∑' a : trBad ι n e m, c3PaidLaw n ξ e a ≤
+      ENNReal.ofReal (1 / 8000) := by
+  set G := (trGap n ξ (epsStar : ℝ) e).toNat
+  have hm1 : 1 ≤ m := by
+    have h' : (2 : ℝ) ^ 43 ≤ (Dbad ι : ℝ) := by exact_mod_cast two_pow_43_le_Dbad ι
+    exact_mod_cast (show (1 : ℝ) ≤ m by linarith)
+  have hGm : (G : ℝ) ≤ 158497 / 50000 * m := by
+    have h2 : 0 < log 2 := log_pos (by norm_num)
+    have h9 : log 9 < 158497 / 50000 * log 2 := (div_lt_iff₀ h2).1 log_nine_div_log_two_lt
+    have : (0 : ℝ) ≤ m := Nat.cast_nonneg m
     nlinarith
-  have hκ := c3Case3_atom_le (trBad n e m) (trLow n ξ e) a (trFreshLaw_nonneg n e g a)
-    (Real.exp_pos _).le hE1 (Real.rpow_nonneg hD0.le _)
-    (Real.rpow_le_one_of_one_le_of_nonpos hD1 (neg_nonpos.2 hA0)) (Real.rpow_nonneg hmpos.le _)
-    hMM (fun hb ↦ rpow_neg_max_sub_le_of_notMem_trBad hm hA0 ha hb hrZ) rpow_Aexp_lt_ccont.le hη
-    exp_neg_zStar_mul_rpow_Aexp_lt.le hw0
-  calc trFreshLaw n e g a * E * chQ n ξ (epsStar : ℝ) y
-      ≤ trFreshLaw n e g a * E * (D ^ (-(Aexp : ℝ)) * chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1)) :=
-        mul_le_mul_of_nonneg_left hbd (mul_nonneg (trFreshLaw_nonneg n e g a) (Real.exp_pos _).le)
-    _ = trFreshLaw n e g a * E * D ^ (-(Aexp : ℝ)) * chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) := by
+  have hs := c3_bad_mass_summable ι e hm1 hP hGm
+  have hdom : ∑' a : trBad ι n e m, c3PaidLaw n ξ e a ≤
+      ENNReal.ofReal (∑' a : trBad ι n e m, trFreshLaw n e G a) := by
+    rw [ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ trFreshLaw_nonneg _ _ _ _) hs]
+    exact ENNReal.tsum_le_tsum fun a ↦
+      c3PaidLaw_le_ofReal_trFreshLaw (trGap_nonneg _ _ _ _) a
+  calc _ ≤ ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) *
+        ENNReal.ofReal (∑' a : trBad ι n e m, trFreshLaw n e G a) := by gcongr
+    _ = ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ) * ∑' a : trBad ι n e m, trFreshLaw n e G a) :=
+        (ENNReal.ofReal_mul (Real.rpow_nonneg (Nat.cast_nonneg _) _)).symm
+    _ ≤ _ := ENNReal.ofReal_le_ofReal (c3_bad_mass ι e hm hP hω).le
+
+/-- **The Case 3 budget**, in `[0, ∞]`: masses `b ≤ 1/8000`,
+`X ≤ Π_ad + q_mass η_{r_*} + 𝓔_sq + U_o + ε_init + q_mass (U_v + U_d + E_piece)` and
+`t ≤ q_mass` give `b + (c_cont - 1/P_W) X + t / P_W ≤ Bud(ι) ≤ 1`. -/
+theorem c3_budget_le_one (ι : FIndex) {b X t : ℝ≥0∞} (hb : b ≤ ENNReal.ofReal (1 / 8000))
+    (hX : X ≤ ENNReal.ofReal ((piAd ι : ℝ) + qMass * eventCoeff ι (rStar ι) + Esq ι + Uo ι +
+      epsInit ι + qMass * ((Uv ι : ℝ) + Ud ι + ePiece ι)))
+    (ht : t ≤ ENNReal.ofReal (qMass : ℝ)) :
+    b + ENNReal.ofReal ((ccont ι : ℝ) - 1 / (PW ι : ℝ)) * X + ENNReal.ofReal (1 / (PW ι : ℝ)) * t ≤
+      1 := by
+  have hPW : (0 : ℝ) < PW ι := by exact_mod_cast (PW_pos ι)
+  have hcw : (0 : ℝ) ≤ (ccont ι : ℝ) - 1 / (PW ι : ℝ) := by
+    exact_mod_cast (ccont_sub_inv_PW_pos ι).le
+  have hY : (0 : ℝ) ≤ (piAd ι : ℝ) + qMass * eventCoeff ι (rStar ι) + Esq ι + Uo ι + epsInit ι +
+      qMass * ((Uv ι : ℝ) + Ud ι + ePiece ι) := by
+    have h1 : (0 : ℝ) < piAd ι := by exact_mod_cast (piAd_pos ι)
+    have h2 : (0 : ℝ) < qMass := by exact_mod_cast qMass_pos
+    have h3 : (0 : ℝ) < eventCoeff ι (rStar ι) := by exact_mod_cast eventCoeff_pos ι (rStar ι)
+    have h4 : (0 : ℝ) < Esq ι := by exact_mod_cast (Esq_pos ι)
+    have h5 : (0 : ℝ) < Uo ι := by exact_mod_cast (Uo_pos ι)
+    have h6 : (0 : ℝ) < epsInit ι := by exact_mod_cast (epsInit_pos ι)
+    have h7 : (0 : ℝ) < Uv ι := by exact_mod_cast (Uv_pos ι)
+    have h8 : (0 : ℝ) < Ud ι := by exact_mod_cast (Ud_pos ι)
+    have h9 : (0 : ℝ) ≤ ePiece ι := by exact_mod_cast (ePiece_nonneg ι)
+    positivity
+  have hq : (0 : ℝ) ≤ qMass := by exact_mod_cast qMass_pos.le
+  calc _ ≤ ENNReal.ofReal (1 / 8000) + ENNReal.ofReal ((ccont ι : ℝ) - 1 / (PW ι : ℝ)) *
+        ENNReal.ofReal ((piAd ι : ℝ) + qMass * eventCoeff ι (rStar ι) + Esq ι + Uo ι + epsInit ι +
+          qMass * ((Uv ι : ℝ) + Ud ι + ePiece ι)) +
+          ENNReal.ofReal (1 / (PW ι : ℝ)) * ENNReal.ofReal (qMass : ℝ) := by
+        gcongr
+    _ = ENNReal.ofReal (Bud ι : ℝ) := by
+        rw [← ENNReal.ofReal_mul hcw, ← ENNReal.ofReal_mul (by positivity),
+          ← ENNReal.ofReal_add (by norm_num) (mul_nonneg hcw hY),
+          ← ENNReal.ofReal_add (by positivity) (by positivity), Bud_cast]
+        congr 1
+        norm_num
         ring
-    _ ≤ _ := mul_le_mul_of_nonneg_right hκ (chQm_nonneg _ _ _ _ _)
+    _ ≤ 1 := ENNReal.ofReal_le_one.2 (by exact_mod_cast (Bud_lt_one ι).le)
 
-/-- In Case 3 the fresh law gives the low-white non-bad atoms `L \ B` mass less than
-`X + 1 / P_T + 2^{-43}`. -/
-theorem tsum_trLow_diff_trBad_trFreshLaw_lt {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ)
-    {m : ℕ} (hmsc : (Dsc : ℝ) ≤ m) {e : ℤ × ℤ} (he : e ∈ bkPoints)
-    (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) {Δ : BkTriangle} (hΔ : Δ ∈ bkFamily n ξ (epsStar : ℝ))
-    (heΔ : e ∈ Δ) {g : ℕ} (hg : bkL e + g = Δ.l) (hgap : (m : ℝ) / Real.log m ^ 2 < g)
-    (hPN : pStar ≤ n / 2) :
-    ∑' a : ↥(trLow n ξ e \ trBad n e m), trFreshLaw n e g a <
-      (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar + 1 / 3360 + 1 / (PT : ℝ) +
-        (2 : ℝ) ^ (-43 : ℤ) := by
-  set X : ℝ := (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar + 1 / 3360 with hX_def
-  have hX0 : 0 ≤ X := by
-    have : (0 : ℝ) < Qpack := by exact_mod_cast Qpack_pos
-    positivity
-  have hPT : (0 : ℝ) ≤ 1 / (PT : ℝ) := by
-    have : (0 : ℝ) < PT := by exact_mod_cast PT_pos
-    positivity
-  have h : ∑' a : ↥(trLow n ξ e \ trBad n e m), ENNReal.ofReal (trFreshLaw n e g a) <
-      ENNReal.ofReal (X + 1 / (PT : ℝ) + (2 : ℝ) ^ (-43 : ℤ)) :=
-    calc _ ≤ ∑' a : trEStar n ξ e, ENNReal.ofReal (trFreshLaw n e g a) +
-          ENNReal.ofReal (1 / (PT : ℝ)) + ENNReal.ofReal ((2 : ℝ) ^ (-43 : ℤ)) :=
-          tsum_trLow_diff_trBad_trFreshLaw_le hξ he hje g hPN
-      _ < ENNReal.ofReal X + ENNReal.ofReal (1 / (PT : ℝ)) +
-          ENNReal.ofReal ((2 : ℝ) ^ (-43 : ℤ)) :=
-        ENNReal.add_lt_add_right ENNReal.ofReal_ne_top
-          (ENNReal.add_lt_add_right ENNReal.ofReal_ne_top
-            (tsum_trFreshLaw_trEStar_lt hξ hΔ heΔ hg hmsc hPN hgap))
-      _ = _ := by
-        rw [← ENNReal.ofReal_add hX0 hPT, ← ENNReal.ofReal_add (add_nonneg hX0 hPT)
-          (by positivity)]
-  have hs : Summable fun a : ↥(trLow n ξ e \ trBad n e m) ↦ trFreshLaw n e g a :=
-    (ENNReal.summable_toReal (h.trans_le le_top).ne).congr
-      fun a ↦ ENNReal.toReal_ofReal (trFreshLaw_nonneg n e g _)
-  rw [← ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ trFreshLaw_nonneg n e g _) hs] at h
-  exact (ENNReal.ofReal_lt_ofReal_iff'.1 h).1
-
-/-- The Case 3 budget: bounds `s_B < 1/8000`, `s_L < X + 1/P_T + 2^{-43}` and `s_A ≤ 1` on the
-three masses give `s_B + c s_L + s_A / P_W ≤ 1`. -/
-theorem c3_budget_le_one {sB sL sA : ℝ} (hB : sB < 1 / 8000)
-    (hL : sL < (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar + 1 / 3360 + 1 / (PT : ℝ) +
-      (2 : ℝ) ^ (-43 : ℤ)) (hA : sA ≤ 1) :
-    sB + (ccont : ℝ) * sL + 1 / (PW : ℝ) * sA ≤ 1 := by
-  have hw0 : (0 : ℝ) ≤ 1 / (PW : ℝ) := by
-    have : (0 : ℝ) < PW := by exact_mod_cast PW_pos
-    positivity
-  have hc : (ccont : ℝ) = 511 / 10 := ccont_cast
-  have hBud : (Bud : ℝ) < 1 := by exact_mod_cast Bud_lt_one
-  rw [Bud_cast] at hBud
-  rw [show (2 : ℝ) ^ (-43 : ℤ) = 1 / 2 ^ 43 by norm_num] at hL
-  have hcL := mul_le_mul_of_nonneg_left hL.le (by rw [hc]; norm_num : (0 : ℝ) ≤ ccont)
-  have hwA := mul_le_mul_of_nonneg_left hA hw0
-  rw [hc] at hcL hBud ⊢
-  generalize (2 + 272 * ((Hstar : ℝ) + 1) * Qpack) / Kstar = Y at *
-  rw [div_eq_mul_one_div (511 / 10 : ℝ) (PT : ℝ)] at hBud
-  generalize (1 : ℝ) / PT = t at *
-  generalize (1 : ℝ) / PW = u at *
-  linarith
-
-/-- The pointwise Case 3 bound: the continuation integrand on `𝒜_n` is at most
-`m^{-A} (m^A μ 1_B + c μ 1_{L \ B} + μ 1_{𝒜_n} / P_W) Q_{m-1}`. -/
-theorem trAtoms_indicator_le_rpow_mul_chQm {n : ℕ} {ξ : ResidueGroup n} {m : ℕ} (hm : 0 < m)
-    {e : ℤ × ℤ} (he : e ∈ bkPoints) (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) (g : ℕ)
-    (a : (ℕ × ℤ) × List (List ℤ × ℤ)) :
-    (trAtoms n).indicator (fun a ↦ trFreshLaw n e g a *
-        Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar - 1))) *
-        chQ n ξ (epsStar : ℝ) (trFreshPath e a pStar)) a ≤
-      (m : ℝ) ^ (-(Aexp : ℝ)) * ((m : ℝ) ^ (Aexp : ℝ) *
-        (trBad n e m).indicator (trFreshLaw n e g) a +
-        (ccont : ℝ) * (trLow n ξ e \ trBad n e m).indicator (trFreshLaw n e g) a +
-        1 / (PW : ℝ) * (trAtoms n).indicator (trFreshLaw n e g) a) *
-        chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) := by
-  have h1 := Set.indicator_nonneg (fun a _ ↦ trFreshLaw_nonneg n e g a) (s := trBad n e m) a
-  have h2 := Set.indicator_nonneg (fun a _ ↦ trFreshLaw_nonneg n e g a)
-    (s := trLow n ξ e \ trBad n e m) a
-  have h3 := Set.indicator_nonneg (fun a _ ↦ trFreshLaw_nonneg n e g a) (s := trAtoms n) a
-  have hQ := chQm_nonneg n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1)
-  have hc : (0 : ℝ) ≤ ccont := by exact_mod_cast ccont_pos.le
-  have hw : (0 : ℝ) < PW := by exact_mod_cast PW_pos
-  by_cases ha : a ∈ trAtoms n
-  swap
-  · rw [Set.indicator_of_notMem ha]
-    positivity
-  rw [Set.indicator_of_mem ha]
-  by_cases hμa : trFreshLaw n e g a = 0
-  · rw [hμa, zero_mul, zero_mul]
-    positivity
-  refine (trFreshLaw_mul_exp_mul_chQ_le_of_mem_trAtoms hm he hje ha hμa).trans_eq ?_
-  simp only [Set.indicator_of_mem ha]
-  rfl
-
-/-- In Case 3 the weighted fresh mass `m^A μ 1_B + c μ 1_{L \ B} + μ 1_{𝒜_n} / P_W` has total
-mass at most `1`. -/
-theorem exists_hasSum_c3_weight_le_one {n : ℕ} {ξ : ResidueGroup n} (hξ : IsResidueUnit ξ)
-    {m : ℕ} (hmsc : (Dsc : ℝ) ≤ m) (hmbad : (Dbad : ℝ) ≤ m) {e : ℤ × ℤ} (he : e ∈ bkPoints)
-    (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) {Δ : BkTriangle} (hΔ : Δ ∈ bkFamily n ξ (epsStar : ℝ))
-    (heΔ : e ∈ Δ) {g : ℕ} (hg : bkL e + g = Δ.l) (hgap : (m : ℝ) / Real.log m ^ 2 < g)
-    (hPN : pStar ≤ n / 2) :
-    ∃ s ≤ 1, HasSum (fun a ↦ (m : ℝ) ^ (Aexp : ℝ) * (trBad n e m).indicator (trFreshLaw n e g) a +
-      (ccont : ℝ) * (trLow n ξ e \ trBad n e m).indicator (trFreshLaw n e g) a +
-      1 / (PW : ℝ) * (trAtoms n).indicator (trFreshLaw n e g) a) s := by
-  set μ := trFreshLaw n e g
-  set S := trAtoms n
-  set B := trBad n e m
-  set L := trLow n ξ e
-  have hμ0 : ∀ a, 0 ≤ μ a := trFreshLaw_nonneg n e g
-  have hSμE := chQ_le_rpow_mul_chQm_of_gap_gt_tsum_le_one n e g
-  have hSμsub : Summable fun a : S ↦ μ a :=
-    (ENNReal.summable_toReal (hSμE.trans_lt ENNReal.one_lt_top).ne).congr
-      fun a ↦ ENNReal.toReal_ofReal (hμ0 _)
-  have hSμ : Summable (S.indicator μ) := (summable_subtype_iff_indicator).1 hSμsub
-  have hsubμ : ∀ {s : Set ((ℕ × ℤ) × List (List ℤ × ℤ))}, s ⊆ S → Summable (s.indicator μ) :=
-    fun hs ↦ Summable.of_nonneg_of_le (Set.indicator_nonneg fun a _ ↦ hμ0 a)
-      (Set.indicator_le_indicator_of_subset hs fun a ↦ hμ0 a) hSμ
-  have hBμ := hsubμ (s := B) (trBad_subset_trAtoms n e m)
-  have hLBμ := hsubμ (s := L \ B) fun a ha ↦ trLow_subset_trAtoms n ξ e ha.1
-  have hBad : (m : ℝ) ^ (Aexp : ℝ) * ∑' a, B.indicator μ a < 1 / 8000 := by
-    rw [← tsum_subtype]
-    exact c3_bad_mass e hmbad hPN
-      (chQ_le_rpow_mul_chQm_of_gap_gt_natCast_mul_log_two_le hξ hje hΔ heΔ hg)
-  have hLow : ∑' a, (L \ B).indicator μ a < _ := (tsum_subtype (L \ B) μ).symm.trans_lt
-    (tsum_trLow_diff_trBad_trFreshLaw_lt hξ hmsc he hje hΔ heΔ hg hgap hPN)
-  have hAll : ∑' a, S.indicator μ a ≤ 1 := by
-    rw [← tsum_subtype]
-    have hSeq : ∑' a : S, ENNReal.ofReal (μ a) = ENNReal.ofReal (∑' a : S, μ a) :=
-      (ENNReal.ofReal_tsum_of_nonneg (fun _ ↦ hμ0 _) hSμsub).symm
-    exact ENNReal.ofReal_le_one.1 (hSeq ▸ hSμE)
-  exact ⟨_, c3_budget_le_one hBad hLow hAll,
-    ((hBμ.hasSum.mul_left _).add (hLBμ.hasSum.mul_left _)).add (hSμ.hasSum.mul_left _)⟩
-
-/-- **Case 3 of the monotonicity step.** Let `ξ` be a unit and
-`m ∈ ℕ` with `m ≥ D_sc` and `m ≥ D_bad`. Let `e ∈ Δ` for some `Δ ∈ 𝔗_{n,ξ,ε_*}` with
-`j(e) + m = ⌊n/2⌋` and `l_Δ - l(e) > m / (log m)^2`. Then `Q(e) ≤ m^{-A_*} Q_{m-1}`, where
-`Q` and `Q_{m-1}` are formed with `ε = ε_*` and `A = A_*`. -/
+/-- Let `ι` be a Fourier index, `ξ` a unit and `m ∈ ℕ` with `m ≥ D_sc(ι)` and `m ≥ D_bad(ι)`.
+Let `e ∈ Δ` for some `Δ ∈ 𝔗_{n,ξ,ε_*}` with `j(e) + m = ⌊n/2⌋` and `gap(e) > ς(ι, m)`, the split
+level. Then `Q(e) ≤ m^{-A_*(ι)} Q_{m-1}`, where `Q` and `Q_{m-1}` are formed with `ε = ε_*` and
+`A = A_*(ι)`. -/
 @[collatz_pos_dens "lem_c3_case3"]
-theorem chQ_le_rpow_mul_chQm_of_gap_gt {n : ℕ} {ξ : ResidueGroup n}
-    (hξ : IsResidueUnit ξ) {m : ℕ} (hmsc : (Dsc : ℝ) ≤ m) (hmbad : (Dbad : ℝ) ≤ m)
+theorem chQ_le_rpow_mul_chQm_of_gap_gt (ι : FIndex) {n : ℕ} {ξ : ResidueGroup n}
+    (hξ : IsResidueUnit ξ) {m : ℕ} (hmsc : (Dsc ι : ℝ) ≤ m) (hmbad : (Dbad ι : ℝ) ≤ m)
     {e : ℤ × ℤ} (hje : bkJ e + m = ((n / 2 : ℕ) : ℤ)) {Δ : BkTriangle}
     (hΔ : Δ ∈ bkFamily n ξ (epsStar : ℝ)) (heΔ : e ∈ Δ)
-    (hgap : (m : ℝ) / Real.log m ^ 2 < ((Δ.l - bkL e : ℤ) : ℝ)) :
+    (hgap : gapSplit ι m < trGap n ξ (epsStar : ℝ) e) :
     chQ n ξ (epsStar : ℝ) e ≤
-      (m : ℝ) ^ (-(Aexp : ℝ)) * chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1) := by
+      (m : ℝ) ^ (-(Aexp ι : ℝ)) * chQm n ξ (epsStar : ℝ) (Aexp ι : ℝ) (m - 1) := by
   have he : e ∈ bkPoints := BkTriangle.mem_bkPoints_of_mem heΔ
-  obtain ⟨g, hg⟩ : ∃ g : ℕ, bkL e + g = Δ.l :=
-    ⟨(Δ.l - bkL e).toNat, by have := heΔ.2.1; omega⟩
-  rw [← hg, add_sub_cancel_left, Int.cast_natCast] at hgap
-  have hPN : pStar ≤ n / 2 := by
+  have hblack : BkBlack n ξ (epsStar : ℝ) e :=
+    (bkBlack_iff_exists_mem_bkFamily hξ epsStar_mem_bkRange.1 epsStar_mem_bkRange.2 he).2
+      ⟨Δ, hΔ, heΔ⟩
+  have hPm : pStar ι ≤ m := by exact_mod_cast pStar_le_of_Dsc_le ι hmsc
+  have hPN : pStar ι ≤ n / 2 := by
     have := mem_bkPoints.1 he
-    have : pStar ≤ m := by exact_mod_cast pStar_le_of_Dsc_le hmsc
     omega
   have hm1 : 1 ≤ m := by
-    have : Dsc ≤ m := by exact_mod_cast hmsc
-    have := two_le_Dsc
+    have : Dsc ι ≤ m := by exact_mod_cast hmsc
+    have := (two_le_Dsc ι)
     omega
-  obtain ⟨s, hs1, hR⟩ := exists_hasSum_c3_weight_le_one hξ hmsc hmbad he hje hΔ heΔ hg hgap hPN
-  set Mi : ℝ := (m : ℝ) ^ (-(Aexp : ℝ))
-  set Qm := chQm n ξ (epsStar : ℝ) (Aexp : ℝ) (m - 1)
-  set T : (ℕ × ℤ) × List (List ℤ × ℤ) → ℝ := fun a ↦ trFreshLaw n e g a *
-    Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar - 1))) *
-    chQ n ξ (epsStar : ℝ) (trFreshPath e a pStar)
-  have hRsum := (hR.mul_left Mi).mul_right Qm
-  have hpt := trAtoms_indicator_le_rpow_mul_chQm (ξ := ξ) hm1 he hje g
-  have hTsum : Summable ((trAtoms n).indicator T) :=
-    Summable.of_nonneg_of_le
-      (Set.indicator_nonneg fun a _ ↦ mul_nonneg
-        (mul_nonneg (trFreshLaw_nonneg n e g a) (Real.exp_pos _).le) (chQ_nonneg _ _ _ _))
-      hpt hRsum.summable
-  calc chQ n ξ (epsStar : ℝ) e ≤ ∑' a : trAtoms n, T a :=
-        chQ_le_tsum_trFreshLaw_mul_exp n ξ he g hPN
-    _ = ∑' a, (trAtoms n).indicator T a := tsum_subtype _ T
-    _ ≤ _ := hTsum.tsum_le_tsum hpt hRsum.summable
-    _ = Mi * s * Qm := hRsum.tsum_eq
-    _ ≤ Mi * 1 * Qm := mul_le_mul_of_nonneg_right
-          (mul_le_mul_of_nonneg_left hs1 (Real.rpow_nonneg (Nat.cast_nonneg _) _))
-          (chQm_nonneg _ _ _ _ _)
-    _ = Mi * Qm := by ring
+  -- the gap is at least `2^34`
+  have hω : (2 ^ 34 : ℤ) ≤ trGap n ξ (epsStar : ℝ) e := by
+    have hFar : (omegaFar ι : ℝ) < trGap n ξ (epsStar : ℝ) e :=
+      (omegaFar_le_gapSplit_of_Dsc_le ι hmsc).trans_lt hgap
+    have h1 : ((2 ^ 34 : ℕ) : ℝ) ≤ omegaFar ι := by
+      exact_mod_cast le_of_max_le_left (le_of_max_le_left (max_le_omegaFar ι))
+    have h2 : ((2 ^ 34 : ℤ) : ℝ) = ((2 ^ 34 : ℕ) : ℝ) := by norm_num
+    have : ((2 ^ 34 : ℤ) : ℝ) < trGap n ξ (epsStar : ℝ) e := by rw [h2]; linarith
+    exact_mod_cast this.le
+  set M := (m : ℝ) ^ (-(Aexp ι : ℝ))
+  set Qm := chQm n ξ (epsStar : ℝ) (Aexp ι : ℝ) (m - 1)
+  have hMQ : 0 ≤ M * Qm := mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _)
+    (chQm_nonneg _ _ _ _ _)
+  set B := trBad ι n e m
+  set LB := trLow ι n ξ e \ trBad ι n e m
+  set μ := c3PaidLaw n ξ e
+  set E : (ℕ × ℤ) × List (List ℤ × ℤ) → ℝ≥0∞ := fun a ↦
+    ENNReal.ofReal (Real.exp (-((zStar : ℝ) * trWhiteCount n ξ e a (pStar ι - 1))))
+  rw [← ENNReal.ofReal_le_ofReal_iff hMQ]
+  calc ENNReal.ofReal (chQ n ξ (epsStar : ℝ) e)
+      ≤ ∑' a : trAtoms n, ENNReal.ofReal (M * Qm) *
+          (ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) * B.indicator μ a +
+            ENNReal.ofReal ((ccont ι : ℝ) - 1 / (PW ι : ℝ)) * LB.indicator (fun a ↦ μ a * E a) a +
+            ENNReal.ofReal (1 / (PW ι : ℝ)) * μ a) :=
+        (chQ_le_tsum_trFreshLaw_mul_exp n ξ he hblack (one_le_pStar ι) hPN).trans_eq
+          (by simp only [neg_mul]) |>.trans (ENNReal.tsum_le_tsum fun a ↦
+          c3PaidLaw_mul_ofReal_exp_mul_chQ_le ι hm1 he hje a.2)
+    _ = ENNReal.ofReal (M * Qm) *
+          (ENNReal.ofReal ((m : ℝ) ^ (Aexp ι : ℝ)) * ∑' a : trAtoms n, B.indicator μ a +
+            ENNReal.ofReal ((ccont ι : ℝ) - 1 / (PW ι : ℝ)) *
+              ∑' a : trAtoms n, LB.indicator (fun a ↦ μ a * E a) a +
+            ENNReal.ofReal (1 / (PW ι : ℝ)) * ∑' a : trAtoms n, μ a) := by
+        rw [ENNReal.tsum_mul_left, ENNReal.tsum_add, ENNReal.tsum_add, ENNReal.tsum_mul_left,
+          ENNReal.tsum_mul_left, ENNReal.tsum_mul_left]
+    _ ≤ ENNReal.ofReal (M * Qm) * 1 := by
+        gcongr
+        refine c3_budget_le_one ι ?_ ?_ ?_
+        · exact (mul_le_mul_of_nonneg_left (tsum_trAtoms_indicator_le n B μ) zero_le).trans
+            (ofReal_rpow_mul_tsum_trBad_c3PaidLaw_le ι hmbad hPN
+              (natCast_trGap_toNat_mul_log_two_le hξ hje hΔ heΔ))
+        · exact (tsum_trAtoms_indicator_le n LB _).trans
+            (tsum_trFreshLaw_trEStar_lt ι hξ hΔ heΔ (by exact_mod_cast hmsc) hje hPN hgap)
+        · exact (tsum_trAtoms_c3PaidLaw_le n ξ e).trans
+            (tsum_c3PaidPassage_lt_qMass hξ he hblack hω).le
+    _ = _ := mul_one _
 
 end CollatzPosDens

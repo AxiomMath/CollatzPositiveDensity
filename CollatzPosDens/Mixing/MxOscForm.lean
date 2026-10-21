@@ -15,22 +15,22 @@ public import CollatzPosDens.Transfer.FxRefLawBounded
 # The oscillation form of the reference-density discrepancy
 
 For integers `0 ≤ m ≤ q`, the average discrepancy between the reference density `ρ_q` and the
-pulled-back coarser density `ρ_m ∘ π_{q,m}` is two thirds of the oscillation of the reference
-law at scale `m`:
-`⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = (2/3) Osc_{m,q}(μ_q)`.
-The key input is that, by `CollatzPosDens.sum_refLaw_residueReduction_eq`, the fibre average of
+pulled-back coarser density `ρ_m ∘ π_{q,m}` is the oscillation of the reference law at
+scale `m`:
+`⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = Osc_{m,q}(μ_q)`.
+The key input is that, by the pushforward identity for the reference law, the fibre average of
 `μ_q` is `Avg_{m,q} μ_q (y) = 3^{m-q} μ_m(π_{q,m} y)`.
 
 ## Main results
 
 * `CollatzPosDens.fiberAvg_refLaw`: `Avg_{m,q} μ_q (y) = 3^{m-q} μ_m(π_{q,m} y)`.
 * `CollatzPosDens.residueAvg_abs_refDensity_sub`:
-  `⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = (2/3) Osc_{m,q}(μ_q)`.
+  `⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = Osc_{m,q}(μ_q)`.
 
 ## Implementation notes
 
 The reference law takes values in `[0, ∞]`; it enters the oscillation through
-`ENNReal.toReal`, as in `CollatzPosDens.refDensity`. Since every weight is at most one, this loses
+`ENNReal.toReal`, as in the reference density. Since every weight is at most one, this loses
 nothing.
 
 ## References
@@ -51,18 +51,17 @@ theorem fiberAvg_refLaw {m q : ℕ} (h : m ≤ q) (y : ResidueGroup q) :
   rw [fiberAvg, ← ENNReal.toReal_sum fun y _ => refLaw_ne_top q y, sum_refLaw_residueReduction_eq]
 
 /-- **Oscillation form.** For `m ≤ q`,
-`⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = (2/3) Osc_{m,q}(μ_q)`. -/
+`⟨|ρ_q - ρ_m ∘ π_{q,m}|⟩_q = Osc_{m,q}(μ_q)`. -/
 @[collatz_pos_dens "lem_mx_osc_form"]
 theorem residueAvg_abs_refDensity_sub {m q : ℕ} (h : m ≤ q) :
     residueAvg q (fun y => |refDensity q y - refDensity m (residueReduction h y)|) =
-      2 / 3 * oscillation h (fun y => (refLaw q y).toReal) := by
+      oscillation h (fun y => (refLaw q y).toReal) := by
   have h3 : (3 : ℝ) ^ m = 3 ^ q * (3 : ℝ) ^ ((m : ℤ) - q) := by
     rw [← zpow_natCast, ← zpow_natCast, ← zpow_add₀ (by norm_num), add_sub_cancel]
-  rw [residueAvg_def, oscillation, mul_sum, mul_sum]
+  rw [residueAvg_def, oscillation, mul_sum]
   refine sum_congr rfl fun y _ => ?_
-  rw [fiberAvg_refLaw, refDensity, refDensity, h3, mul_assoc, mul_assoc, mul_assoc, ← mul_sub,
-    ← mul_sub, abs_mul, abs_mul, abs_of_pos (by positivity : (0 : ℝ) < 3 ^ q),
-    abs_of_pos (by norm_num : (0 : ℝ) < 2 / 3)]
+  rw [fiberAvg_refLaw, refDensity, refDensity, h3, mul_assoc, ← mul_sub,
+    abs_mul, abs_of_pos (by positivity : (0 : ℝ) < 3 ^ q)]
   field_simp
 
 end CollatzPosDens

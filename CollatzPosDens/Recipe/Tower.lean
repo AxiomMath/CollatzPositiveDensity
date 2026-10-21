@@ -25,10 +25,10 @@ For natural numbers `k` and `t`, the tower `tow_k(t)` is defined by `tow_0(t) = 
 * `CollatzPosDens.tower_zero`, `CollatzPosDens.tower_succ`: the defining recursion.
 * `CollatzPosDens.tower_add`: `tow_{k+m}(t) = tow_k(tow_m(t))`.
 * `CollatzPosDens.tower_eq_iterate`: `tow_k` is the `k`-th iterate of `t ↦ 2 ^ t`.
-* `CollatzPosDens.tower_strictMono_right`: strict monotonicity in the top `t`.
+* `CollatzPosDens.tower_strictMono`: strict monotonicity in the top `t`.
 * `CollatzPosDens.tower_lt_tower_succ`, `CollatzPosDens.tower_strictMono_left`,
   `CollatzPosDens.le_tower`: monotonicity in the height `k`.
-* `CollatzPosDens.lt_tower_succ_of_logb_lt`: for real `y > 0`,
+* `CollatzPosDens.lt_tower_succ_of_logb_lt`: one exponentiation step of a tower bridge,
   `log₂ y < tow_k(t) → y < tow_{k+1}(t)`.
 
 ## Implementation notes
@@ -38,7 +38,7 @@ from an arbitrary top `t`, so it is defined directly by structural recursion on 
 
 ## References
 
-* [Mazur, *Collatz positive density*]
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -69,8 +69,8 @@ theorem tower_eq_iterate (k t : ℕ) : tower k t = (fun n : ℕ => 2 ^ n)^[k] t 
 theorem tower_add (k m t : ℕ) : tower (k + m) t = tower k (tower m t) := by
   simp only [tower_eq_iterate, Function.iterate_add_apply]
 
-/-- For each fixed height `k`, `t ↦ tow_k(t)` is strictly monotone. -/
-theorem tower_strictMono_right (k : ℕ) : StrictMono (tower k) := by
+/-- Each `tow_k` is strictly monotone. -/
+theorem tower_strictMono (k : ℕ) : StrictMono (tower k) := by
   induction k with
   | zero => exact strictMono_id
   | succ k ih => exact fun a b h => Nat.pow_lt_pow_right Nat.one_lt_two (ih h)
@@ -87,7 +87,8 @@ theorem tower_strictMono_left (t : ℕ) : StrictMono (tower · t) :=
 theorem le_tower (k t : ℕ) : t ≤ tower k t :=
   (tower_strictMono_left t).monotone (Nat.zero_le k)
 
-/-- For real `y > 0`, if `log₂ y < tow_k(t)`, then `y < tow_{k+1}(t)`. -/
+/-- One exponentiation step of a tower bridge: if `y > 0` and `log₂ y < tow_k(t)`, then
+`y < tow_{k+1}(t)`. -/
 theorem lt_tower_succ_of_logb_lt {y : ℝ} (hy : 0 < y) {k t : ℕ}
     (h : Real.logb 2 y < (tower k t : ℝ)) : y < (tower (k + 1) t : ℝ) := by
   rw [Real.logb_lt_iff_lt_rpow (by norm_num) hy, Real.rpow_natCast] at h

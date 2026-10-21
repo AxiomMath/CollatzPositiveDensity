@@ -31,20 +31,18 @@ finite; it is defined here as a `Finset`, so that sums over it make sense.
 
 * `CollatzPosDens.mem_firstPassageWords`: membership in `𝒟_s(r, ℓ)` is exactly the four
   conditions of the definition.
-* `CollatzPosDens.firstPassageWords_last_mem`: the last letter of a word in `𝒟_s(r+1, ℓ)`
-  lies in `{4, 5}`.
 
 ## Implementation notes
 
 A word of length `r` is a function `Fin r → ℤ`, letter `c_i` being `c ⟨i - 1, _⟩`; the prefix sum
-`c₁ + ⋯ + c_i` is `∑ j ∈ Iic ⟨i - 1, _⟩, c j`. In [mazur2026] the set `𝒟_s(r, ℓ)` is defined
-only for `r ≥ 1`; here `r` is any natural number, the condition on the last letter being stated as
-"the letter of index `r` lies in `{4, 5}`". For `r = 0` this is vacuous, so `𝒟_s(0, ℓ)` consists
-of the empty word when `ℓ = 0` and is empty otherwise.
+`c₁ + ⋯ + c_i` is `∑ j ∈ Iic ⟨i - 1, _⟩, c j`. In [mazur2026] `𝒟_s(r, ℓ)` is defined only for
+`r ≥ 1`; here `r` is any natural number, the condition on the last letter being stated as "the
+letter of index `r` lies in `{4, 5}`". For `r = 0` this is vacuous, so `𝒟_s(0, ℓ)` consists of the
+empty word when `ℓ = 0` and is empty otherwise.
 
 ## References
 
-* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026], §6.4
+* [Mazur, *Explicit Positive-Density Collatz Convergence in Logarithmic Time*][mazur2026]
 -/
 
 @[expose] public section
@@ -89,11 +87,6 @@ theorem firstPassageWords_sum_eq {s r : ℕ} {ℓ : ℤ} {c : Fin r → ℤ}
 theorem firstPassageWords_mem_Icc {s r : ℕ} {ℓ : ℤ} {c : Fin r → ℤ}
     (hc : c ∈ firstPassageWords s r ℓ) (i : Fin r) : c i ∈ Icc 2 ℓ :=
   Fintype.mem_piFinset.1 (mem_filter.1 hc).1 i
-
-/-- The last letter of a word in `𝒟_s(r+1, ℓ)` lies in `{4, 5}`. -/
-theorem firstPassageWords_last_mem {s r : ℕ} {ℓ : ℤ} {c : Fin (r + 1) → ℤ}
-    (hc : c ∈ firstPassageWords s (r + 1) ℓ) : c (Fin.last r) ∈ ({4, 5} : Set ℤ) :=
-  (mem_firstPassageWords.1 hc).2.1 _ (by simp)
 
 /-- In a word of `𝒟_s(r, ℓ)`, an earlier letter in `{4, 5}` ends a prefix of sum at most `s`. -/
 theorem firstPassageWords_prefix_le {s r : ℕ} {ℓ : ℤ} {c : Fin r → ℤ}
